@@ -23,3 +23,15 @@ export async function signOut() {
   await supabase.auth.signOut();
   redirect("/login");
 }
+
+export async function resetPassword(formData: FormData) {
+  const supabase = createClient();
+  const email = formData.get("email") as string;
+
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/reset-senha`,
+  });
+
+  if (error) return { error: "Não foi possível enviar o e-mail. Verifique o endereço." };
+  return { success: true };
+}
