@@ -71,9 +71,9 @@ const TEMPLATES = [
 const PALETTES = [
   { id: "sage", label: "Sage & Champagne", colors: ["#7A8C6A", "#EDE4D0", "#1C2018"] },
   { id: "blush", label: "Blush & Dourado", colors: ["#D4A5A5", "#F5F0E8", "#8B6914"] },
-  { id: "navy", label: "Azul Marinho", colors: ["#1B2A4A", "#E8EEF5", "#C9A96E"] },
-  { id: "terracotta", label: "Terracota", colors: ["#C4704A", "#F5EDE8", "#4A3728"] },
-  { id: "lavender", label: "Lavanda", colors: ["#8B7FB8", "#F0EEF8", "#2D2140"] },
+  { id: "azul-marinho", label: "Azul Marinho", colors: ["#1B2A4A", "#E8EEF5", "#C9A96E"] },
+  { id: "terracota", label: "Terracota", colors: ["#C4704A", "#F5EDE8", "#4A3728"] },
+  { id: "lavanda", label: "Lavanda", colors: ["#8B7FB8", "#F0EEF8", "#2D2140"] },
   { id: "custom", label: "Personalizada", colors: [] },
 ];
 
