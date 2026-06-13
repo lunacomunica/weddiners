@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { FORMA_PAGAMENTO_LABELS, type FormaPagamento, type Fornecedor, type Parcela } from "./fornecedoresData";
-import { setPaymentMethod, createInstallment, toggleInstallmentPaid, deleteInstallment } from "./actions";
+import { setPaymentMethod, createInstallment, toggleInstallmentPaid, deleteInstallment, updateInstallment } from "./actions";
 
 type Props = {
   fornecedor: Fornecedor;
@@ -21,6 +21,8 @@ export function PaymentModal({ fornecedor, onClose, onUpdate }: Props) {
   const [formaPagamento, setFormaPagamento] = useState<FormaPagamento | "">(fornecedor.formaPagamento ?? "");
   const [savingMethod, setSavingMethod] = useState(false);
   const [gerando, setGerando] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editForm, setEditForm] = useState<{ valor: number; vencimento: string }>({ valor: 0, vencimento: "" });
 
   // Gerador
   const [entrada, setEntrada] = useState({ valor: 0, data: "" });
@@ -59,6 +61,17 @@ export function PaymentModal({ fornecedor, onClose, onUpdate }: Props) {
       p.id === id ? { ...p, pago: next, pagoEm: next ? new Date().toISOString().slice(0, 10) : undefined } : p
     ));
     await toggleInstallmentPaid(id, next);
+  }
+
+  function startEdit(p: Parcela) {
+    setEditingId(p.id);
+    setEditForm({ valor: p.valor, vencimento: p.vencimento });
+  }
+
+  async function handleSaveEdit(id: string) {
+    await updateInstallment(id, editForm);
+    setParcelas(prev => prev.map(p => p.id === id ? { ...p, valor: editForm.valor, vencimento: editForm.vencimento } : p));
+    setEditingId(null);
   }
 
   async function handleDelete(id: string) {
@@ -338,7 +351,44 @@ export function PaymentModal({ fornecedor, onClose, onUpdate }: Props) {
                   .sort((a, b) => a.vencimento.localeCompare(b.vencimento))
                   .map((p, idx) => {
                     const vencido = !p.pago && p.vencimento < hoje;
-                    const isEntrada = idx === 0 && parcelas.sort((a, b) => a.vencimento.localeCompare(b.vencimento))[0]?.id === p.id && parcelas.length > 1;
+                    const isEntrada = idx === 0 && parcelas.length > 1;
+                    const isEditing = editingId === p.id;
+
+                    if (isEditing) {
+                      return (
+                        <div key={p.id} className="rounded-xl border-2 border-sage/40 bg-sage/5 px-4 py-3 space-y-3">
+                          <p className="text-xs font-semibold text-neutral-600">{isEntrada ? "Entrada" : `Parcela ${p.numero}`} — editando</p>
+                          <div className="grid grid-cols-2 gap-3">
+                            <div>
+                              <label className="block text-xs text-neutral-500 mb-1">Valor (R$)</label>
+                              <input
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                value={editForm.valor || ""}
+                                onChange={e => setEditForm(f => ({ ...f, valor: parseFloat(e.target.value) || 0 }))}
+                                className="w-full border border-neutral-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sage/30 focus:border-sage"
+                                autoFocus
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-xs text-neutral-500 mb-1">Vencimento</label>
+                              <input
+                                type="date"
+                                value={editForm.vencimento}
+                                onChange={e => setEditForm(f => ({ ...f, vencimento: e.target.value }))}
+                                className="w-full border border-neutral-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sage/30 focus:border-sage"
+                              />
+                            </div>
+                          </div>
+                          <div className="flex gap-2">
+                            <button onClick={() => handleSaveEdit(p.id)} className="btn-primary text-xs px-4 py-1.5">Salvar</button>
+                            <button onClick={() => setEditingId(null)} className="text-xs text-neutral-500 hover:text-neutral-700 px-3 py-1.5">Cancelar</button>
+                          </div>
+                        </div>
+                      );
+                    }
+
                     return (
                       <div
                         key={p.id}
@@ -363,13 +413,9 @@ export function PaymentModal({ fornecedor, onClose, onUpdate }: Props) {
 
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <span className="text-xs text-neutral-400">
-                              {isEntrada ? "Entrada" : `Parcela ${p.numero}`}
-                            </span>
+                            <span className="text-xs text-neutral-400">{isEntrada ? "Entrada" : `Parcela ${p.numero}`}</span>
                             {vencido && <span className="text-xs text-red-500 font-medium">Vencida</span>}
-                            {p.pago && p.pagoEm && (
-                              <span className="text-xs text-emerald-500">pago em {fmtDate(p.pagoEm)}</span>
-                            )}
+                            {p.pago && p.pagoEm && <span className="text-xs text-emerald-500">pago em {fmtDate(p.pagoEm)}</span>}
                           </div>
                           <p className={["text-sm font-semibold", p.pago ? "text-emerald-700 line-through" : vencido ? "text-red-600" : "text-neutral-800"].join(" ")}>
                             R$ {fmt(p.valor)}
@@ -381,8 +427,20 @@ export function PaymentModal({ fornecedor, onClose, onUpdate }: Props) {
                         </p>
 
                         <button
+                          onClick={() => startEdit(p)}
+                          className="p-1 text-neutral-300 hover:text-sage transition-colors shrink-0"
+                          title="Editar"
+                        >
+                          <svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" strokeLinecap="round" strokeLinejoin="round"/>
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" strokeLinecap="round" strokeLinejoin="round"/>
+                          </svg>
+                        </button>
+
+                        <button
                           onClick={() => handleDelete(p.id)}
                           className="p-1 text-neutral-300 hover:text-red-400 transition-colors shrink-0"
+                          title="Remover"
                         >
                           <svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                             <path d="M18 6L6 18M6 6l12 12" strokeLinecap="round" strokeLinejoin="round"/>

@@ -260,6 +260,22 @@ export async function createInstallment(vendorId: string, data: {
   return { success: true, id: row?.id };
 }
 
+export async function updateInstallment(id: string, data: { valor: number; vencimento: string }) {
+  const supabase = createClient();
+  const coupleId = await getCoupleId();
+  if (!coupleId) return { error: "Não autorizado" };
+
+  const { error } = await supabase
+    .from("vendor_payments")
+    .update({ amount: data.valor, due_date: data.vencimento })
+    .eq("id", id)
+    .eq("couple_id", coupleId);
+
+  if (error) return { error: error.message };
+  revalidatePath("/fornecedores");
+  return { success: true };
+}
+
 export async function toggleInstallmentPaid(id: string, paid: boolean) {
   const supabase = createClient();
   const coupleId = await getCoupleId();
