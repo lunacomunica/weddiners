@@ -32,6 +32,8 @@ export function FornecedorModal({ fornecedor, onSave, onClose }: Props) {
       valorContratado: form.valorContratado,
       contratoUrl: form.contratoUrl,
       orcamentos: fornecedor?.orcamentos ?? [],
+      formaPagamento: fornecedor?.formaPagamento,
+      parcelas: fornecedor?.parcelas ?? [],
     });
   }
 

@@ -7,6 +7,7 @@ import {
 } from "./fornecedoresData";
 import { FornecedorModal } from "./FornecedorModal";
 import { OrcamentosModal } from "./OrcamentosModal";
+import { PaymentModal } from "./PaymentModal";
 import { createVendor, updateVendor, deleteVendor } from "./actions";
 
 type FilterStatus = "todos" | StatusFornecedor;
@@ -17,6 +18,7 @@ export function FornecedoresView({ initialFornecedores }: { initialFornecedores:
   const [filterCat, setFilterCat] = useState<string>("todos");
   const [modalFornecedor, setModalFornecedor] = useState<{ open: boolean; fornecedor?: Fornecedor }>({ open: false });
   const [modalOrcamentos, setModalOrcamentos] = useState<{ open: boolean; fornecedor?: Fornecedor }>({ open: false });
+  const [modalPagamentos, setModalPagamentos] = useState<{ open: boolean; fornecedor?: Fornecedor }>({ open: false });
 
   const totalContratado = fornecedores
     .filter(f => f.status === "contratado")
@@ -159,6 +161,7 @@ export function FornecedoresView({ initialFornecedores }: { initialFornecedores:
               onEdit={() => setModalFornecedor({ open: true, fornecedor: f })}
               onDelete={() => handleDelete(f.id)}
               onOrcamentos={() => setModalOrcamentos({ open: true, fornecedor: f })}
+              onPagamentos={() => setModalPagamentos({ open: true, fornecedor: f })}
             />
           ))}
         </div>
@@ -182,22 +185,39 @@ export function FornecedoresView({ initialFornecedores }: { initialFornecedores:
           }}
         />
       )}
+
+      {modalPagamentos.open && modalPagamentos.fornecedor && (
+        <PaymentModal
+          fornecedor={modalPagamentos.fornecedor}
+          onClose={() => setModalPagamentos({ open: false })}
+          onUpdate={updated => {
+            setFornecedores(prev => prev.map(f => f.id === updated.id ? updated : f));
+            setModalPagamentos({ open: false });
+          }}
+        />
+      )}
     </div>
   );
 }
 
 function FornecedorCard({
   fornecedor: f,
-  onEdit, onDelete, onOrcamentos,
+  onEdit, onDelete, onOrcamentos, onPagamentos,
 }: {
   fornecedor: Fornecedor;
   onEdit: () => void;
   onDelete: () => void;
   onOrcamentos: () => void;
+  onPagamentos: () => void;
 }) {
   const cat = CATEGORIAS_FORNECEDOR.find(c => c.id === f.categoria);
   const status = STATUS_CONFIG[f.status];
   const melhorOrc = f.orcamentos.find(o => o.escolhido) ?? f.orcamentos[0];
+  const parcelas = f.parcelas ?? [];
+  const pagas = parcelas.filter(p => p.pago).length;
+  const pendente = parcelas.filter(p => !p.pago).reduce((s, p) => s + p.valor, 0);
+  const hoje = new Date().toISOString().slice(0, 10);
+  const temVencido = parcelas.some(p => !p.pago && p.vencimento < hoje);
 
   return (
     <div className="bg-white rounded-2xl border border-neutral-200 flex flex-col overflow-hidden hover:shadow-sm transition-shadow">
@@ -273,6 +293,35 @@ function FornecedorCard({
           </div>
         )}
 
+        {/* Resumo de pagamentos */}
+        {f.status === "contratado" && parcelas.length > 0 && (
+          <div
+            onClick={onPagamentos}
+            className={["rounded-lg px-3 py-2.5 text-xs cursor-pointer hover:opacity-80 transition-opacity", temVencido ? "bg-red-50" : "bg-neutral-50"].join(" ")}
+          >
+            <div className="flex items-center justify-between">
+              <span className={temVencido ? "text-red-500 font-medium" : "text-neutral-500"}>
+                {temVencido ? "⚠️ Parcela vencida" : `💳 ${pagas}/${parcelas.length} parcelas pagas`}
+              </span>
+              {pendente > 0 && (
+                <span className="font-semibold text-amber-700">
+                  R$ {pendente.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} pendente
+                </span>
+              )}
+              {pendente === 0 && pagas > 0 && (
+                <span className="font-semibold text-emerald-600">Quitado ✓</span>
+              )}
+            </div>
+            {/* Barra de progresso */}
+            <div className="mt-2 h-1 bg-neutral-200 rounded-full overflow-hidden">
+              <div
+                className="h-full rounded-full bg-emerald-500 transition-all"
+                style={{ width: `${parcelas.length > 0 ? (pagas / parcelas.length) * 100 : 0}%` }}
+              />
+            </div>
+          </div>
+        )}
+
         {/* Notes */}
         {f.notas && (
           <p className="text-xs text-neutral-400 italic line-clamp-2">{f.notas}</p>
@@ -292,17 +341,31 @@ function FornecedorCard({
         )}
       </div>
 
-      {/* Footer action */}
-      <button
-        onClick={onOrcamentos}
-        className="border-t border-neutral-100 px-5 py-3 text-xs font-medium text-sage hover:bg-neutral-50 transition-colors flex items-center justify-center gap-1.5"
-      >
-        <svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-          <path d="M12 2H2v10l9.29 9.29a1 1 0 0 0 1.41 0l6.3-6.3a1 1 0 0 0 0-1.41z" strokeLinecap="round" strokeLinejoin="round"/>
-          <circle cx="7" cy="7" r="2"/>
-        </svg>
-        Ver orçamentos ({f.orcamentos.length})
-      </button>
+      {/* Footer actions */}
+      <div className="border-t border-neutral-100 flex divide-x divide-neutral-100">
+        <button
+          onClick={onOrcamentos}
+          className="flex-1 px-3 py-3 text-xs font-medium text-sage hover:bg-neutral-50 transition-colors flex items-center justify-center gap-1.5"
+        >
+          <svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+            <path d="M12 2H2v10l9.29 9.29a1 1 0 0 0 1.41 0l6.3-6.3a1 1 0 0 0 0-1.41z" strokeLinecap="round" strokeLinejoin="round"/>
+            <circle cx="7" cy="7" r="2"/>
+          </svg>
+          Orçamentos ({f.orcamentos.length})
+        </button>
+        {f.status === "contratado" && (
+          <button
+            onClick={onPagamentos}
+            className={["flex-1 px-3 py-3 text-xs font-medium hover:bg-neutral-50 transition-colors flex items-center justify-center gap-1.5", temVencido ? "text-red-500" : "text-moss"].join(" ")}
+          >
+            <svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <rect x="1" y="4" width="22" height="16" rx="2" ry="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M1 10h22" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+            Pagamentos{parcelas.length > 0 ? ` (${pagas}/${parcelas.length})` : ""}
+          </button>
+        )}
+      </div>
     </div>
   );
 }

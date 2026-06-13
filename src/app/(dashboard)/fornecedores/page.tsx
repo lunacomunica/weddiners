@@ -16,10 +16,10 @@ export default async function FornecedoresPage() {
     .single();
   if (!couple) redirect("/login");
 
-  const [{ data: vendors }, { data: quotes }] = await Promise.all([
+  const [{ data: vendors }, { data: quotes }, { data: payments }] = await Promise.all([
     supabase
       .from("vendors")
-      .select("id, name, category, status, contact_name, phone, site, notes, contracted_value, contract_url")
+      .select("id, name, category, status, contact_name, phone, site, notes, contracted_value, contract_url, payment_method")
       .eq("couple_id", couple.id)
       .order("created_at", { ascending: false }),
     supabase
@@ -27,6 +27,11 @@ export default async function FornecedoresPage() {
       .select("id, vendor_id, title, value, includes, valid_until, chosen")
       .eq("couple_id", couple.id)
       .order("created_at", { ascending: true }),
+    supabase
+      .from("vendor_payments")
+      .select("id, vendor_id, installment_number, amount, due_date, paid, paid_at")
+      .eq("couple_id", couple.id)
+      .order("due_date", { ascending: true }),
   ]);
 
   // Total comprometido = soma dos fornecedores contratados
@@ -54,6 +59,17 @@ export default async function FornecedoresPage() {
         inclui: q.includes ?? "",
         validade: q.valid_until ?? "",
         escolhido: q.chosen,
+      })),
+    formaPagamento: v.payment_method ?? undefined,
+    parcelas: (payments ?? [])
+      .filter(p => p.vendor_id === v.id)
+      .map(p => ({
+        id: p.id,
+        numero: p.installment_number,
+        valor: Number(p.amount),
+        vencimento: p.due_date,
+        pago: p.paid,
+        pagoEm: p.paid_at ? p.paid_at.slice(0, 10) : undefined,
       })),
   }));
 

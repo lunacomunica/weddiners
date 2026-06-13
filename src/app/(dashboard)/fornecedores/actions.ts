@@ -217,6 +217,75 @@ export async function updateTotalBudget(totalBudget: number) {
   return { success: true };
 }
 
+// ─── Payments / Parcelas ────────────────────────────────────────────────────
+
+export async function setPaymentMethod(vendorId: string, formaPagamento: string) {
+  const supabase = createClient();
+  const coupleId = await getCoupleId();
+  if (!coupleId) return { error: "Não autorizado" };
+
+  const { error } = await supabase
+    .from("vendors")
+    .update({ payment_method: formaPagamento, updated_at: new Date().toISOString() })
+    .eq("id", vendorId)
+    .eq("couple_id", coupleId);
+
+  if (error) return { error: error.message };
+  revalidatePath("/fornecedores");
+  return { success: true };
+}
+
+export async function createInstallment(vendorId: string, data: {
+  numero: number; valor: number; vencimento: string;
+}) {
+  const supabase = createClient();
+  const coupleId = await getCoupleId();
+  if (!coupleId) return { error: "Não autorizado" };
+
+  const { data: row, error } = await supabase
+    .from("vendor_payments")
+    .insert({
+      vendor_id: vendorId,
+      couple_id: coupleId,
+      installment_number: data.numero,
+      amount: data.valor,
+      due_date: data.vencimento,
+      paid: false,
+    })
+    .select("id")
+    .single();
+
+  if (error) return { error: error.message };
+  revalidatePath("/fornecedores");
+  return { success: true, id: row?.id };
+}
+
+export async function toggleInstallmentPaid(id: string, paid: boolean) {
+  const supabase = createClient();
+  const coupleId = await getCoupleId();
+  if (!coupleId) return { error: "Não autorizado" };
+
+  const { error } = await supabase
+    .from("vendor_payments")
+    .update({ paid, paid_at: paid ? new Date().toISOString() : null })
+    .eq("id", id)
+    .eq("couple_id", coupleId);
+
+  if (error) return { error: error.message };
+  revalidatePath("/fornecedores");
+  return { success: true };
+}
+
+export async function deleteInstallment(id: string) {
+  const supabase = createClient();
+  const coupleId = await getCoupleId();
+  if (!coupleId) return { error: "Não autorizado" };
+
+  await supabase.from("vendor_payments").delete().eq("id", id).eq("couple_id", coupleId);
+  revalidatePath("/fornecedores");
+  return { success: true };
+}
+
 export async function deleteQuote(id: string) {
   const supabase = createClient();
   const coupleId = await getCoupleId();

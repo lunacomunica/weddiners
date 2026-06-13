@@ -1,5 +1,26 @@
 export type StatusFornecedor = "avaliando" | "contratado" | "descartado";
 
+export type FormaPagamento = "pix" | "ted" | "cartao_credito" | "cartao_debito" | "dinheiro" | "boleto" | "cheque";
+
+export const FORMA_PAGAMENTO_LABELS: Record<FormaPagamento, string> = {
+  pix:            "Pix",
+  ted:            "TED / Transferência",
+  cartao_credito: "Cartão de Crédito",
+  cartao_debito:  "Cartão de Débito",
+  dinheiro:       "Dinheiro",
+  boleto:         "Boleto",
+  cheque:         "Cheque",
+};
+
+export type Parcela = {
+  id: string;
+  numero: number;
+  valor: number;
+  vencimento: string; // "2025-06-15"
+  pago: boolean;
+  pagoEm?: string;
+};
+
 export type Orcamento = {
   id: string;
   titulo: string;
@@ -22,6 +43,8 @@ export type Fornecedor = {
   valorContratado?: number;
   contratoUrl?: string;
   orcamentos: Orcamento[];
+  formaPagamento?: FormaPagamento;
+  parcelas: Parcela[];
 };
 
 export const CATEGORIAS_FORNECEDOR = [
@@ -59,6 +82,7 @@ export const FAKE_FORNECEDORES: Fornecedor[] = [
       { id: "o1", titulo: "Pacote Básico (sáb)", valor: 28000, inclui: "Salão principal, mesas, cadeiras, estacionamento", validade: "2025-06-01", escolhido: true },
       { id: "o2", titulo: "Pacote Completo (sáb)", valor: 35000, inclui: "Tudo no básico + iluminação cênica + gerador", validade: "2025-06-01", escolhido: false },
     ],
+    parcelas: [],
   },
   {
     id: "2",
@@ -71,6 +95,7 @@ export const FAKE_FORNECEDORES: Fornecedor[] = [
     orcamentos: [
       { id: "o3", titulo: "Menu Jantar 200 pessoas", valor: 42000, inclui: "Entrada, prato principal, sobremesa, open bar 6h", validade: "2025-04-15", escolhido: false },
     ],
+    parcelas: [],
   },
   {
     id: "3",
@@ -84,6 +109,7 @@ export const FAKE_FORNECEDORES: Fornecedor[] = [
     orcamentos: [
       { id: "o4", titulo: "Pacote Completo", valor: 8500, inclui: "12h de cobertura, álbum 30 fotos, entrega em 90 dias", validade: "2025-05-01", escolhido: true },
     ],
+    parcelas: [],
   },
   {
     id: "4",
@@ -95,6 +121,7 @@ export const FAKE_FORNECEDORES: Fornecedor[] = [
     orcamentos: [
       { id: "o5", titulo: "Cerimônia + Festa", valor: 3200, inclui: "Cerimônia acústica + DJ 5h na festa + equipamento", validade: "2025-04-30", escolhido: false },
     ],
+    parcelas: [],
   },
   {
     id: "5",
@@ -107,5 +134,6 @@ export const FAKE_FORNECEDORES: Fornecedor[] = [
     orcamentos: [
       { id: "o6", titulo: "Decoração Completa", valor: 18000, inclui: "Altar, mesas, entrada e buquê", validade: "2025-03-01", escolhido: false },
     ],
+    parcelas: [],
   },
 ];
