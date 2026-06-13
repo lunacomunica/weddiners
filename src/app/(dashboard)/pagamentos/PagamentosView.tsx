@@ -20,13 +20,13 @@ type Props = {
   pagamentos: Pagamento[];
   totalBudget: number | null;
   totalContratado: number;
-  totalPago: number;
-  totalPendente: number;
+  totalPago?: number;
+  totalPendente?: number;
 };
 
 const MESES = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
 
-export function PagamentosView({ pagamentos: initial, totalBudget, totalContratado, totalPago: initPago, totalPendente: initPendente }: Props) {
+export function PagamentosView({ pagamentos: initial, totalBudget, totalContratado }: Props) {
   const [pagamentos, setPagamentos] = useState<Pagamento[]>(initial);
   const [filtroStatus, setFiltroStatus] = useState<"todos" | "pendente" | "pago" | "vencido">("todos");
   const [filtroMes, setFiltroMes] = useState<string>("todos");
