@@ -50,7 +50,7 @@ export default function ResetSenhaPage() {
 
       <div className="relative z-10 w-full max-w-md">
         <div className="text-center mb-8">
-          <h1 className="font-display text-5xl text-white tracking-wide drop-shadow-lg">Weddiners</h1>
+          <img src="/logo.png" alt="Weddiners" className="h-16 w-auto mx-auto drop-shadow-lg" />
         </div>
 
         <div className="bg-white/20 backdrop-blur-md rounded-2xl p-8 shadow-2xl border border-white/30">
