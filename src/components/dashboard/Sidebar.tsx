@@ -119,9 +119,6 @@ const navItems = [
   },
 ];
 
-// Bottom nav items (most used, for mobile)
-const bottomNavItems = navItems.slice(0, 5);
-
 export function Sidebar() {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
