@@ -1,9 +1,11 @@
 import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
+import { cookies } from "next/headers";
 import { Classico } from "./templates/Classico";
 import { Romantico } from "./templates/Romantico";
 import { Moderno } from "./templates/Moderno";
 import { Rustico } from "./templates/Rustico";
+import { PasswordGate } from "./PasswordGate";
 import type { TemplateConfig } from "./templates/types";
 
 export default async function WeddingPage({ params }: { params: { slug: string } }) {
@@ -11,11 +13,20 @@ export default async function WeddingPage({ params }: { params: { slug: string }
 
   const { data: couple } = await supabase
     .from("couples")
-    .select("id, slug, bride_name, groom_name, partner1_name, partner2_name, wedding_date, wedding_location")
+    .select("id, slug, bride_name, groom_name, partner1_name, partner2_name, wedding_date, wedding_location, site_password_enabled, site_password, translations_enabled, translation_languages")
     .eq("slug", params.slug)
     .single();
 
   if (!couple) notFound();
+
+  // Password gate
+  if (couple.site_password_enabled && couple.site_password) {
+    const cookieStore = cookies();
+    const unlocked = cookieStore.get(`weddiners-unlock-${params.slug}`)?.value === "1";
+    if (!unlocked) {
+      return <PasswordGate slug={params.slug} couple={{ partner1_name: couple.partner1_name, partner2_name: couple.partner2_name }} />;
+    }
+  }
 
   const [{ data: config }, { data: messagesData }] = await Promise.all([
     supabase.from("site_configs").select("*").eq("couple_id", couple.id).single(),
@@ -48,6 +59,8 @@ export default async function WeddingPage({ params }: { params: { slug: string }
     showDirections: config?.show_directions === true,
     showMessages: config?.show_messages === true,
     palette: config?.palette ?? null,
+    translationsEnabled: !!couple.translations_enabled,
+    translationLanguages: (couple.translation_languages as string[]) ?? [],
     sectionOrder: (() => {
       try { return JSON.parse(config?.section_order ?? "null") ?? ["about","rsvp","gifts","dresscode","schedule","directions","messages"]; }
       catch { return ["about","rsvp","gifts","dresscode","schedule","directions","messages"]; }

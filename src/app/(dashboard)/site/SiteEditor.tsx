@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
 import { QRCodeDisplay } from "@/components/QRCodeDisplay";
 import { SectionsEditor, DEFAULT_ORDER } from "./SectionsEditor";
-import { updateSiteConfig, updateCoupleInfo, updateAppearance } from "./actions";
+import { updateSiteConfig, updateCoupleInfo, updateAppearance, updateSiteSettings } from "./actions";
 
 type SectionId = "about" | "rsvp" | "gifts" | "dresscode" | "schedule" | "directions" | "messages";
 
@@ -39,7 +39,22 @@ interface Couple {
   wedding_date: string | null;
   wedding_location: string | null;
   slug: string;
+  site_password_enabled?: boolean | null;
+  site_password?: string | null;
+  translations_enabled?: boolean | null;
+  translation_languages?: string[] | null;
 }
+
+const LANGUAGES = [
+  { code: "en", label: "Inglês", flag: "🇺🇸" },
+  { code: "es", label: "Espanhol", flag: "🇪🇸" },
+  { code: "fr", label: "Francês", flag: "🇫🇷" },
+  { code: "it", label: "Italiano", flag: "🇮🇹" },
+  { code: "de", label: "Alemão", flag: "🇩🇪" },
+  { code: "ja", label: "Japonês", flag: "🇯🇵" },
+  { code: "zh-CN", label: "Chinês", flag: "🇨🇳" },
+  { code: "ar", label: "Árabe", flag: "🇸🇦" },
+];
 
 const TEMPLATES = [
   {
@@ -83,7 +98,7 @@ function parseCustomPalette(palette: string | null): [string, string, string] {
   return [parts[1] ?? "#7A8C6A", parts[2] ?? "#EDE4D0", parts[3] ?? "#1C2018"];
 }
 
-type Tab = "aparencia" | "conteudo" | "secoes";
+type Tab = "aparencia" | "conteudo" | "secoes" | "configuracoes";
 
 export function SiteEditor({ config, couple, plan = "free" }: { config: SiteConfig; couple: Couple; plan?: "free" | "pro" }) {
   const [tab, setTab] = useState<Tab>("aparencia");
@@ -150,10 +165,36 @@ export function SiteEditor({ config, couple, plan = "free" }: { config: SiteConf
     setSavingCouple(false);
   }
 
+  // Settings state
+  const [pwEnabled, setPwEnabled] = useState(!!couple.site_password_enabled);
+  const [pwValue, setPwValue] = useState(couple.site_password ?? "");
+  const [pwShow, setPwShow] = useState(false);
+  const [transEnabled, setTransEnabled] = useState(!!couple.translations_enabled);
+  const [transLangs, setTransLangs] = useState<string[]>(couple.translation_languages ?? []);
+  const [savingSettings, setSavingSettings] = useState(false);
+  const [settingsSaved, setSettingsSaved] = useState(false);
+
+  function toggleLang(code: string) {
+    setTransLangs(prev => prev.includes(code) ? prev.filter(l => l !== code) : [...prev, code]);
+  }
+
+  async function handleSaveSettings() {
+    setSavingSettings(true);
+    const result = await updateSiteSettings({
+      passwordEnabled: pwEnabled,
+      password: pwValue,
+      translationsEnabled: transEnabled,
+      translationLanguages: transLangs,
+    });
+    if (!result?.error) { setSettingsSaved(true); setTimeout(() => setSettingsSaved(false), 2000); refreshPreview(); }
+    setSavingSettings(false);
+  }
+
   const tabs: { id: Tab; label: string }[] = [
     { id: "aparencia", label: "Aparência" },
     { id: "conteudo", label: "Conteúdo" },
     { id: "secoes", label: "Seções" },
+    { id: "configuracoes", label: "Configurações" },
   ];
 
   return (
@@ -552,6 +593,103 @@ export function SiteEditor({ config, couple, plan = "free" }: { config: SiteConf
             />
           );
         })()}
+
+        {tab === "configuracoes" && (
+          <div className="space-y-4">
+
+            {/* Senha de acesso */}
+            <div className="bg-white rounded-2xl border border-neutral-200 p-6">
+              <div className="flex items-start justify-between gap-4 mb-4">
+                <div>
+                  <h3 className="font-semibold text-neutral-800 text-sm">🔒 Senha de acesso</h3>
+                  <p className="text-xs text-neutral-500 mt-0.5">Os convidados precisarão digitar a senha para acessar o site.</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setPwEnabled(v => !v)}
+                  className={["relative inline-flex h-6 w-11 shrink-0 rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none", pwEnabled ? "bg-sage" : "bg-neutral-200"].join(" ")}
+                >
+                  <span className={["pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow transform ring-0 transition duration-200 ease-in-out", pwEnabled ? "translate-x-5" : "translate-x-0"].join(" ")} />
+                </button>
+              </div>
+              {pwEnabled && (
+                <div>
+                  <label className="block text-xs font-medium text-neutral-600 mb-1.5">Senha do site</label>
+                  <div className="flex gap-2">
+                    <div className="relative flex-1">
+                      <input
+                        type={pwShow ? "text" : "password"}
+                        value={pwValue}
+                        onChange={e => setPwValue(e.target.value)}
+                        placeholder="Crie uma senha para o site"
+                        className="w-full border border-neutral-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-sage/30 focus:border-sage pr-10"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setPwShow(v => !v)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600"
+                      >
+                        {pwShow
+                          ? <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24" strokeLinecap="round" strokeLinejoin="round"/><line x1="1" y1="1" x2="23" y2="23" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                          : <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" strokeLinecap="round" strokeLinejoin="round"/><circle cx="12" cy="12" r="3" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                        }
+                      </button>
+                    </div>
+                  </div>
+                  <p className="text-xs text-neutral-400 mt-1.5">Compartilhe a senha junto com o link do site.</p>
+                </div>
+              )}
+            </div>
+
+            {/* Traduções */}
+            <div className="bg-white rounded-2xl border border-neutral-200 p-6">
+              <div className="flex items-start justify-between gap-4 mb-4">
+                <div>
+                  <h3 className="font-semibold text-neutral-800 text-sm">🌐 Traduções</h3>
+                  <p className="text-xs text-neutral-500 mt-0.5">Adiciona um botão no site para os convidados traduzirem para outros idiomas.</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setTransEnabled(v => !v)}
+                  className={["relative inline-flex h-6 w-11 shrink-0 rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none", transEnabled ? "bg-sage" : "bg-neutral-200"].join(" ")}
+                >
+                  <span className={["pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow transform ring-0 transition duration-200 ease-in-out", transEnabled ? "translate-x-5" : "translate-x-0"].join(" ")} />
+                </button>
+              </div>
+              {transEnabled && (
+                <div>
+                  <p className="text-xs font-medium text-neutral-600 mb-3">Idiomas disponíveis para os convidados</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    {LANGUAGES.map(lang => (
+                      <button
+                        key={lang.code}
+                        type="button"
+                        onClick={() => toggleLang(lang.code)}
+                        className={["flex items-center gap-2 px-3 py-2 rounded-lg border text-sm transition-all", transLangs.includes(lang.code) ? "border-sage bg-sage/5 text-sage font-medium" : "border-neutral-200 text-neutral-600 hover:border-neutral-300"].join(" ")}
+                      >
+                        <span>{lang.flag}</span>
+                        <span>{lang.label}</span>
+                        {transLangs.includes(lang.code) && <svg className="ml-auto" width="12" height="12" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+                      </button>
+                    ))}
+                  </div>
+                  {transLangs.length === 0 && (
+                    <p className="text-xs text-amber-500 mt-2">Selecione pelo menos um idioma.</p>
+                  )}
+                </div>
+              )}
+            </div>
+
+            <button
+              type="button"
+              onClick={handleSaveSettings}
+              disabled={savingSettings || (transEnabled && transLangs.length === 0)}
+              className="btn-primary w-full py-3 disabled:opacity-40"
+            >
+              {savingSettings ? "Salvando..." : settingsSaved ? "✓ Salvo!" : "Salvar configurações"}
+            </button>
+          </div>
+        )}
 
         {/* Compartilhar */}
         <div className="mt-8 bg-white rounded-lg border p-6" style={{ borderColor: "rgba(13,10,11,0.08)" }}>

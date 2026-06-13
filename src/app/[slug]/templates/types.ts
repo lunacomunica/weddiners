@@ -20,6 +20,8 @@ export interface TemplateConfig {
   showMessages: boolean;
   sectionOrder: string[];
   palette: string | null;
+  translationsEnabled: boolean;
+  translationLanguages: string[];
 }
 
 export interface TemplateProps {

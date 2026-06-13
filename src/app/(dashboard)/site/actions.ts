@@ -128,6 +128,33 @@ export async function updateSections(
   return { success: true };
 }
 
+export async function updateSiteSettings(data: {
+  passwordEnabled: boolean;
+  password: string;
+  translationsEnabled: boolean;
+  translationLanguages: string[];
+}) {
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: "Não autorizado" };
+
+  const { error } = await supabase
+    .from("couples")
+    .update({
+      site_password_enabled: data.passwordEnabled,
+      site_password: data.passwordEnabled && data.password.trim() ? data.password.trim() : null,
+      translations_enabled: data.translationsEnabled,
+      translation_languages: data.translationLanguages,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("user_id", user.id);
+
+  if (error) return { error: error.message };
+
+  revalidatePath("/site");
+  return { success: true };
+}
+
 export async function updateCoupleInfo(formData: FormData) {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();

@@ -2,6 +2,7 @@ import { CountdownClient } from "../CountdownClient";
 import { renderSections } from "./sections";
 import type { TemplateProps } from "./types";
 import { getPaletteTheme } from "./palettes";
+import { TranslationWidget } from "../TranslationWidget";
 
 type Messages = { id: string; guest_name: string; message: string; created_at: string }[];
 
@@ -63,6 +64,10 @@ export function Rustico({ config, slug, messages = [] }: TemplateProps & { messa
       <footer className="py-8 text-center text-xs tracking-widest uppercase" style={{ color: p.footerColor, opacity: 0.5 }}>
         Feito com amor · Weddiners
       </footer>
+
+      {config.translationsEnabled && config.translationLanguages.length > 0 && (
+        <TranslationWidget languages={config.translationLanguages} />
+      )}
     </div>
   );
 }
