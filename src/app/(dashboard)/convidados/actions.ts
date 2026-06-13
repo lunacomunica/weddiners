@@ -108,3 +108,29 @@ export async function importGuestsFromCSV(rows: { name: string; email?: string; 
   revalidatePath("/convidados");
   return { count: inserts.length };
 }
+
+// ─── Guest Groups ────────────────────────────────────────────────────────────
+
+export async function createGuestGroup(name: string) {
+  const { supabase, coupleId } = await getCoupleId();
+  const { data, error } = await supabase
+    .from("guest_groups")
+    .insert({ couple_id: coupleId, name })
+    .select("id, name, token")
+    .single();
+  if (error) return { error: error.message };
+  revalidatePath("/convidados");
+  return { success: true, group: data };
+}
+
+export async function deleteGuestGroup(id: string) {
+  const { supabase, coupleId } = await getCoupleId();
+  await supabase.from("guest_groups").delete().eq("id", id).eq("couple_id", coupleId);
+  revalidatePath("/convidados");
+}
+
+export async function assignGuestToGroup(guestId: string, groupId: string | null) {
+  const { supabase, coupleId } = await getCoupleId();
+  await supabase.from("guests").update({ group_id: groupId }).eq("id", guestId).eq("couple_id", coupleId);
+  revalidatePath("/convidados");
+}
