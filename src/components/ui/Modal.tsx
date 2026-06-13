@@ -43,12 +43,12 @@ export function Modal({ open, onClose, title, children, size = "md" }: ModalProp
     >
       <div
         className={[
-          "bg-white rounded-lg shadow-2xl w-full animate-in fade-in zoom-in-95 duration-200",
+          "bg-white rounded-lg shadow-2xl w-full animate-in fade-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]",
           sizeClasses[size],
         ].join(" ")}
       >
         {title && (
-          <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-noir/7">
+          <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-noir/7 shrink-0">
             <h2 className="font-display text-2xl text-noir">{title}</h2>
             <button
               onClick={onClose}
@@ -61,7 +61,7 @@ export function Modal({ open, onClose, title, children, size = "md" }: ModalProp
             </button>
           </div>
         )}
-        <div className="p-6">{children}</div>
+        <div className="p-6 overflow-y-auto">{children}</div>
       </div>
     </div>
   );
