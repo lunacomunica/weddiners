@@ -143,7 +143,7 @@ export function Sidebar() {
     <>
       {/* ── Mobile top bar ── */}
       <header className="md:hidden fixed top-0 left-0 right-0 z-50 h-14 sidebar-texture flex items-center justify-between px-4 border-b border-white/10">
-        <img src="/logo.png" alt="Weddiners" className="h-10 w-auto" />
+        <img src="/logo.png" alt="Weddiners" className="h-14 w-auto" />
         <button
           onClick={() => setMobileOpen(o => !o)}
           className="text-white/70 hover:text-white p-1.5 rounded-md"
