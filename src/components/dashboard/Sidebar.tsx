@@ -58,6 +58,16 @@ const navItems = [
     ),
   },
   {
+    href: "/pagamentos",
+    label: "Pagamentos",
+    icon: (
+      <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+        <rect x="1" y="4" width="22" height="16" rx="2" ry="2" strokeLinecap="round" strokeLinejoin="round"/>
+        <path d="M1 10h22" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+    ),
+  },
+  {
     href: "/fornecedores",
     label: "Fornecedores",
     icon: (
