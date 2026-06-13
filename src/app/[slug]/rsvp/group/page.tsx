@@ -170,36 +170,39 @@ function GroupRsvpForm({ slug }: { slug: string }) {
 
             <div className="space-y-3">
               {guests.map(g => (
-                <div key={g.id} className={["rounded-xl border p-4 transition-all", checked[g.id] ? "border-sage bg-sage/5" : "border-neutral-200"].join(" ")}>
-                  <label className="flex items-center gap-3 cursor-pointer">
-                    <div
-                      onClick={() => setChecked(prev => ({ ...prev, [g.id]: !prev[g.id] }))}
-                      className={["w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-all cursor-pointer", checked[g.id] ? "bg-sage border-sage" : "border-neutral-300 hover:border-sage"].join(" ")}
-                    >
+                <div
+                  key={g.id}
+                  onClick={() => setChecked(prev => ({ ...prev, [g.id]: !prev[g.id] }))}
+                  className={["rounded-xl border p-4 transition-all cursor-pointer select-none", checked[g.id] ? "border-emerald-400 bg-emerald-50/60" : "border-neutral-200 hover:border-neutral-300"].join(" ")}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={["w-7 h-7 rounded-full flex items-center justify-center shrink-0 transition-all", checked[g.id] ? "bg-emerald-500" : "border-2 border-neutral-300"].join(" ")}>
                       {checked[g.id] && (
-                        <svg width="12" height="12" fill="none" stroke="white" strokeWidth={2.5} viewBox="0 0 24 24">
+                        <svg width="14" height="14" fill="none" stroke="white" strokeWidth={2.5} viewBox="0 0 24 24">
                           <path d="M20 6L9 17l-5-5" strokeLinecap="round" strokeLinejoin="round"/>
                         </svg>
                       )}
                     </div>
                     <div className="flex-1">
-                      <p className="font-body font-medium text-noir text-sm">{g.name}</p>
+                      <p className={["font-body font-medium text-sm transition-colors", checked[g.id] ? "text-emerald-800" : "text-noir"].join(" ")}>{g.name}</p>
                       <p className="text-xs text-smoke font-body">
                         {g.guest_type === "crianca" ? `👶 Criança${g.child_age != null ? ` · ${g.child_age} anos` : ""}` : "🧑 Adulto"}
                       </p>
                     </div>
-                    {checked[g.id] && <span className="text-xs text-sage font-medium">✓ Vai!</span>}
-                  </label>
+                    {checked[g.id] && (
+                      <span className="text-xs font-semibold text-emerald-600 bg-emerald-100 px-2 py-0.5 rounded-full">Vai! 🎉</span>
+                    )}
+                  </div>
 
                   {/* Campo de restrição alimentar por pessoa, visível quando confirmado */}
                   {checked[g.id] && (
-                    <div className="mt-3 pl-9">
+                    <div className="mt-3 pl-10" onClick={e => e.stopPropagation()}>
                       <input
                         type="text"
                         placeholder="Restrição alimentar (opcional)"
                         value={dietaries[g.id] ?? ""}
                         onChange={e => setDietaries(prev => ({ ...prev, [g.id]: e.target.value }))}
-                        className="w-full text-xs border border-neutral-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sage/30 focus:border-sage font-body"
+                        className="w-full text-xs border border-emerald-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-200 focus:border-emerald-400 font-body bg-white"
                       />
                     </div>
                   )}
