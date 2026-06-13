@@ -91,7 +91,7 @@ export function OrcamentosModal({ fornecedor, onClose, onUpdate }: Props) {
             <p className="text-center py-8 text-neutral-400 text-sm">Nenhum orçamento cadastrado ainda.</p>
           )}
 
-          {orcamentos.map((o, idx) => {
+          {orcamentos.map((o, _idx) => {
             const isCheapest = orcamentos.length > 1 && o.valor === totalMin;
             const isMostExpensive = orcamentos.length > 1 && o.valor === totalMax;
 
