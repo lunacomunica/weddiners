@@ -123,9 +123,11 @@ export function FornecedorModal({ fornecedor, onSave, onClose }: Props) {
                 <label className="block text-xs font-medium text-neutral-600 mb-1">Valor contratado (R$)</label>
                 <input
                   type="number"
+                  step="0.01"
+                  min="0"
                   value={form.valorContratado ?? ""}
-                  onChange={e => set("valorContratado", Number(e.target.value))}
-                  placeholder="0"
+                  onChange={e => set("valorContratado", parseFloat(parseFloat(e.target.value).toFixed(2)) || 0)}
+                  placeholder="0,00"
                   className="w-full border border-neutral-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-sage/30 focus:border-sage"
                 />
               </div>

@@ -76,7 +76,11 @@ export function FornecedoresView({ initialFornecedores }: { initialFornecedores:
         </div>
         <div className="bg-white rounded-xl border border-neutral-200 px-5 py-4">
           <p className="text-2xl font-semibold text-neutral-800 font-display">
-            {totalContratado > 0 ? `R$ ${(totalContratado / 1000).toFixed(0)}k` : "—"}
+            {totalContratado > 0
+              ? totalContratado >= 1000
+                ? `R$ ${(totalContratado / 1000).toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })}k`
+                : `R$ ${totalContratado.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+              : "—"}
           </p>
           <p className="text-xs text-neutral-500 mt-0.5">Total contratado</p>
         </div>
@@ -260,7 +264,7 @@ function FornecedorCard({
             <div className="flex items-center justify-between">
               <span className="text-neutral-500">{melhorOrc.escolhido ? "Valor contratado" : "Melhor orçamento"}</span>
               <span className="font-semibold text-neutral-800">
-                R$ {melhorOrc.valor.toLocaleString("pt-BR")}
+                R$ {melhorOrc.valor.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </span>
             </div>
             {f.orcamentos.length > 1 && (
