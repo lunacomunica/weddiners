@@ -29,6 +29,7 @@ export async function createGuest(formData: FormData) {
     }
   }
 
+  const guestType = formData.get("guest_type") as string || "adulto";
   const { error } = await supabase.from("guests").insert({
     couple_id: coupleId,
     name: formData.get("name") as string,
@@ -36,8 +37,10 @@ export async function createGuest(formData: FormData) {
     phone: formData.get("phone") as string || null,
     group_name: formData.get("group_name") as string || null,
     table_number: formData.get("table_number") ? Number(formData.get("table_number")) : null,
-    adults: Number(formData.get("adults") ?? 1),
-    children: Number(formData.get("children") ?? 0),
+    adults: guestType === "adulto" ? 1 : 0,
+    children: guestType === "crianca" ? 1 : 0,
+    guest_type: guestType,
+    child_age: guestType === "crianca" && formData.get("child_age") ? Number(formData.get("child_age")) : null,
     dietary_restrictions: formData.get("dietary_restrictions") as string || null,
     notes: formData.get("notes") as string || null,
   });
@@ -49,6 +52,7 @@ export async function createGuest(formData: FormData) {
 export async function updateGuest(id: string, formData: FormData) {
   const { supabase, coupleId } = await getCoupleId();
 
+  const guestType = formData.get("guest_type") as string || "adulto";
   const { error } = await supabase
     .from("guests")
     .update({
@@ -57,8 +61,10 @@ export async function updateGuest(id: string, formData: FormData) {
       phone: formData.get("phone") as string || null,
       group_name: formData.get("group_name") as string || null,
       table_number: formData.get("table_number") ? Number(formData.get("table_number")) : null,
-      adults: Number(formData.get("adults") ?? 1),
-      children: Number(formData.get("children") ?? 0),
+      adults: guestType === "adulto" ? 1 : 0,
+      children: guestType === "crianca" ? 1 : 0,
+      guest_type: guestType,
+      child_age: guestType === "crianca" && formData.get("child_age") ? Number(formData.get("child_age")) : null,
       dietary_restrictions: formData.get("dietary_restrictions") as string || null,
       notes: formData.get("notes") as string || null,
       updated_at: new Date().toISOString(),

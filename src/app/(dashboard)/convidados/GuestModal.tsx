@@ -16,6 +16,8 @@ interface Guest {
   table_number: number | null;
   adults: number;
   children: number;
+  guest_type: "adulto" | "crianca" | null;
+  child_age: number | null;
   dietary_restrictions: string | null;
   notes: string | null;
   rsvp_status: string;
@@ -30,6 +32,7 @@ interface GuestModalProps {
 export function GuestModal({ open, onClose, guest }: GuestModalProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [guestType, setGuestType] = useState<"adulto" | "crianca">(guest?.guest_type === "crianca" ? "crianca" : "adulto");
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -58,10 +61,39 @@ export function GuestModal({ open, onClose, guest }: GuestModalProps) {
           <Input label="Mesa nº" name="table_number" type="number" min="1" defaultValue={guest?.table_number ?? ""} placeholder="1" />
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <Input label="Adultos" name="adults" type="number" min="1" defaultValue={guest?.adults ?? 1} />
-          <Input label="Crianças" name="children" type="number" min="0" defaultValue={guest?.children ?? 0} />
+        {/* Tipo de convidado */}
+        <div>
+          <label className="block text-sm font-body font-medium text-noir mb-2">Tipo de convidado</label>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => setGuestType("adulto")}
+              className={["flex-1 py-2.5 rounded-xl border text-sm font-medium font-body transition-all", guestType === "adulto" ? "bg-sage/10 border-sage text-moss" : "border-neutral-200 text-neutral-500 hover:border-neutral-300"].join(" ")}
+            >
+              🧑 Adulto
+            </button>
+            <button
+              type="button"
+              onClick={() => setGuestType("crianca")}
+              className={["flex-1 py-2.5 rounded-xl border text-sm font-medium font-body transition-all", guestType === "crianca" ? "bg-sage/10 border-sage text-moss" : "border-neutral-200 text-neutral-500 hover:border-neutral-300"].join(" ")}
+            >
+              👶 Criança
+            </button>
+          </div>
+          <input type="hidden" name="guest_type" value={guestType} />
         </div>
+
+        {guestType === "crianca" && (
+          <Input
+            label="Idade da criança"
+            name="child_age"
+            type="number"
+            min="0"
+            max="17"
+            defaultValue={guest?.child_age ?? ""}
+            placeholder="Ex: 5"
+          />
+        )}
 
         <Input label="Restrições alimentares" name="dietary_restrictions" defaultValue={guest?.dietary_restrictions ?? ""} placeholder="Vegetariano, sem glúten..." />
         <Textarea label="Observações" name="notes" defaultValue={guest?.notes ?? ""} placeholder="Observações internas..." rows={2} />

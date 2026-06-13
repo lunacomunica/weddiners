@@ -20,6 +20,8 @@ interface Guest {
   notes: string | null;
   rsvp_status: string;
   save_the_date_status: "nao_enviado" | "enviado" | "visualizado";
+  guest_type: "adulto" | "crianca" | null;
+  child_age: number | null;
 }
 
 const statusMap = {
@@ -93,7 +95,11 @@ export function GuestsList({ guests, slug }: { guests: Guest[]; slug: string }) 
                 <tr key={guest.id} className={`border-b border-noir/5 hover:bg-ivory/60 transition-colors ${i === guests.length - 1 ? "border-0" : ""}`}>
                   <td className="px-4 py-3">
                     <p className="font-body text-sm font-medium text-noir">{guest.name}</p>
-                    {guest.email && <p className="font-body text-xs text-smoke">{guest.email}</p>}
+                    <p className="font-body text-xs text-smoke">
+                      {guest.guest_type === "crianca"
+                        ? `👶 Criança${guest.child_age != null ? ` · ${guest.child_age} anos` : ""}`
+                        : guest.email ?? ""}
+                    </p>
                   </td>
                   <td className="px-4 py-3 hidden md:table-cell">
                     <p className="font-body text-sm text-smoke">{guest.group_name ?? "—"}</p>
