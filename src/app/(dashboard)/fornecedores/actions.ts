@@ -128,6 +128,31 @@ export async function updateVendor(id: string, data: {
   return { success: true };
 }
 
+export async function uploadContract(vendorId: string, formData: FormData) {
+  const supabase = createClient();
+  const coupleId = await getCoupleId();
+  if (!coupleId) return { error: "Não autorizado" };
+
+  const file = formData.get("file") as File;
+  if (!file) return { error: "Arquivo não encontrado" };
+
+  const ext = file.name.split(".").pop();
+  const path = `${coupleId}/${vendorId}/contrato.${ext}`;
+
+  const { error: uploadError } = await supabase.storage
+    .from("contracts")
+    .upload(path, file, { upsert: true });
+
+  if (uploadError) return { error: uploadError.message };
+
+  const { data: { publicUrl } } = supabase.storage.from("contracts").getPublicUrl(path);
+
+  await supabase.from("vendors").update({ contract_url: publicUrl }).eq("id", vendorId).eq("couple_id", coupleId);
+
+  revalidatePath("/fornecedores");
+  return { success: true, url: publicUrl };
+}
+
 export async function deleteVendor(id: string) {
   const supabase = createClient();
   const coupleId = await getCoupleId();

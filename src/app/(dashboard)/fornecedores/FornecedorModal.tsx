@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useCallback } from "react";
 import { CATEGORIAS_FORNECEDOR, STATUS_CONFIG, type Fornecedor, type StatusFornecedor } from "./fornecedoresData";
+import { uploadContract } from "./actions";
 
 type Props = {
   fornecedor?: Fornecedor;
@@ -12,6 +13,37 @@ type Props = {
 export function FornecedorModal({ fornecedor, onSave, onClose }: Props) {
   const isEditing = !!fornecedor;
   const [form, setForm] = useState<Partial<Fornecedor>>(fornecedor ?? { orcamentos: [], status: "avaliando" });
+  const [dragOver, setDragOver] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFile = useCallback(async (file: File) => {
+    if (!fornecedor?.id) {
+      setUploadError("Salve o fornecedor primeiro para anexar o contrato.");
+      return;
+    }
+    const allowed = ["application/pdf", "image/jpeg", "image/png", "image/webp"];
+    if (!allowed.includes(file.type)) {
+      setUploadError("Apenas PDF ou imagens (JPG, PNG).");
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      setUploadError("Arquivo muito grande. Máximo 10 MB.");
+      return;
+    }
+    setUploading(true);
+    setUploadError("");
+    const fd = new FormData();
+    fd.append("file", file);
+    const result = await uploadContract(fornecedor.id, fd);
+    if (result?.error) {
+      setUploadError(result.error);
+    } else if (result?.url) {
+      set("contratoUrl", result.url);
+    }
+    setUploading(false);
+  }, [fornecedor?.id]);
 
   function set(field: keyof Fornecedor, value: unknown) {
     setForm(prev => ({ ...prev, [field]: value }));
@@ -146,18 +178,67 @@ export function FornecedorModal({ fornecedor, onSave, onClose }: Props) {
               />
             </div>
 
-            {/* Contract upload placeholder */}
+            {/* Contract upload */}
             <div className="col-span-2">
               <label className="block text-xs font-medium text-neutral-600 mb-1">Contrato</label>
-              <div className="border-2 border-dashed border-neutral-200 rounded-lg px-4 py-6 text-center hover:border-sage/40 transition-colors cursor-pointer">
-                <svg className="mx-auto mb-2 text-neutral-300" width="24" height="24" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" strokeLinecap="round" strokeLinejoin="round"/>
-                  <polyline points="17 8 12 3 7 8" strokeLinecap="round" strokeLinejoin="round"/>
-                  <line x1="12" y1="3" x2="12" y2="15" strokeLinecap="round"/>
-                </svg>
-                <p className="text-sm text-neutral-400">Clique para fazer upload do PDF</p>
-                <p className="text-xs text-neutral-300 mt-0.5">Em breve disponível</p>
-              </div>
+
+              {form.contratoUrl ? (
+                <div className="flex items-center gap-3 border border-neutral-200 rounded-lg px-4 py-3 bg-neutral-50">
+                  <svg width="20" height="20" fill="none" stroke="#7A8C6A" strokeWidth={1.5} viewBox="0 0 24 24">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" strokeLinecap="round" strokeLinejoin="round"/>
+                    <polyline points="14 2 14 8 20 8" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                  <a href={form.contratoUrl} target="_blank" rel="noopener noreferrer" className="flex-1 text-sm text-sage hover:underline truncate">
+                    Ver contrato anexado
+                  </a>
+                  <button
+                    type="button"
+                    onClick={() => set("contratoUrl", undefined)}
+                    className="text-neutral-300 hover:text-red-400 transition-colors"
+                  >
+                    <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                      <path d="M18 6L6 18M6 6l12 12" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </button>
+                </div>
+              ) : (
+                <div
+                  onClick={() => fileInputRef.current?.click()}
+                  onDragOver={e => { e.preventDefault(); setDragOver(true); }}
+                  onDragLeave={() => setDragOver(false)}
+                  onDrop={e => { e.preventDefault(); setDragOver(false); const f = e.dataTransfer.files[0]; if (f) handleFile(f); }}
+                  className={["border-2 border-dashed rounded-lg px-4 py-6 text-center transition-all cursor-pointer", dragOver ? "border-sage bg-sage/5" : "border-neutral-200 hover:border-sage/50 hover:bg-neutral-50"].join(" ")}
+                >
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".pdf,.jpg,.jpeg,.png,.webp"
+                    className="hidden"
+                    onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f); }}
+                  />
+                  {uploading ? (
+                    <div className="flex flex-col items-center gap-2">
+                      <div className="w-6 h-6 border-2 border-sage border-t-transparent rounded-full animate-spin" />
+                      <p className="text-sm text-neutral-400">Enviando...</p>
+                    </div>
+                  ) : (
+                    <>
+                      <svg className={["mx-auto mb-2 transition-colors", dragOver ? "text-sage" : "text-neutral-300"].join(" ")} width="24" height="24" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" strokeLinecap="round" strokeLinejoin="round"/>
+                        <polyline points="17 8 12 3 7 8" strokeLinecap="round" strokeLinejoin="round"/>
+                        <line x1="12" y1="3" x2="12" y2="15" strokeLinecap="round"/>
+                      </svg>
+                      <p className="text-sm text-neutral-500">
+                        {dragOver ? "Solte para anexar" : "Clique ou arraste o contrato aqui"}
+                      </p>
+                      <p className="text-xs text-neutral-300 mt-0.5">PDF, JPG ou PNG · máx. 10 MB</p>
+                      {!isEditing && <p className="text-xs text-amber-500 mt-1">Salve o fornecedor primeiro para anexar</p>}
+                    </>
+                  )}
+                </div>
+              )}
+
+              {uploadError && <p className="text-xs text-red-500 mt-1">{uploadError}</p>}
             </div>
           </div>
 
