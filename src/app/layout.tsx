@@ -19,6 +19,10 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "Weddiners — Gestão de Casamento",
   description: "A plataforma com taxa zero para o seu casamento dos sonhos.",
+  icons: {
+    icon: "/favicon.png",
+    apple: "/favicon.png",
+  },
 };
 
 export default function RootLayout({
