@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
 import { GuestModal } from "./GuestModal";
-import { deleteGuest } from "./actions";
+import { deleteGuest, updateSaveTheDateStatus } from "./actions";
 
 interface Guest {
   id: string;
@@ -19,6 +19,7 @@ interface Guest {
   dietary_restrictions: string | null;
   notes: string | null;
   rsvp_status: string;
+  save_the_date_status: "nao_enviado" | "enviado" | "visualizado";
 }
 
 const statusMap = {
@@ -27,9 +28,26 @@ const statusMap = {
   declined:  { label: "Recusou",    variant: "declined"  as const },
 };
 
+const stdCycle: Array<"nao_enviado" | "enviado" | "visualizado"> = ["nao_enviado", "enviado", "visualizado"];
+const stdMap = {
+  nao_enviado: { label: "Não enviado", color: "bg-neutral-100 text-neutral-500" },
+  enviado:     { label: "Enviado",     color: "bg-blue-50 text-blue-600" },
+  visualizado: { label: "Visualizado", color: "bg-emerald-50 text-emerald-600" },
+};
+
 export function GuestsList({ guests, slug }: { guests: Guest[]; slug: string }) {
   const [editGuest, setEditGuest] = useState<Guest | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [stdStatus, setStdStatus] = useState<Record<string, "nao_enviado" | "enviado" | "visualizado">>(
+    Object.fromEntries(guests.map(g => [g.id, g.save_the_date_status ?? "nao_enviado"]))
+  );
+
+  async function cycleSaveTheDate(guestId: string) {
+    const current = stdStatus[guestId] ?? "nao_enviado";
+    const next = stdCycle[(stdCycle.indexOf(current) + 1) % stdCycle.length];
+    setStdStatus(prev => ({ ...prev, [guestId]: next }));
+    await updateSaveTheDateStatus(guestId, next);
+  }
 
   async function handleDelete() {
     if (!deleteId) return;
@@ -64,6 +82,7 @@ export function GuestsList({ guests, slug }: { guests: Guest[]; slug: string }) 
               <th className="text-left px-4 py-3 text-xs font-body font-medium text-smoke uppercase tracking-wide hidden md:table-cell">Grupo</th>
               <th className="text-left px-4 py-3 text-xs font-body font-medium text-smoke uppercase tracking-wide hidden lg:table-cell">Mesa</th>
               <th className="text-left px-4 py-3 text-xs font-body font-medium text-smoke uppercase tracking-wide">Status</th>
+              <th className="text-left px-4 py-3 text-xs font-body font-medium text-smoke uppercase tracking-wide hidden md:table-cell">Save the Date</th>
               <th className="px-4 py-3" />
             </tr>
           </thead>
@@ -84,6 +103,15 @@ export function GuestsList({ guests, slug }: { guests: Guest[]; slug: string }) 
                   </td>
                   <td className="px-4 py-3">
                     <Badge variant={status.variant}>{status.label}</Badge>
+                  </td>
+                  <td className="px-4 py-3 hidden md:table-cell">
+                    <button
+                      onClick={() => cycleSaveTheDate(guest.id)}
+                      className={`text-xs px-2.5 py-1 rounded-full font-medium transition-all hover:opacity-80 ${stdMap[stdStatus[guest.id] ?? "nao_enviado"].color}`}
+                      title="Clique para avançar o status"
+                    >
+                      {stdMap[stdStatus[guest.id] ?? "nao_enviado"].label}
+                    </button>
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex gap-1 justify-end">

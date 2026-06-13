@@ -76,6 +76,16 @@ export async function deleteGuest(id: string) {
   revalidatePath("/convidados");
 }
 
+export async function updateSaveTheDateStatus(id: string, status: "nao_enviado" | "enviado" | "visualizado") {
+  const { supabase, coupleId } = await getCoupleId();
+  await supabase
+    .from("guests")
+    .update({ save_the_date_status: status, updated_at: new Date().toISOString() })
+    .eq("id", id)
+    .eq("couple_id", coupleId);
+  revalidatePath("/convidados");
+}
+
 export async function importGuestsFromCSV(rows: { name: string; email?: string; phone?: string; group_name?: string }[]) {
   const { supabase, coupleId } = await getCoupleId();
 
