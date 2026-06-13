@@ -214,7 +214,7 @@ export function Sidebar() {
             <span className="font-display text-gold text-xl">W</span>
           ) : (
             <div>
-              <img src="/logo.png" alt="Weddiners" className="h-10 w-auto mb-1" />
+              <img src="/logo.png" alt="Weddiners" className="h-14 w-auto mb-1" />
               <p className="text-white/40 text-xs font-body mt-0.5">Painel da noiva</p>
             </div>
           )}

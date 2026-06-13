@@ -52,7 +52,7 @@ export default function LoginPage() {
       <div className="relative z-10 w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
-          <img src="/logo.png" alt="Weddiners" className="h-16 w-auto mx-auto drop-shadow-lg" />
+          <img src="/logo.png" alt="Weddiners" className="h-24 w-auto mx-auto drop-shadow-lg" />
           <p className="text-white/70 font-body mt-2 text-sm tracking-wide">
             {showReset ? "Recuperar acesso" : "Bem-vinda de volta"}
           </p>
