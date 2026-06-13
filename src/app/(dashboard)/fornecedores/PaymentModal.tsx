@@ -20,20 +20,30 @@ export function PaymentModal({ fornecedor, onClose, onUpdate }: Props) {
   const [parcelas, setParcelas] = useState<Parcela[]>(fornecedor.parcelas ?? []);
   const [formaPagamento, setFormaPagamento] = useState<FormaPagamento | "">(fornecedor.formaPagamento ?? "");
   const [savingMethod, setSavingMethod] = useState(false);
-
-  // Gerador rápido de parcelas
-  const [gerador, setGerador] = useState({ total: fornecedor.valorContratado ?? 0, qtd: 1, primeiroVenc: "" });
   const [gerando, setGerando] = useState(false);
+
+  // Gerador
+  const [entrada, setEntrada] = useState({ valor: 0, data: "" });
+  const [temEntrada, setTemEntrada] = useState(false);
+  const [gerador, setGerador] = useState({
+    total: fornecedor.valorContratado ?? 0,
+    qtd: 1,
+    primeiroVenc: "",
+  });
 
   const totalParcelas = parcelas.reduce((s, p) => s + p.valor, 0);
   const totalPago = parcelas.filter(p => p.pago).reduce((s, p) => s + p.valor, 0);
   const totalPendente = totalParcelas - totalPago;
   const pagas = parcelas.filter(p => p.pago).length;
 
-  // Próximo vencimento pendente
   const proximoVenc = parcelas
     .filter(p => !p.pago)
     .sort((a, b) => a.vencimento.localeCompare(b.vencimento))[0];
+
+  // Valor restante após entrada para calcular parcelas
+  const valorEntrada = temEntrada ? (entrada.valor || 0) : 0;
+  const valorRestante = Math.max(0, (gerador.total || 0) - valorEntrada);
+  const valorParcela = gerador.qtd > 0 ? parseFloat((valorRestante / gerador.qtd).toFixed(2)) : 0;
 
   async function handleSaveMethod() {
     if (!formaPagamento) return;
@@ -45,7 +55,9 @@ export function PaymentModal({ fornecedor, onClose, onUpdate }: Props) {
 
   async function handleTogglePago(id: string, atual: boolean) {
     const next = !atual;
-    setParcelas(prev => prev.map(p => p.id === id ? { ...p, pago: next, pagoEm: next ? new Date().toISOString().slice(0, 10) : undefined } : p));
+    setParcelas(prev => prev.map(p =>
+      p.id === id ? { ...p, pago: next, pagoEm: next ? new Date().toISOString().slice(0, 10) : undefined } : p
+    ));
     await toggleInstallmentPaid(id, next);
   }
 
@@ -55,29 +67,52 @@ export function PaymentModal({ fornecedor, onClose, onUpdate }: Props) {
   }
 
   async function handleGerarParcelas() {
-    if (!gerador.primeiroVenc || gerador.qtd < 1 || gerador.total <= 0) return;
+    if (!gerador.primeiroVenc || gerador.total <= 0) return;
+    if (temEntrada && (!entrada.data || entrada.valor <= 0)) return;
     setGerando(true);
-    const valorParcela = parseFloat((gerador.total / gerador.qtd).toFixed(2));
-    const novas: Parcela[] = [];
 
-    for (let i = 0; i < gerador.qtd; i++) {
-      const venc = addMonths(gerador.primeiroVenc, i);
+    const novas: Parcela[] = [];
+    let proximoNumero = parcelas.length + 1;
+
+    // Criar entrada se habilitada
+    if (temEntrada && entrada.valor > 0 && entrada.data) {
       const result = await createInstallment(fornecedor.id, {
-        numero: parcelas.length + i + 1,
-        valor: valorParcela,
-        vencimento: venc,
+        numero: proximoNumero,
+        valor: valorEntrada,
+        vencimento: entrada.data,
       });
       novas.push({
-        id: result?.id ?? Date.now().toString() + i,
-        numero: parcelas.length + i + 1,
-        valor: valorParcela,
-        vencimento: venc,
+        id: result?.id ?? Date.now().toString() + "_entrada",
+        numero: proximoNumero,
+        valor: valorEntrada,
+        vencimento: entrada.data,
         pago: false,
       });
+      proximoNumero++;
+    }
+
+    // Criar parcelas restantes
+    if (gerador.qtd >= 1 && valorRestante > 0) {
+      for (let i = 0; i < gerador.qtd; i++) {
+        const venc = addMonths(gerador.primeiroVenc, i);
+        const result = await createInstallment(fornecedor.id, {
+          numero: proximoNumero + i,
+          valor: valorParcela,
+          vencimento: venc,
+        });
+        novas.push({
+          id: result?.id ?? Date.now().toString() + i,
+          numero: proximoNumero + i,
+          valor: valorParcela,
+          vencimento: venc,
+          pago: false,
+        });
+      }
     }
 
     setParcelas(prev => [...prev, ...novas]);
     setGerador(g => ({ ...g, qtd: 1, primeiroVenc: "" }));
+    setEntrada({ valor: 0, data: "" });
     setGerando(false);
   }
 
@@ -88,8 +123,12 @@ export function PaymentModal({ fornecedor, onClose, onUpdate }: Props) {
 
   const fmt = (v: number) => v.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const fmtDate = (s: string) => new Date(s + "T12:00:00").toLocaleDateString("pt-BR");
-
   const hoje = new Date().toISOString().slice(0, 10);
+
+  const gerarDisabled = gerando
+    || gerador.total <= 0
+    || !gerador.primeiroVenc
+    || (temEntrada && (!entrada.data || entrada.valor <= 0));
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm" onClick={onClose}>
@@ -128,7 +167,10 @@ export function PaymentModal({ fornecedor, onClose, onUpdate }: Props) {
           )}
           {proximoVenc && (
             <p className="text-xs text-neutral-500 mt-2">
-              📅 Próximo vencimento: <strong className={proximoVenc.vencimento < hoje ? "text-red-500" : "text-neutral-700"}>{fmtDate(proximoVenc.vencimento)}</strong>
+              📅 Próximo vencimento:{" "}
+              <strong className={proximoVenc.vencimento < hoje ? "text-red-500" : "text-neutral-700"}>
+                {fmtDate(proximoVenc.vencimento)}
+              </strong>
               {proximoVenc.vencimento < hoje && " — vencido!"}
             </p>
           )}
@@ -166,24 +208,72 @@ export function PaymentModal({ fornecedor, onClose, onUpdate }: Props) {
             )}
           </div>
 
-          {/* Gerador de parcelas */}
-          <div className="border border-dashed border-sage/40 rounded-xl p-4 bg-sage/5">
-            <h4 className="text-sm font-semibold text-neutral-700 mb-3">Gerar parcelas automaticamente</h4>
-            <div className="grid grid-cols-3 gap-3">
+          {/* Gerador */}
+          <div className="border border-dashed border-sage/40 rounded-xl p-4 bg-sage/5 space-y-4">
+            <h4 className="text-sm font-semibold text-neutral-700">Gerar cronograma de pagamentos</h4>
+
+            {/* Valor total */}
+            <div>
+              <label className="block text-xs font-medium text-neutral-500 mb-1">Valor total contratado (R$)</label>
+              <input
+                type="number"
+                step="0.01"
+                min="0"
+                value={gerador.total || ""}
+                onChange={e => setGerador(g => ({ ...g, total: parseFloat(e.target.value) || 0 }))}
+                placeholder="0,00"
+                className="w-full border border-neutral-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sage/30 focus:border-sage"
+              />
+            </div>
+
+            {/* Toggle entrada */}
+            <div>
+              <button
+                onClick={() => setTemEntrada(v => !v)}
+                className={[
+                  "flex items-center gap-2 text-sm font-medium transition-colors",
+                  temEntrada ? "text-moss" : "text-neutral-400 hover:text-neutral-600",
+                ].join(" ")}
+              >
+                <div className={["w-9 h-5 rounded-full transition-colors flex items-center px-0.5", temEntrada ? "bg-moss" : "bg-neutral-200"].join(" ")}>
+                  <div className={["w-4 h-4 bg-white rounded-full shadow transition-transform", temEntrada ? "translate-x-4" : "translate-x-0"].join(" ")} />
+                </div>
+                Tem entrada / sinal
+              </button>
+
+              {temEntrada && (
+                <div className="grid grid-cols-2 gap-3 mt-3">
+                  <div>
+                    <label className="block text-xs font-medium text-neutral-500 mb-1">Valor da entrada (R$)</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={entrada.valor || ""}
+                      onChange={e => setEntrada(v => ({ ...v, valor: parseFloat(e.target.value) || 0 }))}
+                      placeholder="0,00"
+                      className="w-full border border-neutral-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sage/30 focus:border-sage"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-neutral-500 mb-1">Data da entrada</label>
+                    <input
+                      type="date"
+                      value={entrada.data}
+                      onChange={e => setEntrada(v => ({ ...v, data: e.target.value }))}
+                      className="w-full border border-neutral-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sage/30 focus:border-sage"
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Parcelas restantes */}
+            <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-medium text-neutral-500 mb-1">Valor total (R$)</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={gerador.total || ""}
-                  onChange={e => setGerador(g => ({ ...g, total: parseFloat(e.target.value) || 0 }))}
-                  placeholder="0,00"
-                  className="w-full border border-neutral-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sage/30 focus:border-sage"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-neutral-500 mb-1">Nº de parcelas</label>
+                <label className="block text-xs font-medium text-neutral-500 mb-1">
+                  {temEntrada ? "Nº de parcelas (restante)" : "Nº de parcelas"}
+                </label>
                 <input
                   type="number"
                   min="1"
@@ -194,7 +284,7 @@ export function PaymentModal({ fornecedor, onClose, onUpdate }: Props) {
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-neutral-500 mb-1">1º vencimento</label>
+                <label className="block text-xs font-medium text-neutral-500 mb-1">1º vencimento das parcelas</label>
                 <input
                   type="date"
                   value={gerador.primeiroVenc}
@@ -203,17 +293,35 @@ export function PaymentModal({ fornecedor, onClose, onUpdate }: Props) {
                 />
               </div>
             </div>
-            {gerador.total > 0 && gerador.qtd > 0 && (
-              <p className="text-xs text-neutral-500 mt-2">
-                {gerador.qtd}× de <strong>R$ {fmt(parseFloat((gerador.total / gerador.qtd).toFixed(2)))}</strong>
-              </p>
+
+            {/* Preview */}
+            {gerador.total > 0 && (
+              <div className="bg-white rounded-lg px-4 py-3 border border-neutral-200 text-xs text-neutral-600 space-y-1">
+                {temEntrada && entrada.valor > 0 && (
+                  <div className="flex justify-between">
+                    <span>Entrada</span>
+                    <strong>R$ {fmt(valorEntrada)}</strong>
+                  </div>
+                )}
+                {gerador.qtd > 0 && valorRestante > 0 && (
+                  <div className="flex justify-between">
+                    <span>{gerador.qtd}× parcela</span>
+                    <strong>R$ {fmt(valorParcela)}</strong>
+                  </div>
+                )}
+                <div className="flex justify-between border-t border-neutral-100 pt-1 mt-1 font-semibold text-neutral-800">
+                  <span>Total</span>
+                  <span>R$ {fmt((temEntrada ? valorEntrada : 0) + valorParcela * gerador.qtd)}</span>
+                </div>
+              </div>
             )}
+
             <button
               onClick={handleGerarParcelas}
-              disabled={gerando || !gerador.primeiroVenc || gerador.total <= 0}
-              className="btn-primary mt-3 disabled:opacity-50"
+              disabled={gerarDisabled}
+              className="btn-primary disabled:opacity-40 disabled:cursor-not-allowed"
             >
-              {gerando ? "Gerando..." : "Gerar parcelas"}
+              {gerando ? "Gerando..." : "Gerar cronograma"}
             </button>
           </div>
 
@@ -228,21 +336,17 @@ export function PaymentModal({ fornecedor, onClose, onUpdate }: Props) {
               <div className="space-y-2">
                 {parcelas
                   .sort((a, b) => a.vencimento.localeCompare(b.vencimento))
-                  .map(p => {
+                  .map((p, idx) => {
                     const vencido = !p.pago && p.vencimento < hoje;
+                    const isEntrada = idx === 0 && parcelas.sort((a, b) => a.vencimento.localeCompare(b.vencimento))[0]?.id === p.id && parcelas.length > 1;
                     return (
                       <div
                         key={p.id}
                         className={[
                           "flex items-center gap-3 rounded-xl px-4 py-3 border transition-all",
-                          p.pago
-                            ? "bg-emerald-50 border-emerald-100"
-                            : vencido
-                              ? "bg-red-50 border-red-100"
-                              : "bg-white border-neutral-200",
+                          p.pago ? "bg-emerald-50 border-emerald-100" : vencido ? "bg-red-50 border-red-100" : "bg-white border-neutral-200",
                         ].join(" ")}
                       >
-                        {/* Checkbox de pago */}
                         <button
                           onClick={() => handleTogglePago(p.id, p.pago)}
                           className={[
@@ -258,8 +362,10 @@ export function PaymentModal({ fornecedor, onClose, onUpdate }: Props) {
                         </button>
 
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs text-neutral-400">Parcela {p.numero}</span>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="text-xs text-neutral-400">
+                              {isEntrada ? "Entrada" : `Parcela ${p.numero}`}
+                            </span>
                             {vencido && <span className="text-xs text-red-500 font-medium">Vencida</span>}
                             {p.pago && p.pagoEm && (
                               <span className="text-xs text-emerald-500">pago em {fmtDate(p.pagoEm)}</span>
@@ -270,11 +376,9 @@ export function PaymentModal({ fornecedor, onClose, onUpdate }: Props) {
                           </p>
                         </div>
 
-                        <div className="text-right shrink-0">
-                          <p className={["text-xs font-medium", vencido ? "text-red-500" : "text-neutral-500"].join(" ")}>
-                            {fmtDate(p.vencimento)}
-                          </p>
-                        </div>
+                        <p className={["text-xs font-medium shrink-0", vencido ? "text-red-500" : "text-neutral-500"].join(" ")}>
+                          {fmtDate(p.vencimento)}
+                        </p>
 
                         <button
                           onClick={() => handleDelete(p.id)}
@@ -292,14 +396,12 @@ export function PaymentModal({ fornecedor, onClose, onUpdate }: Props) {
           )}
 
           {parcelas.length === 0 && (
-            <p className="text-center py-4 text-neutral-400 text-sm">Nenhuma parcela cadastrada. Use o gerador acima para criar.</p>
+            <p className="text-center py-4 text-neutral-400 text-sm">Nenhuma parcela cadastrada. Use o gerador acima.</p>
           )}
         </div>
 
         <div className="sticky bottom-0 bg-white px-6 pb-6 pt-3 border-t border-neutral-100">
-          <button onClick={handleSave} className="btn-primary w-full">
-            Fechar
-          </button>
+          <button onClick={handleSave} className="btn-primary w-full">Fechar</button>
         </div>
       </div>
     </div>
