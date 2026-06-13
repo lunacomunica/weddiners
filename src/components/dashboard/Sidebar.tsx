@@ -143,7 +143,7 @@ export function Sidebar() {
     <>
       {/* ── Mobile top bar ── */}
       <header className="md:hidden fixed top-0 left-0 right-0 z-50 h-14 sidebar-texture flex items-center justify-between px-4 border-b border-white/10">
-        <span className="font-display text-xl text-gold tracking-wide">Weddiners</span>
+        <img src="/logo.png" alt="Weddiners" className="h-7 w-auto" />
         <button
           onClick={() => setMobileOpen(o => !o)}
           className="text-white/70 hover:text-white p-1.5 rounded-md"
@@ -214,7 +214,7 @@ export function Sidebar() {
             <span className="font-display text-gold text-xl">W</span>
           ) : (
             <div>
-              <h1 className="font-display text-2xl text-gold tracking-wide">Weddiners</h1>
+              <img src="/logo.png" alt="Weddiners" className="h-8 w-auto mb-1" />
               <p className="text-white/40 text-xs font-body mt-0.5">Painel da noiva</p>
             </div>
           )}
