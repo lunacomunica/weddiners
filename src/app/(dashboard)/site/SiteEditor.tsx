@@ -93,6 +93,7 @@ export function SiteEditor({ config, couple, plan = "free" }: { config: SiteConf
   const [error, setError] = useState("");
   const [device, setDevice] = useState<"mobile" | "desktop">("mobile");
   const [previewKey, setPreviewKey] = useState(0);
+  const [mobilePreviewOpen, setMobilePreviewOpen] = useState(false);
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const appearanceFormRef = useRef<HTMLFormElement>(null);
   const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -156,9 +157,76 @@ export function SiteEditor({ config, couple, plan = "free" }: { config: SiteConf
   ];
 
   return (
+    <>
+    {/* Modal de prévia para mobile/tablet */}
+    {mobilePreviewOpen && (
+      <div className="xl:hidden fixed inset-0 z-50 bg-black/80 flex flex-col">
+        <div className="flex items-center justify-between px-4 py-3 bg-white border-b shrink-0">
+          <p className="font-semibold text-sm text-neutral-800">Prévia do site</p>
+          <div className="flex items-center gap-3">
+            <div className="flex gap-1 bg-neutral-100 rounded-lg p-0.5">
+              <button onClick={() => setDevice("mobile")} className={["p-1.5 rounded-md transition-colors", device === "mobile" ? "bg-white shadow-sm text-moss" : "text-neutral-400"].join(" ")}>
+                <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2"/><circle cx="12" cy="18" r="1" fill="currentColor" stroke="none"/></svg>
+              </button>
+              <button onClick={() => setDevice("desktop")} className={["p-1.5 rounded-md transition-colors", device === "desktop" ? "bg-white shadow-sm text-moss" : "text-neutral-400"].join(" ")}>
+                <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4" strokeLinecap="round"/></svg>
+              </button>
+            </div>
+            <a href={`/${couple.slug}`} target="_blank" rel="noopener noreferrer" className="text-xs text-moss font-medium hover:underline">Abrir →</a>
+            <button onClick={() => setMobilePreviewOpen(false)} className="text-neutral-500 hover:text-neutral-800 p-1">
+              <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12" strokeLinecap="round" strokeLinejoin="round"/></svg>
+            </button>
+          </div>
+        </div>
+        <div className="flex-1 bg-neutral-100 flex items-start justify-center overflow-hidden p-4">
+          {device === "mobile" ? (
+            <div className="rounded-[2rem] border-4 border-white/30 overflow-hidden shadow-2xl bg-white shrink-0" style={{ width: 260, height: 536 }}>
+              <div className="w-full h-full overflow-hidden relative">
+                <iframe
+                  key={previewKey + "_m"}
+                  src={`/${couple.slug}`}
+                  className="absolute top-0 left-0"
+                  style={{ width: 390, height: 804, transform: "scale(0.667)", transformOrigin: "top left", border: "none" }}
+                  title="Prévia mobile"
+                />
+              </div>
+            </div>
+          ) : (
+            <div className="w-full h-full flex flex-col bg-white rounded-xl overflow-hidden shadow-2xl">
+              <div className="flex items-center gap-1.5 px-3 py-2 bg-white border-b shrink-0">
+                <div className="w-2.5 h-2.5 rounded-full bg-rose/60"/><div className="w-2.5 h-2.5 rounded-full bg-gold/60"/><div className="w-2.5 h-2.5 rounded-full bg-emerald-400/60"/>
+                <div className="flex-1 bg-neutral-100 rounded px-3 py-1 mx-2"><p className="text-[10px] text-neutral-400 truncate">{couple.slug}.weddiners.com.br</p></div>
+              </div>
+              <div className="flex-1 overflow-hidden relative">
+                <iframe
+                  key={previewKey + "_d"}
+                  src={`/${couple.slug}`}
+                  onLoad={(e) => { try { const doc = e.currentTarget.contentDocument ?? e.currentTarget.contentWindow?.document; doc?.documentElement?.scrollTo?.(0, 820); } catch {} }}
+                  className="absolute top-0 left-0"
+                  style={{ width: 1280, height: 1600, transform: "scale(0.297)", transformOrigin: "top left", border: "none" }}
+                  title="Prévia desktop"
+                />
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    )}
+
     <div className="grid grid-cols-1 xl:grid-cols-[1fr_380px] gap-6">
       {/* Editor Panel */}
       <div>
+        {/* Botão ver prévia — só aparece em telas < xl */}
+        <div className="xl:hidden mb-4">
+          <button
+            onClick={() => setMobilePreviewOpen(true)}
+            className="w-full flex items-center justify-center gap-2 bg-white border border-neutral-200 rounded-xl py-3 text-sm font-medium text-moss hover:bg-sage/5 transition-colors"
+          >
+            <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" strokeLinecap="round" strokeLinejoin="round"/><circle cx="12" cy="12" r="3"/></svg>
+            Ver prévia do site
+          </button>
+        </div>
+
         {/* Tabs */}
         <div className="flex gap-1 bg-white border rounded-lg p-1 mb-6 w-fit" style={{ borderColor: "rgba(13,10,11,0.08)" }}>
           {tabs.map(t => (
@@ -649,5 +717,6 @@ export function SiteEditor({ config, couple, plan = "free" }: { config: SiteConf
         </div>
       </div>
     </div>
+    </>
   );
 }
