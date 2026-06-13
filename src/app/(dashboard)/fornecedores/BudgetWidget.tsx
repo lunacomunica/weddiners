@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { updateTotalBudget } from "./actions";
+import { fmtNum } from "@/lib/format";
 
 type Props = {
   totalBudget: number | null;
@@ -9,7 +10,7 @@ type Props = {
 };
 
 function fmt(val: number) {
-  return val.toLocaleString("pt-BR", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+  return fmtNum(val);
 }
 
 export function BudgetWidget({ totalBudget: initialBudget, committed }: Props) {

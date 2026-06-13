@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { FORMA_PAGAMENTO_LABELS, type FormaPagamento, type Fornecedor, type Parcela } from "./fornecedoresData";
 import { setPaymentMethod, createInstallment, toggleInstallmentPaid, deleteInstallment, updateInstallment } from "./actions";
+import { fmtNum } from "@/lib/format";
 
 type Props = {
   fornecedor: Fornecedor;
@@ -134,7 +135,7 @@ export function PaymentModal({ fornecedor, onClose, onUpdate }: Props) {
     onClose();
   }
 
-  const fmt = (v: number) => v.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const fmt = fmtNum;
   const fmtDate = (s: string) => new Date(s + "T12:00:00").toLocaleDateString("pt-BR");
   const hoje = new Date().toISOString().slice(0, 10);
 

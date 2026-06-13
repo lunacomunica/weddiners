@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
+import { fmtBRL } from "@/lib/format";
 import { Modal } from "@/components/ui/Modal";
 import { GiftModal } from "./GiftModal";
 import { deleteGift, toggleGiftReceived } from "./actions";
@@ -72,13 +73,13 @@ export function GiftsList({ gifts }: { gifts: Gift[] }) {
               <span className="text-xs text-smoke font-body">{categoryLabels[gift.category] ?? gift.category}</span>
             )}
             <p className="font-body text-xl font-semibold text-moss">
-              {Number(gift.amount).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+              {fmtBRL(Number(gift.amount))}
             </p>
             {gift.is_group_gift && gift.target_amount && (
               <div>
                 <div className="flex justify-between text-xs text-smoke font-body mb-1">
                   <span>Arrecadado</span>
-                  <span>{Number(gift.received_amount).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })} / {Number(gift.target_amount).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</span>
+                  <span>{fmtBRL(Number(gift.received_amount))} / {fmtBRL(Number(gift.target_amount))}</span>
                 </div>
                 <div className="w-full bg-champagne rounded-full h-1.5">
                   <div

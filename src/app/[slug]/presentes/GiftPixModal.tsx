@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import QRCode from "qrcode";
 import { Modal } from "@/components/ui/Modal";
+import { fmtBRL } from "@/lib/format";
 import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
 import { Button } from "@/components/ui/Button";
@@ -109,7 +110,7 @@ export function GiftPixModal({ open, onClose, gift, coupleId, pixKey, pixHolderN
             <p className="text-xs text-smoke font-body text-center mb-3">
               Valor:{" "}
               <span className="font-semibold text-moss">
-                {Number(gift.amount).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                {fmtBRL(Number(gift.amount))}
               </span>
             </p>
             <Button className="w-full" onClick={() => setStep("confirm")}>

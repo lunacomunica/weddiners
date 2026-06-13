@@ -8,6 +8,7 @@ import {
 import { FornecedorModal } from "./FornecedorModal";
 import { OrcamentosModal } from "./OrcamentosModal";
 import { PaymentModal } from "./PaymentModal";
+import { fmtBRL } from "@/lib/format";
 import { createVendor, updateVendor, deleteVendor } from "./actions";
 
 type FilterStatus = "todos" | StatusFornecedor;
@@ -78,11 +79,7 @@ export function FornecedoresView({ initialFornecedores }: { initialFornecedores:
         </div>
         <div className="bg-white rounded-xl border border-neutral-200 px-5 py-4">
           <p className="text-2xl font-semibold text-neutral-800 font-display">
-            {totalContratado > 0
-              ? totalContratado >= 1000
-                ? `R$ ${(totalContratado / 1000).toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })}k`
-                : `R$ ${totalContratado.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-              : "—"}
+            {totalContratado > 0 ? fmtBRL(totalContratado) : "—"}
           </p>
           <p className="text-xs text-neutral-500 mt-0.5">Total contratado</p>
         </div>
@@ -284,7 +281,7 @@ function FornecedorCard({
             <div className="flex items-center justify-between">
               <span className="text-neutral-500">{melhorOrc.escolhido ? "Valor contratado" : "Melhor orçamento"}</span>
               <span className="font-semibold text-neutral-800">
-                R$ {melhorOrc.valor.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                {fmtBRL(melhorOrc.valor)}
               </span>
             </div>
             {f.orcamentos.length > 1 && (
@@ -305,7 +302,7 @@ function FornecedorCard({
               </span>
               {pendente > 0 && (
                 <span className="font-semibold text-amber-700">
-                  R$ {pendente.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} pendente
+                  {fmtBRL(pendente)} pendente
                 </span>
               )}
               {pendente === 0 && pagas > 0 && (

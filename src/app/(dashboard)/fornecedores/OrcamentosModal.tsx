@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { type Fornecedor, type Orcamento } from "./fornecedoresData";
 import { createQuote, chooseQuote, deleteQuote } from "./actions";
+import { fmtBRL } from "@/lib/format";
 
 type Props = {
   fornecedor: Fornecedor;
@@ -78,9 +79,9 @@ export function OrcamentosModal({ fornecedor, onClose, onUpdate }: Props) {
 
           {orcamentos.length > 1 && (
             <div className="flex gap-4 mt-3 text-xs text-neutral-500">
-              <span>Menor valor: <strong className="text-green-600">R$ {totalMin.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong></span>
-              <span>Maior valor: <strong className="text-red-500">R$ {totalMax.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong></span>
-              <span>Diferença: <strong>R$ {(totalMax - totalMin).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong></span>
+              <span>Menor valor: <strong className="text-green-600">{fmtBRL(totalMin)}</strong></span>
+              <span>Maior valor: <strong className="text-red-500">{fmtBRL(totalMax)}</strong></span>
+              <span>Diferença: <strong>{fmtBRL(totalMax - totalMin)}</strong></span>
             </div>
           )}
         </div>
@@ -115,7 +116,7 @@ export function OrcamentosModal({ fornecedor, onClose, onUpdate }: Props) {
                       )}
                     </div>
                     <p className="text-2xl font-semibold text-neutral-800 font-display mt-1">
-                      R$ {o.valor.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      {fmtBRL(o.valor)}
                     </p>
                   </div>
                   <div className="flex gap-1">

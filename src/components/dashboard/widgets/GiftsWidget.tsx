@@ -1,10 +1,12 @@
+import { fmtBRL } from "@/lib/format";
+
 interface GiftsWidgetProps {
   total: number;
   count: number;
 }
 
 export function GiftsWidget({ total, count }: GiftsWidgetProps) {
-  const formatted = total.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+  const formatted = fmtBRL(total);
 
   return (
     <div className="bg-white rounded-md p-6 border border-noir/7 shadow-sm flex flex-col gap-2">

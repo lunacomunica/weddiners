@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { Header } from "@/components/dashboard/Header";
+import { fmtNum } from "@/lib/format";
 
 export default async function DashboardPage() {
   const supabase = createClient();
@@ -70,7 +71,7 @@ export default async function DashboardPage() {
   const totalProximos = proximosPagamentos.reduce((s, p) => s + Number(p.amount), 0);
   const vencidos = (payments ?? []).filter(p => !p.paid && p.due_date < hoje);
 
-  const fmt = (v: number) => v.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const fmt = fmtNum;
   const fmtDate = (s: string) => new Date(s + "T12:00:00").toLocaleDateString("pt-BR", { day: "2-digit", month: "short" });
   const nomeCasal = couple.partner1_name && couple.partner2_name
     ? `${couple.partner1_name} & ${couple.partner2_name}`

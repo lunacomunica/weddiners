@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { GiftPixModal } from "./GiftPixModal";
+import { fmtBRL } from "@/lib/format";
 
 interface Gift {
   id: string;
@@ -57,7 +58,7 @@ export function GiftCard({ gift, coupleId, pixKey, pixHolderName, pixCity }: Gif
             <p className="text-smoke text-sm font-body mt-1 line-clamp-2">{gift.description}</p>
           )}
           <p className="font-body font-semibold text-moss text-lg mt-3">
-            {Number(gift.amount).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+            {fmtBRL(Number(gift.amount))}
           </p>
           {gift.is_group_gift && gift.target_amount && (
             <div className="mt-2">
@@ -68,7 +69,7 @@ export function GiftCard({ gift, coupleId, pixKey, pixHolderName, pixCity }: Gif
                 />
               </div>
               <p className="text-xs text-smoke font-body mt-1">
-                {Number(gift.received_amount).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })} de {Number(gift.target_amount).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                {fmtBRL(Number(gift.received_amount))} de {fmtBRL(Number(gift.target_amount))}
               </p>
             </div>
           )}

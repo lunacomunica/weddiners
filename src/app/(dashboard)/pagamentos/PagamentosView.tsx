@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { CATEGORIAS_FORNECEDOR } from "../fornecedores/fornecedoresData";
 import { togglePagamento, saveTotalBudget } from "./actions";
+import { fmtNum } from "@/lib/format";
 
 type Pagamento = {
   id: string;
@@ -76,7 +77,7 @@ export function PagamentosView({ pagamentos: initial, totalBudget, totalContrata
     setEditBudget(false);
   }
 
-  const fmt = (v: number) => v.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const fmt = fmtNum;
   const fmtDate = (s: string) => new Date(s + "T12:00:00").toLocaleDateString("pt-BR");
   const fmtMes = (ym: string) => {
     const [y, m] = ym.split("-");
