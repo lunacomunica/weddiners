@@ -92,7 +92,7 @@ export function TranslationWidget({ languages }: { languages: string[] }) {
 
       <div ref={dropRef} className="fixed bottom-6 right-6 z-50">
         {open && (
-          <div className="mb-2 bg-white rounded-2xl shadow-xl border border-neutral-100 overflow-hidden min-w-[160px]">
+          <div className="mb-2 bg-white rounded-2xl shadow-xl border border-neutral-100 overflow-hidden min-w-[170px]">
             {allLangs.map(lang => (
               <button
                 key={lang.code}

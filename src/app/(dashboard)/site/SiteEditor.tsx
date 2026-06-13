@@ -600,9 +600,17 @@ export function SiteEditor({ config, couple, plan = "free" }: { config: SiteConf
             {/* Senha de acesso */}
             <div className="bg-white rounded-2xl border border-neutral-200 p-6">
               <div className="flex items-start justify-between gap-4 mb-4">
-                <div>
-                  <h3 className="font-semibold text-neutral-800 text-sm">🔒 Senha de acesso</h3>
-                  <p className="text-xs text-neutral-500 mt-0.5">Os convidados precisarão digitar a senha para acessar o site.</p>
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-lg bg-neutral-100 flex items-center justify-center shrink-0">
+                    <svg width="15" height="15" fill="none" stroke="#5A6A52" strokeWidth={1.8} viewBox="0 0 24 24">
+                      <rect x="3" y="11" width="18" height="11" rx="2" ry="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      <path d="M7 11V7a5 5 0 0 1 10 0v4" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-neutral-800 text-sm">Senha de acesso</h3>
+                    <p className="text-xs text-neutral-500 mt-0.5">Os convidados precisarão digitar a senha para acessar o site.</p>
+                  </div>
                 </div>
                 <button
                   type="button"
@@ -644,9 +652,18 @@ export function SiteEditor({ config, couple, plan = "free" }: { config: SiteConf
             {/* Traduções */}
             <div className="bg-white rounded-2xl border border-neutral-200 p-6">
               <div className="flex items-start justify-between gap-4 mb-4">
-                <div>
-                  <h3 className="font-semibold text-neutral-800 text-sm">🌐 Traduções</h3>
-                  <p className="text-xs text-neutral-500 mt-0.5">Adiciona um botão no site para os convidados traduzirem para outros idiomas.</p>
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-lg bg-neutral-100 flex items-center justify-center shrink-0">
+                    <svg width="15" height="15" fill="none" stroke="#5A6A52" strokeWidth={1.8} viewBox="0 0 24 24">
+                      <circle cx="12" cy="12" r="10" strokeLinecap="round" strokeLinejoin="round"/>
+                      <line x1="2" y1="12" x2="22" y2="12" strokeLinecap="round" strokeLinejoin="round"/>
+                      <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-neutral-800 text-sm">Traduções</h3>
+                    <p className="text-xs text-neutral-500 mt-0.5">Adiciona um botão no site para os convidados traduzirem para outros idiomas.</p>
+                  </div>
                 </div>
                 <button
                   type="button"
