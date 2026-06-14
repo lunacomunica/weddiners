@@ -52,8 +52,27 @@ export default async function PresentesPublicasPage({ params }: Props) {
             : "#4A5C3E",
         }}
       >
-        {/* Overlay escuro */}
         <div className="absolute inset-0 bg-black/50" />
+
+        {/* Nav topo */}
+        <div className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between px-5 py-4">
+          <a
+            href={`/${params.slug}`}
+            className="flex items-center gap-1.5 text-white/80 hover:text-white text-sm font-body transition-colors"
+          >
+            <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <path d="M19 12H5M12 5l-7 7 7 7" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+            Voltar ao site
+          </a>
+          <a
+            href={`/${params.slug}/rsvp`}
+            className="bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white text-sm font-body px-4 py-1.5 rounded-full transition-colors"
+          >
+            Confirmar presença
+          </a>
+        </div>
+
         <div className="relative z-10">
           <p className="font-body text-white/70 text-sm uppercase tracking-widest mb-3">Lista de presentes</p>
           <h1 className="font-display text-4xl md:text-6xl drop-shadow-md">
@@ -118,6 +137,13 @@ export default async function PresentesPublicasPage({ params }: Props) {
           </div>
         )}
       </div>
+
+      {/* Footer */}
+      <footer className="py-8 px-4 flex items-center justify-center sidebar-texture">
+        <a href="https://weddiners.com.br/" target="_blank" rel="noopener noreferrer">
+          <img src="/logo.png" alt="Weddiners" className="h-10 w-auto opacity-90 hover:opacity-100 transition-opacity" />
+        </a>
+      </footer>
     </div>
   );
 }
