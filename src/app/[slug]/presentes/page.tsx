@@ -60,6 +60,13 @@ export default async function PresentesPublicasPage({ params }: Props) {
         </div>
       </div>
 
+      {/* Banner aviso */}
+      <div className="bg-amber-50 border-b border-amber-100 py-3 px-4 text-center">
+        <p className="text-amber-800 font-body text-sm">
+          🎁 Esses presentes são <strong>de verdade</strong> — ao clicar em &ldquo;Presentear via Pix&rdquo;, você realiza um pagamento real para o casal. Qualquer valor é bem-vindo!
+        </p>
+      </div>
+
       {/* Conteúdo */}
       <div className="max-w-5xl mx-auto px-4 py-10">
         {categories.length > 0 && (
@@ -88,6 +95,7 @@ export default async function PresentesPublicasPage({ params }: Props) {
                 pixKeyType={couple.pix_key_type ?? "random"}
                 pixHolderName={couple.pix_holder_name ?? ""}
                 pixCity={couple.wedding_city ?? "Brasil"}
+                coupleName={`${couple.bride_name} & ${couple.groom_name}`}
               />
             ))}
           </div>

@@ -24,6 +24,7 @@ interface GiftCardProps {
   pixKeyType: string;
   pixHolderName: string;
   pixCity: string;
+  coupleName: string;
 }
 
 const categoryLabels: Record<string, string> = {
@@ -33,7 +34,7 @@ const categoryLabels: Record<string, string> = {
   livre: "Livre",
 };
 
-export function GiftCard({ gift, coupleId, pixKey, pixKeyType, pixHolderName, pixCity }: GiftCardProps) {
+export function GiftCard({ gift, coupleId, pixKey, pixKeyType, pixHolderName, pixCity, coupleName }: GiftCardProps) {
   const [open, setOpen] = useState(false);
 
   if (gift.is_received) return null;
@@ -77,7 +78,7 @@ export function GiftCard({ gift, coupleId, pixKey, pixKeyType, pixHolderName, pi
             </div>
           )}
           <div className="mt-4 w-full py-2.5 bg-moss text-white text-sm font-body font-medium rounded-full text-center">
-            Presentear ✦
+            Presentear via Pix ✦
           </div>
         </div>
       </button>
@@ -91,6 +92,7 @@ export function GiftCard({ gift, coupleId, pixKey, pixKeyType, pixHolderName, pi
         pixKeyType={pixKeyType}
         pixHolderName={pixHolderName}
         pixCity={pixCity}
+        coupleName={coupleName}
       />
     </>
   );

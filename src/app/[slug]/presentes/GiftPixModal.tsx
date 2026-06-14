@@ -26,11 +26,12 @@ interface GiftPixModalProps {
   pixKeyType: string;
   pixHolderName: string;
   pixCity: string;
+  coupleName: string;
 }
 
 type Step = "pix" | "confirm" | "done";
 
-export function GiftPixModal({ open, onClose, gift, coupleId, pixKey, pixKeyType, pixHolderName, pixCity }: GiftPixModalProps) {
+export function GiftPixModal({ open, onClose, gift, coupleId, pixKey, pixKeyType, pixHolderName, pixCity, coupleName }: GiftPixModalProps) {
   const [step, setStep] = useState<Step>("pix");
   const [qrDataUrl, setQrDataUrl] = useState("");
   const [pixCode, setPixCode] = useState("");
@@ -84,8 +85,16 @@ export function GiftPixModal({ open, onClose, gift, coupleId, pixKey, pixKeyType
 
       {step === "pix" && (
         <div className="flex flex-col items-center gap-5">
+          {/* Aviso de confirmação */}
+          <div className="w-full bg-sage/10 border border-sage/20 rounded-xl px-4 py-3 text-center">
+            <p className="text-sm font-body text-moss">
+              Você está presenteando <strong>{coupleName}</strong> com{" "}
+              <strong>{fmtBRL(Number(gift.amount))}</strong> via Pix 💚
+            </p>
+          </div>
+
           <p className="text-smoke text-sm font-body text-center">
-            Escaneie o QR Code ou copie o código Pix abaixo para presentear o casal.
+            Escaneie o QR Code ou copie o código Pix abaixo.
           </p>
 
           {qrDataUrl && (
