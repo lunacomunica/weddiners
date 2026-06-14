@@ -11,6 +11,7 @@ interface Gift {
   amount: number;
   category: string | null;
   image_url: string | null;
+  image_position: number | null;
   is_group_gift: boolean;
   target_amount: number | null;
   received_amount: number;
@@ -47,7 +48,7 @@ export function GiftCard({ gift, coupleId, pixKey, pixKeyType, pixHolderName, pi
         style={{ borderColor: "rgba(28,32,24,0.08)" }}
       >
         {gift.image_url ? (
-          <img src={gift.image_url} alt={gift.title} className="w-full h-60 object-cover group-hover:scale-105 transition-transform duration-300" />
+          <img src={gift.image_url} alt={gift.title} className="w-full h-60 object-cover group-hover:scale-105 transition-transform duration-300" style={{ objectPosition: `center ${gift.image_position ?? 50}%` }} />
         ) : (
           <div className="w-full h-60 bg-champagne flex items-center justify-center text-4xl">🎁</div>
         )}

@@ -12,6 +12,7 @@ interface Gift {
   amount: number;
   category: string | null;
   image_url: string | null;
+  image_position: number | null;
   is_group_gift: boolean;
   target_amount: number | null;
   received_amount: number;

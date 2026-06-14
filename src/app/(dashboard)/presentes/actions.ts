@@ -62,6 +62,16 @@ export async function deleteGift(id: string) {
   revalidatePath("/presentes");
 }
 
+export async function updateImagePosition(id: string, position: number) {
+  const { supabase, coupleId } = await getCoupleId();
+  await supabase
+    .from("gifts")
+    .update({ image_position: position })
+    .eq("id", id)
+    .eq("couple_id", coupleId);
+  revalidatePath("/presentes");
+}
+
 export async function toggleGiftReceived(id: string, isReceived: boolean) {
   const { supabase, coupleId } = await getCoupleId();
   await supabase

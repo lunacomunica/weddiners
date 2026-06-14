@@ -1,12 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useCallback } from "react";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { fmtBRL } from "@/lib/format";
 import { Modal } from "@/components/ui/Modal";
 import { GiftModal } from "./GiftModal";
-import { deleteGift, toggleGiftReceived } from "./actions";
+import { deleteGift, toggleGiftReceived, updateImagePosition } from "./actions";
 
 interface Gift {
   id: string;
@@ -15,10 +15,79 @@ interface Gift {
   amount: number;
   category: string | null;
   image_url: string | null;
+  image_position: number | null;
   is_group_gift: boolean;
   target_amount: number | null;
   received_amount: number;
   is_received: boolean;
+}
+
+function DraggableImage({ gift }: { gift: Gift }) {
+  const [pos, setPos] = useState(gift.image_position ?? 50);
+  const [dragging, setDragging] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [hovered, setHovered] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const startY = useRef(0);
+  const startPos = useRef(0);
+
+  const clamp = (v: number) => Math.max(0, Math.min(100, v));
+
+  const onMouseDown = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    setDragging(true);
+    startY.current = e.clientY;
+    startPos.current = pos;
+
+    const onMove = (ev: MouseEvent) => {
+      const h = containerRef.current?.clientHeight ?? 150;
+      const delta = ((ev.clientY - startY.current) / h) * 100;
+      setPos(clamp(startPos.current + delta));
+    };
+    const onUp = async (ev: MouseEvent) => {
+      setDragging(false);
+      const h = containerRef.current?.clientHeight ?? 150;
+      const delta = ((ev.clientY - startY.current) / h) * 100;
+      const finalPos = clamp(startPos.current + delta);
+      setPos(finalPos);
+      setSaving(true);
+      await updateImagePosition(gift.id, Math.round(finalPos));
+      setSaving(false);
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mouseup", onUp);
+    };
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup", onUp);
+  }, [pos, gift.id]);
+
+  return (
+    <div
+      ref={containerRef}
+      className="relative w-full h-36 rounded-md overflow-hidden cursor-ns-resize select-none"
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => !dragging && setHovered(false)}
+      onMouseDown={onMouseDown}
+    >
+      <img
+        src={gift.image_url!}
+        alt={gift.title}
+        className="w-full h-full object-cover pointer-events-none"
+        style={{ objectPosition: `center ${pos}%` }}
+        draggable={false}
+      />
+      {/* Overlay de instrução */}
+      {(hovered || dragging) && (
+        <div className="absolute inset-0 bg-black/30 flex flex-col items-center justify-center gap-1 transition-opacity">
+          <svg width="20" height="20" fill="none" stroke="white" strokeWidth={2} viewBox="0 0 24 24">
+            <path d="M12 5v14M5 12l7-7 7 7M5 12l7 7 7-7" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+          <span className="text-white text-xs font-body">
+            {saving ? "Salvando..." : "Arraste para reposicionar"}
+          </span>
+        </div>
+      )}
+    </div>
+  );
 }
 
 const categoryLabels: Record<string, string> = {
@@ -62,9 +131,7 @@ export function GiftsList({ gifts }: { gifts: Gift[] }) {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {gifts.map(gift => (
           <div key={gift.id} className="bg-white rounded-md border p-5 flex flex-col gap-3" style={{ borderColor: "rgba(13,10,11,0.07)" }}>
-            {gift.image_url && (
-              <img src={gift.image_url} alt={gift.title} className="w-full h-36 object-cover rounded-md" />
-            )}
+            {gift.image_url && <DraggableImage gift={gift} />}
             <div className="flex items-start justify-between gap-2">
               <h3 className="font-display text-lg text-noir leading-snug">{gift.title}</h3>
               {gift.is_received && <Badge variant="confirmed">Recebido</Badge>}
