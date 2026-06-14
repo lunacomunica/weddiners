@@ -1,22 +1,10 @@
-import { createClient } from "@/lib/supabase/server";
-import { redirect } from "next/navigation";
 import Link from "next/link";
 import { Header } from "@/components/dashboard/Header";
 import { fmtNum } from "@/lib/format";
+import { getCouple } from "@/lib/getCouple";
 
 export default async function DashboardPage() {
-  const supabase = createClient();
-
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
-
-  const { data: couple } = await supabase
-    .from("couples")
-    .select("*")
-    .eq("user_id", user.id)
-    .single();
-
-  if (!couple) redirect("/login");
+  const { supabase, couple } = await getCouple();
 
   const hoje = new Date().toISOString().slice(0, 10);
   const em30dias = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
