@@ -27,10 +27,10 @@ interface GiftCardProps {
 }
 
 const categoryLabels: Record<string, string> = {
-  viagem: "🌍 Viagem",
-  casa: "🏠 Casa",
-  experiencia: "✨ Experiência",
-  livre: "🎁 Livre",
+  viagem: "Viagem",
+  casa: "Casa",
+  experiencia: "Experiência",
+  livre: "Livre",
 };
 
 export function GiftCard({ gift, coupleId, pixKey, pixKeyType, pixHolderName, pixCity }: GiftCardProps) {
@@ -46,13 +46,15 @@ export function GiftCard({ gift, coupleId, pixKey, pixKeyType, pixHolderName, pi
         style={{ borderColor: "rgba(28,32,24,0.08)" }}
       >
         {gift.image_url ? (
-          <img src={gift.image_url} alt={gift.title} className="w-full h-44 object-cover group-hover:scale-105 transition-transform duration-300" />
+          <img src={gift.image_url} alt={gift.title} className="w-full h-60 object-cover group-hover:scale-105 transition-transform duration-300" />
         ) : (
-          <div className="w-full h-44 bg-champagne flex items-center justify-center text-4xl">🎁</div>
+          <div className="w-full h-60 bg-champagne flex items-center justify-center text-4xl">🎁</div>
         )}
         <div className="p-5">
           {gift.category && (
-            <span className="text-xs text-smoke font-body">{categoryLabels[gift.category] ?? gift.category}</span>
+            <span className="inline-block text-xs font-body text-moss bg-sage/10 px-2.5 py-0.5 rounded-full mb-1">
+              {categoryLabels[gift.category] ?? gift.category}
+            </span>
           )}
           <h3 className="font-display text-xl text-noir mt-1 leading-snug">{gift.title}</h3>
           {gift.description && (
