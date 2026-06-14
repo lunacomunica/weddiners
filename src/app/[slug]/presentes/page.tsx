@@ -33,32 +33,39 @@ export default async function PresentesPublicasPage({ params }: Props) {
     );
   }
 
-  const { data: gifts } = await supabase
-    .from("gifts")
-    .select("*")
-    .eq("couple_id", couple.id)
-    .eq("is_received", false)
-    .order("order_index", { ascending: true });
+  const [{ data: gifts }, { data: siteConfig }] = await Promise.all([
+    supabase.from("gifts").select("*").eq("couple_id", couple.id).eq("is_received", false).order("order_index", { ascending: true }),
+    supabase.from("site_configs").select("cover_photo_url").eq("couple_id", couple.id).single(),
+  ]);
 
+  const coverPhoto = siteConfig?.cover_photo_url ?? null;
   const categories = Array.from(new Set(gifts?.map(g => g.category).filter(Boolean)));
 
   return (
     <div className="min-h-screen bg-ivory">
       {/* Header */}
-      <div className="bg-moss text-white py-12 px-4 text-center">
-        <p className="font-body text-white/60 text-sm uppercase tracking-widest mb-2">Lista de presentes</p>
-        <h1 className="font-display text-4xl md:text-5xl">
-          {couple.bride_name} & {couple.groom_name}
-        </h1>
-        {couple.wedding_date && (
-          <p className="text-white/70 font-body text-sm mt-2">
-            {new Date(couple.wedding_date + "T00:00:00").toLocaleDateString("pt-BR", {
-              day: "numeric", month: "long", year: "numeric"
-            })}
-          </p>
-        )}
-        <div className="mt-4 inline-block bg-white/10 rounded-full px-4 py-1.5 text-xs font-body text-white/80">
-          ✦ O Pix vai direto para o casal — sem intermediários
+      <div
+        className="relative text-white py-20 px-4 text-center"
+        style={{
+          background: coverPhoto
+            ? `url(${coverPhoto}) center/cover no-repeat`
+            : "#4A5C3E",
+        }}
+      >
+        {/* Overlay escuro */}
+        <div className="absolute inset-0 bg-black/50" />
+        <div className="relative z-10">
+          <p className="font-body text-white/70 text-sm uppercase tracking-widest mb-3">Lista de presentes</p>
+          <h1 className="font-display text-4xl md:text-6xl drop-shadow-md">
+            {couple.bride_name} & {couple.groom_name}
+          </h1>
+          {couple.wedding_date && (
+            <p className="text-white/80 font-body text-sm mt-3">
+              {new Date(couple.wedding_date + "T00:00:00").toLocaleDateString("pt-BR", {
+                day: "numeric", month: "long", year: "numeric"
+              })}
+            </p>
+          )}
         </div>
       </div>
 
