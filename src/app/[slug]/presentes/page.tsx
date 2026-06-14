@@ -1,5 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
+
+export const revalidate = 300;
 import { GiftCard } from "./GiftCard";
 
 interface Props {

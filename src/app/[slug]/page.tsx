@@ -8,6 +8,9 @@ import { Rustico } from "./templates/Rustico";
 import { PasswordGate } from "./PasswordGate";
 import type { TemplateConfig } from "./templates/types";
 
+// Cache de 5 minutos — o site público não precisa ser tempo real
+export const revalidate = 300;
+
 export default async function WeddingPage({ params }: { params: { slug: string } }) {
   const supabase = createClient();
 
