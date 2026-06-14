@@ -94,10 +94,10 @@ export default async function PresentesPublicasPage({ params }: Props) {
           <div className="shrink-0 w-10 h-10 rounded-full bg-amber-200 flex items-center justify-center text-xl">🎁</div>
           <div>
             <p className="text-amber-900 font-body font-bold text-base leading-snug">
-              Esses presentes são de verdade!
+              Os nomes são criativos, mas os presentes são reais!
             </p>
             <p className="text-amber-800 font-body text-sm mt-1">
-              Ao clicar em <strong>&ldquo;Presentear via Pix&rdquo;</strong>, você realiza um pagamento real direto para o casal. Qualquer valor é super bem-vindo 💛
+              Cada item é um presente de verdade — ao clicar em <strong>&ldquo;Presentear via Pix&rdquo;</strong>, o valor vai direto para o casal. Qualquer contribuição é muito bem-vinda 💛
             </p>
           </div>
         </div>
