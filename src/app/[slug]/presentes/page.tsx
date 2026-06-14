@@ -63,10 +63,18 @@ export default async function PresentesPublicasPage({ params }: Props) {
       </div>
 
       {/* Banner aviso */}
-      <div className="bg-amber-50 border-b border-amber-100 py-3 px-4 text-center">
-        <p className="text-amber-800 font-body text-sm">
-          🎁 Esses presentes são <strong>de verdade</strong> — ao clicar em &ldquo;Presentear via Pix&rdquo;, você realiza um pagamento real para o casal. Qualquer valor é bem-vindo!
-        </p>
+      <div className="bg-amber-50 border-y-2 border-amber-200 py-5 px-4">
+        <div className="max-w-2xl mx-auto flex items-start gap-4">
+          <div className="shrink-0 w-10 h-10 rounded-full bg-amber-200 flex items-center justify-center text-xl">🎁</div>
+          <div>
+            <p className="text-amber-900 font-body font-bold text-base leading-snug">
+              Esses presentes são de verdade!
+            </p>
+            <p className="text-amber-800 font-body text-sm mt-1">
+              Ao clicar em <strong>&ldquo;Presentear via Pix&rdquo;</strong>, você realiza um pagamento real direto para o casal. Qualquer valor é super bem-vindo 💛
+            </p>
+          </div>
+        </div>
       </div>
 
       {/* Conteúdo */}
