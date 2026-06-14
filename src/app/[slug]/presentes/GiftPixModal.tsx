@@ -23,13 +23,14 @@ interface GiftPixModalProps {
   gift: Gift;
   coupleId: string;
   pixKey: string;
+  pixKeyType: string;
   pixHolderName: string;
   pixCity: string;
 }
 
 type Step = "pix" | "confirm" | "done";
 
-export function GiftPixModal({ open, onClose, gift, coupleId, pixKey, pixHolderName, pixCity }: GiftPixModalProps) {
+export function GiftPixModal({ open, onClose, gift, coupleId, pixKey, pixKeyType, pixHolderName, pixCity }: GiftPixModalProps) {
   const [step, setStep] = useState<Step>("pix");
   const [qrDataUrl, setQrDataUrl] = useState("");
   const [pixCode, setPixCode] = useState("");
@@ -44,6 +45,7 @@ export function GiftPixModal({ open, onClose, gift, coupleId, pixKey, pixHolderN
 
     const payload = generatePixPayload({
       pixKey,
+      pixKeyType,
       holderName: pixHolderName,
       city: pixCity || "Brasil",
       amount: Number(gift.amount),
@@ -52,7 +54,7 @@ export function GiftPixModal({ open, onClose, gift, coupleId, pixKey, pixHolderN
     setPixCode(payload);
     QRCode.toDataURL(payload, { width: 240, margin: 2, color: { dark: "#1C2018", light: "#FFFFFF" } })
       .then(setQrDataUrl);
-  }, [open, gift, pixKey, pixHolderName, pixCity]);
+  }, [open, gift, pixKey, pixKeyType, pixHolderName, pixCity]);
 
   async function handleCopy() {
     await navigator.clipboard.writeText(pixCode);

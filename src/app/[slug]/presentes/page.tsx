@@ -18,7 +18,7 @@ export default async function PresentesPublicasPage({ params }: Props) {
 
   const { data: couple } = await supabase
     .from("couples")
-    .select("id, bride_name, groom_name, wedding_date, wedding_city, pix_key, pix_holder_name")
+    .select("id, bride_name, groom_name, wedding_date, wedding_city, pix_key, pix_key_type, pix_holder_name")
     .eq("slug", params.slug)
     .single();
 
@@ -85,6 +85,7 @@ export default async function PresentesPublicasPage({ params }: Props) {
                 gift={gift}
                 coupleId={couple.id}
                 pixKey={couple.pix_key!}
+                pixKeyType={couple.pix_key_type ?? "random"}
                 pixHolderName={couple.pix_holder_name ?? ""}
                 pixCity={couple.wedding_city ?? "Brasil"}
               />

@@ -21,6 +21,7 @@ interface GiftCardProps {
   gift: Gift;
   coupleId: string;
   pixKey: string;
+  pixKeyType: string;
   pixHolderName: string;
   pixCity: string;
 }
@@ -32,7 +33,7 @@ const categoryLabels: Record<string, string> = {
   livre: "🎁 Livre",
 };
 
-export function GiftCard({ gift, coupleId, pixKey, pixHolderName, pixCity }: GiftCardProps) {
+export function GiftCard({ gift, coupleId, pixKey, pixKeyType, pixHolderName, pixCity }: GiftCardProps) {
   const [open, setOpen] = useState(false);
 
   if (gift.is_received) return null;
@@ -85,6 +86,7 @@ export function GiftCard({ gift, coupleId, pixKey, pixHolderName, pixCity }: Gif
         gift={gift}
         coupleId={coupleId}
         pixKey={pixKey}
+        pixKeyType={pixKeyType}
         pixHolderName={pixHolderName}
         pixCity={pixCity}
       />

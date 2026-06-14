@@ -16,6 +16,7 @@ function field(id: string, value: string): string {
 
 export interface PixPayloadOptions {
   pixKey: string;
+  pixKeyType?: string; // "cpf" | "email" | "phone" | "random"
   holderName: string;
   city: string;
   amount: number;
@@ -23,8 +24,31 @@ export interface PixPayloadOptions {
   description?: string;
 }
 
+function sanitizePixKey(key: string, type?: string): string {
+  const k = key.trim();
+  switch (type) {
+    case "cpf":
+      // Apenas dígitos
+      return k.replace(/\D/g, "");
+    case "phone": {
+      // E.164: +5541999999999
+      const digits = k.replace(/\D/g, "");
+      if (digits.startsWith("55") && digits.length >= 12) return `+${digits}`;
+      if (digits.length === 11 || digits.length === 10) return `+55${digits}`;
+      if (k.startsWith("+")) return k.replace(/[^\d+]/g, "");
+      return `+55${digits}`;
+    }
+    case "email":
+      return k.toLowerCase();
+    default:
+      // Chave aleatória (UUID) ou desconhecida — usa como está
+      return k;
+  }
+}
+
 export function generatePixPayload(opts: PixPayloadOptions): string {
-  const { pixKey, holderName, city, amount, description } = opts;
+  const { pixKeyType, holderName, city, amount, description } = opts;
+  const pixKey = sanitizePixKey(opts.pixKey, pixKeyType);
   const txId = (opts.txId ?? "WEDDINERS").replace(/[^A-Z0-9]/gi, "").toUpperCase().slice(0, 25) || "WEDDINERS";
 
   const merchantAccountInfo = field("00", "BR.GOV.BCB.PIX") + field("01", pixKey) + (description ? field("02", description.slice(0, 72)) : "");
