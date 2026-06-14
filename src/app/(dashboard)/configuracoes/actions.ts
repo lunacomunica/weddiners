@@ -3,6 +3,38 @@
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 
+export async function uploadAvatar(formData: FormData) {
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: "Não autorizado" };
+
+  const { data: couple } = await supabase.from("couples").select("id").eq("user_id", user.id).single();
+  if (!couple) return { error: "Não autorizado" };
+
+  const file = formData.get("file") as File;
+  if (!file) return { error: "Arquivo não encontrado" };
+
+  const ext = file.name.split(".").pop();
+  const path = `${couple.id}/avatar.${ext}`;
+
+  const { error: uploadError } = await supabase.storage
+    .from("avatars")
+    .upload(path, file, { upsert: true });
+
+  if (uploadError) return { error: uploadError.message };
+
+  const { data: { publicUrl } } = supabase.storage.from("avatars").getPublicUrl(path);
+
+  // Adiciona cache-buster para forçar atualização da imagem
+  const urlWithBust = `${publicUrl}?t=${Date.now()}`;
+
+  await supabase.from("couples").update({ avatar_url: urlWithBust, updated_at: new Date().toISOString() }).eq("id", couple.id);
+
+  revalidatePath("/configuracoes");
+  revalidatePath("/dashboard");
+  return { success: true, url: urlWithBust };
+}
+
 export async function updateCoupleData(formData: FormData) {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();

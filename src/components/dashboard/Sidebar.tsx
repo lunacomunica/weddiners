@@ -129,10 +129,12 @@ const navItems = [
   },
 ];
 
-export function Sidebar() {
+export function Sidebar({ avatarUrl, displayName }: { avatarUrl?: string | null; displayName?: string }) {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  const initials = (displayName ?? "").split(" ").map(n => n[0]).slice(0, 2).join("").toUpperCase() || "W";
 
   // Close mobile menu on route change
   useEffect(() => {
@@ -259,11 +261,30 @@ export function Sidebar() {
           </ul>
         </nav>
 
-        {/* Toggle + Footer */}
+        {/* Avatar + Toggle + Footer */}
         <div className="border-t border-white/10">
+          {/* Avatar */}
+          <Link href="/configuracoes" className={["flex items-center gap-3 px-3 py-3 hover:bg-white/5 transition-colors", collapsed ? "justify-center" : ""].join(" ")}>
+            <div className="w-8 h-8 rounded-full overflow-hidden shrink-0 ring-2 ring-white/20">
+              {avatarUrl ? (
+                <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full bg-sage/40 flex items-center justify-center">
+                  <span className="text-white text-xs font-display font-semibold">{initials}</span>
+                </div>
+              )}
+            </div>
+            {!collapsed && (
+              <div className="min-w-0">
+                <p className="text-white/80 text-xs font-body font-medium truncate">{displayName}</p>
+                <p className="text-white/35 text-xs font-body">Configurações</p>
+              </div>
+            )}
+          </Link>
+
           <button
             onClick={() => setCollapsed(c => !c)}
-            className={["w-full flex items-center gap-3 px-3 py-4 text-white/40 hover:text-white/70 transition-colors font-body text-xs", collapsed ? "justify-center" : ""].join(" ")}
+            className={["w-full flex items-center gap-3 px-3 py-3 text-white/40 hover:text-white/70 transition-colors font-body text-xs border-t border-white/5", collapsed ? "justify-center" : ""].join(" ")}
           >
             <svg
               width="18" height="18" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"
