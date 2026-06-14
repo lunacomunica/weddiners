@@ -21,6 +21,7 @@ interface SiteConfig {
   show_rsvp: boolean;
   show_about: boolean;
   dresscode: string | null;
+  gifts_notice: string | null;
   schedule: string | null;
   directions: string | null;
   directions_url: string | null;
@@ -526,6 +527,19 @@ export function SiteEditor({ config, couple, plan = "free" }: { config: SiteConf
                   name="dresscode"
                   defaultValue={config.dresscode ?? ""}
                   placeholder="Ex: Traje esporte fino. Preferência por tons terrosos e neutros. Evitar branco e preto."
+                  rows={3}
+                />
+              </div>
+
+              <div>
+                <label className="font-body text-sm font-medium text-noir block mb-1.5">
+                  Aviso na lista de presentes
+                </label>
+                <p className="font-body text-xs text-smoke mb-2">Aparece no topo da lista para seus convidados. Deixe em branco para ocultar.</p>
+                <Textarea
+                  name="gifts_notice"
+                  defaultValue={config.gifts_notice ?? ""}
+                  placeholder="Ex: Os nomes são criativos, mas os presentes são reais! Ao clicar em Presentear via Pix, o valor vai direto para a gente 💛"
                   rows={3}
                 />
               </div>

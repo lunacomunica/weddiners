@@ -34,6 +34,7 @@ export async function updateSiteConfig(formData: FormData) {
     palette: formData.get("palette") as string || "sage",
     template: safeTemplate,
     dresscode: formData.get("dresscode") as string || null,
+    gifts_notice: formData.get("gifts_notice") as string || null,
     schedule: formData.get("schedule") as string || null,
     directions: formData.get("directions") as string || null,
     directions_url: formData.get("directions_url") as string || null,

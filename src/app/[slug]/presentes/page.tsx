@@ -35,10 +35,11 @@ export default async function PresentesPublicasPage({ params }: Props) {
 
   const [{ data: gifts }, { data: siteConfig }] = await Promise.all([
     supabase.from("gifts").select("*").eq("couple_id", couple.id).eq("is_received", false).order("order_index", { ascending: true }),
-    supabase.from("site_configs").select("cover_photo_url").eq("couple_id", couple.id).single(),
+    supabase.from("site_configs").select("cover_photo_url, gifts_notice").eq("couple_id", couple.id).single(),
   ]);
 
   const coverPhoto = siteConfig?.cover_photo_url ?? null;
+  const giftsNotice = siteConfig?.gifts_notice ?? null;
   const categories = Array.from(new Set(gifts?.map(g => g.category).filter(Boolean)));
 
   return (
@@ -88,20 +89,15 @@ export default async function PresentesPublicasPage({ params }: Props) {
         </div>
       </div>
 
-      {/* Banner aviso */}
-      <div className="bg-amber-50 border-y-2 border-amber-200 py-5 px-4">
-        <div className="max-w-2xl mx-auto flex items-start gap-4">
-          <div className="shrink-0 w-10 h-10 rounded-full bg-amber-200 flex items-center justify-center text-xl">🎁</div>
-          <div>
-            <p className="text-amber-900 font-body font-bold text-base leading-snug">
-              Os nomes são criativos, mas os presentes são reais!
-            </p>
-            <p className="text-amber-800 font-body text-sm mt-1">
-              Cada item é um presente de verdade — ao clicar em <strong>&ldquo;Presentear via Pix&rdquo;</strong>, o valor vai direto para o casal. Qualquer contribuição é muito bem-vinda 💛
-            </p>
+      {/* Banner aviso personalizado */}
+      {giftsNotice && (
+        <div className="bg-amber-50 border-y-2 border-amber-200 py-5 px-4">
+          <div className="max-w-2xl mx-auto flex items-start gap-4">
+            <div className="shrink-0 w-10 h-10 rounded-full bg-amber-200 flex items-center justify-center text-xl">🎁</div>
+            <p className="text-amber-800 font-body text-sm leading-relaxed">{giftsNotice}</p>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Conteúdo */}
       <div className="max-w-5xl mx-auto px-4 py-10">
