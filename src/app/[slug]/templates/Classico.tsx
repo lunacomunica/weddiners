@@ -54,8 +54,10 @@ export function Classico({ config, slug, messages = [] }: TemplateProps & { mess
         schedulePhotoBg: p.schedulePhotoBg,
       })}
 
-      <footer className="py-8 text-center text-xs tracking-widest uppercase" style={{ color: p.footerColor, opacity: 0.5 }}>
-        Feito com amor · Weddiners
+      <footer className="py-8 px-4 flex items-center justify-center sidebar-texture">
+        <a href="https://weddiners.com.br/" target="_blank" rel="noopener noreferrer">
+          <img src="/logo.png" alt="Weddiners" className="h-10 w-auto opacity-90 hover:opacity-100 transition-opacity" />
+        </a>
       </footer>
 
       {config.translationsEnabled && config.translationLanguages.length > 0 && (

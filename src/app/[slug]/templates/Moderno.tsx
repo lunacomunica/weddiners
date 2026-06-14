@@ -124,8 +124,10 @@ export function Moderno({ config, slug, messages = [] }: TemplateProps & { messa
         return null;
       })}
 
-      <footer className="py-8 px-6 text-center text-xs tracking-widest uppercase border-t" style={{ borderColor: border, color: p.subText }}>
-        Weddiners
+      <footer className="py-8 px-4 flex items-center justify-center sidebar-texture">
+        <a href="https://weddiners.com.br/" target="_blank" rel="noopener noreferrer">
+          <img src="/logo.png" alt="Weddiners" className="h-10 w-auto opacity-90 hover:opacity-100 transition-opacity" />
+        </a>
       </footer>
 
       {config.translationsEnabled && config.translationLanguages.length > 0 && (
