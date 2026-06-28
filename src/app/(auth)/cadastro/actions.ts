@@ -13,27 +13,30 @@ function normalizeSlugPart(str: string): string {
     .replace(/\s+/g, "-");
 }
 
+function randomSuffix(): string {
+  return Math.random().toString(36).slice(2, 6); // 4 chars: a-z0-9
+}
+
 async function generateUniqueSlug(
   supabase: ReturnType<typeof import("@/lib/supabase/server").createClient>,
   brideName: string,
   groomName: string
 ): Promise<string> {
-  const base = `${normalizeSlugPart(brideName)}-e-${normalizeSlugPart(groomName)}`;
+  const names = `${normalizeSlugPart(brideName)}-e-${normalizeSlugPart(groomName)}`;
 
-  // Busca todos os slugs que começam com o base
-  const { data: existing } = await supabase
-    .from("couples")
-    .select("slug")
-    .or(`slug.eq.${base},slug.like.${base}-%`);
+  // Tenta até achar um slug livre (na prática resolve na 1ª tentativa)
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const slug = `wed-${randomSuffix()}-${names}`;
+    const { data } = await supabase
+      .from("couples")
+      .select("id")
+      .eq("slug", slug)
+      .maybeSingle();
+    if (!data) return slug;
+  }
 
-  const taken = new Set(existing?.map((r) => r.slug) ?? []);
-
-  if (!taken.has(base)) return base;
-
-  // Adiciona sufixo numérico até encontrar um livre
-  let i = 2;
-  while (taken.has(`${base}-${i}`)) i++;
-  return `${base}-${i}`;
+  // Fallback com timestamp se tudo falhar (extremamente improvável)
+  return `wed-${Date.now().toString(36)}-${names}`;
 }
 
 export async function signUp(formData: FormData) {
