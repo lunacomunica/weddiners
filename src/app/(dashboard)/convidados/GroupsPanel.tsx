@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { createGuestGroup, deleteGuestGroup, assignGuestToGroup } from "./actions";
+import { createGuestGroup, deleteGuestGroup, assignGuestToGroup, renameGuestGroup } from "./actions";
 
 interface Guest {
   id: string;
@@ -30,7 +30,11 @@ export function GroupsPanel({ groups: initialGroups, guests: initialGuests, slug
   const [creating, setCreating] = useState(false);
   const [copiedToken, setCopiedToken] = useState<string | null>(null);
   const [expandedGroup, setExpandedGroup] = useState<string | null>(null);
-  const [assigningGuest, setAssigningGuest] = useState<string | null>(null); // guestId
+  const [assigningGuest, setAssigningGuest] = useState<string | null>(null); // groupId
+  const [selectedGuests, setSelectedGuests] = useState<string[]>([]);
+  const [addingMultiple, setAddingMultiple] = useState(false);
+  const [renamingGroup, setRenamingGroup] = useState<string | null>(null);
+  const [renameValue, setRenameValue] = useState("");
 
   async function handleCreateGroup() {
     if (!newGroupName.trim()) return;
@@ -54,6 +58,30 @@ export function GroupsPanel({ groups: initialGroups, guests: initialGuests, slug
     setGuests(prev => prev.map(g => g.id === guestId ? { ...g, group_id: groupId } : g));
     await assignGuestToGroup(guestId, groupId);
     setAssigningGuest(null);
+  }
+
+  async function handleRename(groupId: string) {
+    if (!renameValue.trim()) return;
+    setGroups(prev => prev.map(g => g.id === groupId ? { ...g, name: renameValue.trim() } : g));
+    await renameGuestGroup(groupId, renameValue.trim());
+    setRenamingGroup(null);
+    setRenameValue("");
+  }
+
+  async function handleAssignMultiple(groupId: string) {
+    if (selectedGuests.length === 0) return;
+    setAddingMultiple(true);
+    setGuests(prev => prev.map(g => selectedGuests.includes(g.id) ? { ...g, group_id: groupId } : g));
+    await Promise.all(selectedGuests.map(id => assignGuestToGroup(id, groupId)));
+    setSelectedGuests([]);
+    setAssigningGuest(null);
+    setAddingMultiple(false);
+  }
+
+  function toggleGuestSelection(guestId: string) {
+    setSelectedGuests(prev =>
+      prev.includes(guestId) ? prev.filter(id => id !== guestId) : [...prev, guestId]
+    );
   }
 
   function copyGroupLink(token: string) {
@@ -118,7 +146,24 @@ export function GroupsPanel({ groups: initialGroups, guests: initialGuests, slug
                       </svg>
                     </div>
                     <div>
-                      <p className="font-semibold text-neutral-800 text-sm">{group.name}</p>
+                      {renamingGroup === group.id ? (
+                        <div className="flex items-center gap-2" onClick={e => e.stopPropagation()}>
+                          <input
+                            autoFocus
+                            value={renameValue}
+                            onChange={e => setRenameValue(e.target.value)}
+                            onKeyDown={e => {
+                              if (e.key === "Enter") handleRename(group.id);
+                              if (e.key === "Escape") { setRenamingGroup(null); setRenameValue(""); }
+                            }}
+                            className="border border-sage/40 rounded-lg px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-sage/30 font-body"
+                          />
+                          <button onClick={() => handleRename(group.id)} className="text-xs text-sage font-medium hover:underline">Salvar</button>
+                          <button onClick={() => { setRenamingGroup(null); setRenameValue(""); }} className="text-xs text-neutral-400 hover:text-neutral-600">✕</button>
+                        </div>
+                      ) : (
+                        <p className="font-semibold text-neutral-800 text-sm">{group.name}</p>
+                      )}
                       <p className="text-xs text-neutral-400">
                         {membros.length} {membros.length === 1 ? "pessoa" : "pessoas"}
                         {membros.filter(m => m.guest_type === "crianca").length > 0
@@ -129,6 +174,16 @@ export function GroupsPanel({ groups: initialGroups, guests: initialGuests, slug
 
                   {/* Ações */}
                   <div className="flex gap-1 shrink-0">
+                    <button
+                      onClick={() => { setRenamingGroup(group.id); setRenameValue(group.name); setExpandedGroup(group.id); }}
+                      className="p-1.5 text-neutral-300 hover:text-sage transition-colors rounded-lg"
+                      title="Renomear grupo"
+                    >
+                      <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    </button>
                     <button
                       onClick={() => copyGroupLink(group.token)}
                       className={["flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-all", copied ? "bg-emerald-50 border-emerald-200 text-emerald-600" : "border-neutral-200 text-neutral-500 hover:border-sage hover:text-sage"].join(" ")}
@@ -176,23 +231,58 @@ export function GroupsPanel({ groups: initialGroups, guests: initialGuests, slug
                     <div className="pt-1">
                       {assigningGuest === group.id ? (
                         <div className="space-y-1">
-                          <p className="text-xs text-neutral-500 font-body mb-2">Selecione quem adicionar:</p>
+                          <div className="flex items-center justify-between mb-2">
+                            <p className="text-xs text-neutral-500 font-body">Selecione quem adicionar:</p>
+                            {ungrouped.length > 0 && (
+                              <button
+                                onClick={() => setSelectedGuests(
+                                  selectedGuests.length === ungrouped.length
+                                    ? []
+                                    : ungrouped.map(g => g.id)
+                                )}
+                                className="text-xs text-sage hover:underline"
+                              >
+                                {selectedGuests.length === ungrouped.length ? "Desmarcar todos" : "Selecionar todos"}
+                              </button>
+                            )}
+                          </div>
                           {ungrouped.map(g => (
-                            <button
+                            <label
                               key={g.id}
-                              onClick={() => handleAssign(g.id, group.id)}
-                              className="w-full text-left flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-sage/10 text-sm text-neutral-700 transition-colors"
+                              className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-sage/10 text-sm text-neutral-700 transition-colors cursor-pointer"
                             >
+                              <input
+                                type="checkbox"
+                                checked={selectedGuests.includes(g.id)}
+                                onChange={() => toggleGuestSelection(g.id)}
+                                className="accent-sage w-4 h-4 shrink-0"
+                              />
                               <span>{g.guest_type === "crianca" ? "👶" : "🧑"}</span>
                               {g.name}
-                            </button>
+                            </label>
                           ))}
-                          {ungrouped.length === 0 && <p className="text-xs text-neutral-400 text-center py-2">Todos os convidados já estão em grupos.</p>}
-                          <button onClick={() => setAssigningGuest(null)} className="text-xs text-neutral-400 hover:text-neutral-600 mt-1">Cancelar</button>
+                          {ungrouped.length === 0 && (
+                            <p className="text-xs text-neutral-400 text-center py-2">Todos os convidados já estão em grupos.</p>
+                          )}
+                          <div className="flex items-center gap-2 mt-2">
+                            <button
+                              onClick={() => handleAssignMultiple(group.id)}
+                              disabled={selectedGuests.length === 0 || addingMultiple}
+                              className="btn-primary text-xs py-1.5 px-4 disabled:opacity-40"
+                            >
+                              {addingMultiple ? "Adicionando..." : `Adicionar${selectedGuests.length > 0 ? ` (${selectedGuests.length})` : ""}`}
+                            </button>
+                            <button
+                              onClick={() => { setAssigningGuest(null); setSelectedGuests([]); }}
+                              className="text-xs text-neutral-400 hover:text-neutral-600"
+                            >
+                              Cancelar
+                            </button>
+                          </div>
                         </div>
                       ) : (
                         <button
-                          onClick={() => setAssigningGuest(group.id)}
+                          onClick={() => { setAssigningGuest(group.id); setSelectedGuests([]); }}
                           className="w-full border border-dashed border-neutral-200 rounded-lg py-2 text-xs text-neutral-400 hover:border-sage hover:text-sage transition-colors flex items-center justify-center gap-1"
                         >
                           <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" strokeLinecap="round" strokeLinejoin="round"/></svg>

@@ -123,6 +123,14 @@ export async function createGuestGroup(name: string) {
   return { success: true, group: data };
 }
 
+export async function renameGuestGroup(id: string, name: string) {
+  const { supabase, coupleId } = await getCoupleId();
+  const { error } = await supabase.from("guest_groups").update({ name }).eq("id", id).eq("couple_id", coupleId);
+  revalidatePath("/convidados");
+  if (error) return { error: error.message };
+  return { success: true };
+}
+
 export async function deleteGuestGroup(id: string) {
   const { supabase, coupleId } = await getCoupleId();
   await supabase.from("guest_groups").delete().eq("id", id).eq("couple_id", coupleId);
