@@ -35,6 +35,7 @@ export function GroupsPanel({ groups: initialGroups, guests: initialGuests, slug
   const [addingMultiple, setAddingMultiple] = useState(false);
   const [renamingGroup, setRenamingGroup] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState("");
+  const [guestSearch, setGuestSearch] = useState("");
 
   async function handleCreateGroup() {
     if (!newGroupName.trim()) return;
@@ -231,22 +232,42 @@ export function GroupsPanel({ groups: initialGroups, guests: initialGuests, slug
                     <div className="pt-1">
                       {assigningGuest === group.id ? (
                         <div className="space-y-1">
-                          <div className="flex items-center justify-between mb-2">
+                          {/* Busca */}
+                          <div className="relative mb-2">
+                            <svg className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-300" width="13" height="13" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                              <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35" strokeLinecap="round"/>
+                            </svg>
+                            <input
+                              autoFocus
+                              type="text"
+                              placeholder="Buscar convidado..."
+                              value={guestSearch}
+                              onChange={e => setGuestSearch(e.target.value)}
+                              className="w-full pl-8 pr-3 py-2 border border-neutral-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-sage/30 focus:border-sage font-body"
+                            />
+                          </div>
+                          <div className="flex items-center justify-between mb-1">
                             <p className="text-xs text-neutral-500 font-body">Selecione quem adicionar:</p>
                             {ungrouped.length > 0 && (
                               <button
-                                onClick={() => setSelectedGuests(
-                                  selectedGuests.length === ungrouped.length
-                                    ? []
-                                    : ungrouped.map(g => g.id)
-                                )}
+                                onClick={() => {
+                                  const filtered = ungrouped.filter(g => g.name.toLowerCase().includes(guestSearch.toLowerCase()));
+                                  const filteredIds = filtered.map(g => g.id);
+                                  const allSelected = filteredIds.every(id => selectedGuests.includes(id));
+                                  setSelectedGuests(allSelected
+                                    ? selectedGuests.filter(id => !filteredIds.includes(id))
+                                    : [...new Set([...selectedGuests, ...filteredIds])]
+                                  );
+                                }}
                                 className="text-xs text-sage hover:underline"
                               >
-                                {selectedGuests.length === ungrouped.length ? "Desmarcar todos" : "Selecionar todos"}
+                                {ungrouped.filter(g => g.name.toLowerCase().includes(guestSearch.toLowerCase())).every(g => selectedGuests.includes(g.id)) && ungrouped.filter(g => g.name.toLowerCase().includes(guestSearch.toLowerCase())).length > 0
+                                  ? "Desmarcar todos"
+                                  : "Selecionar todos"}
                               </button>
                             )}
                           </div>
-                          {ungrouped.map(g => (
+                          {ungrouped.filter(g => g.name.toLowerCase().includes(guestSearch.toLowerCase())).map(g => (
                             <label
                               key={g.id}
                               className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-sage/10 text-sm text-neutral-700 transition-colors cursor-pointer"
@@ -261,8 +282,10 @@ export function GroupsPanel({ groups: initialGroups, guests: initialGuests, slug
                               {g.name}
                             </label>
                           ))}
-                          {ungrouped.length === 0 && (
-                            <p className="text-xs text-neutral-400 text-center py-2">Todos os convidados já estão em grupos.</p>
+                          {ungrouped.filter(g => g.name.toLowerCase().includes(guestSearch.toLowerCase())).length === 0 && (
+                            <p className="text-xs text-neutral-400 text-center py-2">
+                              {ungrouped.length === 0 ? "Todos os convidados já estão em grupos." : "Nenhum resultado para a busca."}
+                            </p>
                           )}
                           <div className="flex items-center gap-2 mt-2">
                             <button
@@ -273,7 +296,7 @@ export function GroupsPanel({ groups: initialGroups, guests: initialGuests, slug
                               {addingMultiple ? "Adicionando..." : `Adicionar${selectedGuests.length > 0 ? ` (${selectedGuests.length})` : ""}`}
                             </button>
                             <button
-                              onClick={() => { setAssigningGuest(null); setSelectedGuests([]); }}
+                              onClick={() => { setAssigningGuest(null); setSelectedGuests([]); setGuestSearch(""); }}
                               className="text-xs text-neutral-400 hover:text-neutral-600"
                             >
                               Cancelar
@@ -282,7 +305,7 @@ export function GroupsPanel({ groups: initialGroups, guests: initialGuests, slug
                         </div>
                       ) : (
                         <button
-                          onClick={() => { setAssigningGuest(group.id); setSelectedGuests([]); }}
+                          onClick={() => { setAssigningGuest(group.id); setSelectedGuests([]); setGuestSearch(""); }}
                           className="w-full border border-dashed border-neutral-200 rounded-lg py-2 text-xs text-neutral-400 hover:border-sage hover:text-sage transition-colors flex items-center justify-center gap-1"
                         >
                           <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" strokeLinecap="round" strokeLinejoin="round"/></svg>
