@@ -3,17 +3,37 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 
-function generateSlug(brideName: string, groomName: string): string {
-  const normalize = (str: string) =>
-    str
-      .toLowerCase()
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .replace(/[^a-z0-9\s]/g, "")
-      .trim()
-      .replace(/\s+/g, "-");
+function normalizeSlugPart(str: string): string {
+  return str
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9\s]/g, "")
+    .trim()
+    .replace(/\s+/g, "-");
+}
 
-  return `${normalize(brideName)}-e-${normalize(groomName)}`;
+async function generateUniqueSlug(
+  supabase: ReturnType<typeof import("@/lib/supabase/server").createClient>,
+  brideName: string,
+  groomName: string
+): Promise<string> {
+  const base = `${normalizeSlugPart(brideName)}-e-${normalizeSlugPart(groomName)}`;
+
+  // Busca todos os slugs que começam com o base
+  const { data: existing } = await supabase
+    .from("couples")
+    .select("slug")
+    .or(`slug.eq.${base},slug.like.${base}-%`);
+
+  const taken = new Set(existing?.map((r) => r.slug) ?? []);
+
+  if (!taken.has(base)) return base;
+
+  // Adiciona sufixo numérico até encontrar um livre
+  let i = 2;
+  while (taken.has(`${base}-${i}`)) i++;
+  return `${base}-${i}`;
 }
 
 export async function signUp(formData: FormData) {
@@ -34,7 +54,7 @@ export async function signUp(formData: FormData) {
     return { error: authError?.message ?? "Erro ao criar conta." };
   }
 
-  const slug = generateSlug(brideName, groomName);
+  const slug = await generateUniqueSlug(supabase, brideName, groomName);
 
   const { data: couple, error: coupleError } = await supabase
     .from("couples")
