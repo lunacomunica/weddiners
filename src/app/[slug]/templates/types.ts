@@ -22,6 +22,14 @@ export interface TemplateConfig {
   palette: string | null;
   translationsEnabled: boolean;
   translationLanguages: string[];
+  // Títulos customizáveis por seção
+  aboutTitle: string;
+  rsvpTitle: string;
+  giftsTitle: string;
+  dresscodeTitle: string;
+  scheduleTitle: string;
+  directionsTitle: string;
+  messagesTitle: string;
 }
 
 export interface TemplateProps {

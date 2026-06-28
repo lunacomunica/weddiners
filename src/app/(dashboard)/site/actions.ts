@@ -38,6 +38,13 @@ export async function updateSiteConfig(formData: FormData) {
     schedule: formData.get("schedule") as string || null,
     directions: formData.get("directions") as string || null,
     directions_url: formData.get("directions_url") as string || null,
+    about_title: formData.get("about_title") as string || null,
+    rsvp_title: formData.get("rsvp_title") as string || null,
+    gifts_title: formData.get("gifts_title") as string || null,
+    dresscode_title: formData.get("dresscode_title") as string || null,
+    schedule_title: formData.get("schedule_title") as string || null,
+    directions_title: formData.get("directions_title") as string || null,
+    messages_title: formData.get("messages_title") as string || null,
     // Preserve existing section visibility
     show_about:      currentConfig?.show_about      ?? true,
     show_rsvp:       currentConfig?.show_rsvp       ?? true,

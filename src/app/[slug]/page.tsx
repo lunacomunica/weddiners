@@ -62,6 +62,13 @@ export default async function WeddingPage({ params }: { params: { slug: string }
     showDirections: config?.show_directions === true,
     showMessages: config?.show_messages === true,
     palette: config?.palette ?? null,
+    aboutTitle: config?.about_title ?? "Nossa História",
+    rsvpTitle: config?.rsvp_title ?? "Confirme sua Presença",
+    giftsTitle: config?.gifts_title ?? "Lista de Presentes",
+    dresscodeTitle: config?.dresscode_title ?? "Dress Code",
+    scheduleTitle: config?.schedule_title ?? "Cronograma",
+    directionsTitle: config?.directions_title ?? "Como Chegar",
+    messagesTitle: config?.messages_title ?? "Mural de Recados",
     translationsEnabled: !!couple.translations_enabled,
     translationLanguages: (couple.translation_languages as string[]) ?? [],
     sectionOrder: (() => {

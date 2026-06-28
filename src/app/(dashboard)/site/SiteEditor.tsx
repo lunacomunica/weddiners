@@ -5,10 +5,21 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
 import { QRCodeDisplay } from "@/components/QRCodeDisplay";
-import { SectionsEditor, DEFAULT_ORDER } from "./SectionsEditor";
-import { updateSiteConfig, updateCoupleInfo, updateAppearance, updateSiteSettings } from "./actions";
+import { updateSiteConfig, updateCoupleInfo, updateAppearance, updateSiteSettings, updateSections } from "./actions";
 
 type SectionId = "about" | "rsvp" | "gifts" | "dresscode" | "schedule" | "directions" | "messages";
+
+const DEFAULT_ORDER: SectionId[] = ["about", "rsvp", "gifts", "dresscode", "schedule", "directions", "messages"];
+
+const SECTION_META: Record<SectionId, { label: string; defaultTitle: string }> = {
+  about:      { label: "Sobre o casal",          defaultTitle: "Nossa História" },
+  rsvp:       { label: "Confirmação de presença", defaultTitle: "Confirme sua Presença" },
+  gifts:      { label: "Lista de presentes",      defaultTitle: "Lista de Presentes" },
+  dresscode:  { label: "Dress Code",              defaultTitle: "Dress Code" },
+  schedule:   { label: "Cronograma",              defaultTitle: "Cronograma" },
+  directions: { label: "Como Chegar",             defaultTitle: "Como Chegar" },
+  messages:   { label: "Mural de Recados",        defaultTitle: "Mural de Recados" },
+};
 
 interface SiteConfig {
   hero_title: string | null;
@@ -30,6 +41,13 @@ interface SiteConfig {
   show_directions: boolean;
   show_messages: boolean;
   section_order: string | null;
+  about_title: string | null;
+  rsvp_title: string | null;
+  gifts_title: string | null;
+  dresscode_title: string | null;
+  schedule_title: string | null;
+  directions_title: string | null;
+  messages_title: string | null;
 }
 
 interface Couple {
@@ -99,8 +117,122 @@ function parseCustomPalette(palette: string | null): [string, string, string] {
   return [parts[1] ?? "#7A8C6A", parts[2] ?? "#EDE4D0", parts[3] ?? "#1C2018"];
 }
 
-type Tab = "aparencia" | "conteudo" | "secoes" | "configuracoes";
+type Tab = "aparencia" | "secoes" | "configuracoes";
 
+// ─── Toggle component ───────────────────────────────────────────────────────
+function Toggle({ value, onChange }: { value: boolean; onChange: (v: boolean) => void }) {
+  return (
+    <button
+      type="button"
+      onClick={() => onChange(!value)}
+      className={`relative shrink-0 w-9 h-5 rounded-full transition-colors duration-200 ${value ? "bg-moss" : "bg-smoke/20"}`}
+    >
+      <span className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform duration-200 ${value ? "translate-x-4" : "translate-x-0"}`} />
+    </button>
+  );
+}
+
+// ─── Section Card ───────────────────────────────────────────────────────────
+function SectionCard({
+  id,
+  index,
+  isOn,
+  title,
+  expanded,
+  onToggle,
+  onTitleChange,
+  onExpandToggle,
+  onDragStart,
+  onDragEnter,
+  onDragEnd,
+  children,
+}: {
+  id: SectionId;
+  index: number;
+  isOn: boolean;
+  title: string;
+  expanded: boolean;
+  onToggle: () => void;
+  onTitleChange: (v: string) => void;
+  onExpandToggle: () => void;
+  onDragStart: () => void;
+  onDragEnter: () => void;
+  onDragEnd: () => void;
+  children?: React.ReactNode;
+}) {
+  const meta = SECTION_META[id];
+
+  return (
+    <div
+      draggable
+      onDragStart={onDragStart}
+      onDragEnter={onDragEnter}
+      onDragEnd={onDragEnd}
+      onDragOver={e => e.preventDefault()}
+      className={`rounded-lg border transition-all select-none ${
+        isOn
+          ? "bg-white border-moss/20"
+          : "bg-ivory border-transparent"
+      }`}
+      style={{ borderColor: isOn ? "rgba(58,74,48,0.15)" : "rgba(13,10,11,0.06)" }}
+    >
+      {/* Header row */}
+      <div className="flex items-center gap-3 px-4 py-3">
+        {/* Drag handle */}
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="text-smoke/40 shrink-0 cursor-grab active:cursor-grabbing">
+          <circle cx="4" cy="3" r="1.2" fill="currentColor"/>
+          <circle cx="4" cy="7" r="1.2" fill="currentColor"/>
+          <circle cx="4" cy="11" r="1.2" fill="currentColor"/>
+          <circle cx="10" cy="3" r="1.2" fill="currentColor"/>
+          <circle cx="10" cy="7" r="1.2" fill="currentColor"/>
+          <circle cx="10" cy="11" r="1.2" fill="currentColor"/>
+        </svg>
+
+        <Toggle value={isOn} onChange={onToggle} />
+
+        {/* Title input */}
+        <input
+          type="text"
+          value={title}
+          onChange={e => onTitleChange(e.target.value)}
+          placeholder={meta.defaultTitle}
+          className={`flex-1 min-w-0 bg-transparent font-body text-sm font-medium outline-none border-b border-transparent focus:border-moss/30 transition-colors py-0.5 ${isOn ? "text-noir" : "text-smoke"}`}
+        />
+
+        {/* Expand/collapse button — only when section is active and has content fields */}
+        {isOn && children && (
+          <button
+            type="button"
+            onClick={onExpandToggle}
+            className="p-1 text-smoke hover:text-noir transition-colors shrink-0"
+          >
+            <svg
+              width="14" height="14" fill="none" stroke="currentColor" strokeWidth={2}
+              viewBox="0 0 24 24"
+              className={`transition-transform ${expanded ? "rotate-180" : ""}`}
+            >
+              <path d="M6 9l6 6 6-6" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </button>
+        )}
+
+        {/* Order badge */}
+        {isOn && (
+          <span className="font-body text-[10px] text-moss/50 shrink-0 w-4 text-right">{index + 1}</span>
+        )}
+      </div>
+
+      {/* Expanded content */}
+      {isOn && expanded && children && (
+        <div className="px-4 pb-4 pt-1 border-t space-y-3" style={{ borderColor: "rgba(13,10,11,0.06)" }}>
+          {children}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Main SiteEditor component ───────────────────────────────────────────────
 export function SiteEditor({ config, couple, plan = "free" }: { config: SiteConfig; couple: Couple; plan?: "free" | "pro" }) {
   const [tab, setTab] = useState<Tab>("aparencia");
   const [saving, setSaving] = useState(false);
@@ -115,7 +247,7 @@ export function SiteEditor({ config, couple, plan = "free" }: { config: SiteConf
   const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isFirstAppearanceRender = useRef(true);
 
-  // Controlled state for palette and template so visual selection updates immediately
+  // Controlled state for palette and template
   const initialPaletteId = config.palette?.startsWith("custom|") ? "custom" : (config.palette ?? "sage");
   const [selectedPalette, setSelectedPalette] = useState(initialPaletteId);
   const [selectedTemplate, setSelectedTemplate] = useState(config.template ?? "classico");
@@ -146,16 +278,101 @@ export function SiteEditor({ config, couple, plan = "free" }: { config: SiteConf
     setPublicUrl(`${window.location.origin}/${couple.slug}`);
   }, [couple.slug]);
 
-  async function handleSaveConfig(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
+  // ─── Sections state ─────────────────────────────────────────────────────────
+  const parsedOrder: SectionId[] = (() => {
+    try { return JSON.parse(config.section_order ?? "null") ?? DEFAULT_ORDER; }
+    catch { return DEFAULT_ORDER; }
+  })();
+
+  const [sectionOrder, setSectionOrder] = useState<SectionId[]>(parsedOrder);
+  const [sectionChecked, setSectionChecked] = useState<Record<SectionId, boolean>>({
+    about: config.show_about,
+    rsvp: config.show_rsvp,
+    gifts: config.show_gifts,
+    dresscode: config.show_dresscode,
+    schedule: config.show_schedule,
+    directions: config.show_directions,
+    messages: config.show_messages,
+  });
+  const [sectionTitles, setSectionTitles] = useState<Record<SectionId, string>>({
+    about:      config.about_title      ?? "",
+    rsvp:       config.rsvp_title       ?? "",
+    gifts:      config.gifts_title      ?? "",
+    dresscode:  config.dresscode_title  ?? "",
+    schedule:   config.schedule_title   ?? "",
+    directions: config.directions_title ?? "",
+    messages:   config.messages_title   ?? "",
+  });
+  const [sectionContent, setSectionContent] = useState({
+    about_text:     config.about_text      ?? "",
+    dresscode:      config.dresscode       ?? "",
+    gifts_notice:   config.gifts_notice    ?? "",
+    schedule:       config.schedule        ?? "",
+    directions:     config.directions      ?? "",
+    directions_url: config.directions_url  ?? "",
+    hero_title:     config.hero_title      ?? "",
+    hero_subtitle:  config.hero_subtitle   ?? "",
+  });
+  const [expanded, setExpanded] = useState<Partial<Record<SectionId, boolean>>>({});
+
+  // Drag & drop
+  const dragItem = useRef<number | null>(null);
+
+  function handleDragStart(index: number) { dragItem.current = index; }
+  function handleDragEnter(index: number) {
+    if (dragItem.current === null || dragItem.current === index) return;
+    setSectionOrder(prev => {
+      const next = [...prev];
+      const dragged = next.splice(dragItem.current!, 1)[0];
+      next.splice(index, 0, dragged);
+      dragItem.current = index;
+      return next;
+    });
+  }
+  function handleDragEnd() { dragItem.current = null; }
+
+  // Sections save handler
+  async function handleSaveSections() {
     setSaving(true);
     setError("");
-    const result = await updateSiteConfig(new FormData(e.currentTarget));
-    if (result?.error) setError(result.error);
-    else { setSaved(true); setTimeout(() => setSaved(false), 2000); refreshPreview(); }
+
+    // Build FormData for content + titles
+    const fd = new FormData();
+    fd.set("palette", selectedPalette === "custom" ? `custom|${customColors[0]}|${customColors[1]}|${customColors[2]}` : selectedPalette);
+    fd.set("template", selectedTemplate);
+    fd.set("cover_photo_url", config.cover_photo_url ?? "");
+    fd.set("hero_title", sectionContent.hero_title);
+    fd.set("hero_subtitle", sectionContent.hero_subtitle);
+    fd.set("about_text", sectionContent.about_text);
+    fd.set("dresscode", sectionContent.dresscode);
+    fd.set("gifts_notice", sectionContent.gifts_notice);
+    fd.set("schedule", sectionContent.schedule);
+    fd.set("directions", sectionContent.directions);
+    fd.set("directions_url", sectionContent.directions_url);
+    fd.set("about_title", sectionTitles.about);
+    fd.set("rsvp_title", sectionTitles.rsvp);
+    fd.set("gifts_title", sectionTitles.gifts);
+    fd.set("dresscode_title", sectionTitles.dresscode);
+    fd.set("schedule_title", sectionTitles.schedule);
+    fd.set("directions_title", sectionTitles.directions);
+    fd.set("messages_title", sectionTitles.messages);
+
+    // Save content + titles via updateSiteConfig
+    const [contentResult, sectionsResult] = await Promise.all([
+      updateSiteConfig(fd),
+      updateSections(sectionOrder, sectionChecked),
+    ]);
+
+    if (contentResult?.error) { setError(contentResult.error); setSaving(false); return; }
+    if (sectionsResult?.error) { setError(sectionsResult.error); setSaving(false); return; }
+
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
+    refreshPreview();
     setSaving(false);
   }
 
+  // Couple save handler
   async function handleSaveCouple(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setSavingCouple(true);
@@ -164,6 +381,26 @@ export function SiteEditor({ config, couple, plan = "free" }: { config: SiteConf
     if (result?.error) setError(result.error);
     else { setSaved(true); setTimeout(() => setSaved(false), 2000); refreshPreview(); }
     setSavingCouple(false);
+  }
+
+  // Appearance save (for the button in the tab)
+  async function handleSaveAppearance(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setSaving(true);
+    setError("");
+    const fd = new FormData(e.currentTarget);
+    fd.set("hero_title", config.hero_title ?? "");
+    fd.set("hero_subtitle", config.hero_subtitle ?? "");
+    fd.set("about_text", config.about_text ?? "");
+    fd.set("dresscode", config.dresscode ?? "");
+    fd.set("gifts_notice", config.gifts_notice ?? "");
+    fd.set("schedule", config.schedule ?? "");
+    fd.set("directions", config.directions ?? "");
+    fd.set("directions_url", config.directions_url ?? "");
+    const result = await updateSiteConfig(fd);
+    if (result?.error) setError(result.error);
+    else { setSaved(true); setTimeout(() => setSaved(false), 2000); refreshPreview(); }
+    setSaving(false);
   }
 
   // Settings state
@@ -193,10 +430,88 @@ export function SiteEditor({ config, couple, plan = "free" }: { config: SiteConf
 
   const tabs: { id: Tab; label: string }[] = [
     { id: "aparencia", label: "Aparência" },
-    { id: "conteudo", label: "Conteúdo" },
     { id: "secoes", label: "Seções" },
     { id: "configuracoes", label: "Configurações" },
   ];
+
+  // Sections with expandable content
+  const SECTIONS_WITH_CONTENT: Partial<Record<SectionId, React.ReactNode>> = {
+    about: (
+      <>
+        <label className="font-body text-xs text-smoke block mb-1">Texto da seção</label>
+        <Textarea
+          name="about_text"
+          value={sectionContent.about_text}
+          onChange={e => setSectionContent(p => ({ ...p, about_text: e.target.value }))}
+          placeholder="Conte um pouco da história de vocês..."
+          rows={4}
+        />
+      </>
+    ),
+    gifts: (
+      <>
+        <label className="font-body text-xs text-smoke block mb-1">Aviso para convidados</label>
+        <p className="font-body text-[11px] text-smoke/70 mb-1.5">Aparece no topo da lista. Deixe em branco para ocultar.</p>
+        <Textarea
+          name="gifts_notice"
+          value={sectionContent.gifts_notice}
+          onChange={e => setSectionContent(p => ({ ...p, gifts_notice: e.target.value }))}
+          placeholder="Ex: Os nomes são criativos, mas os presentes são reais!"
+          rows={3}
+        />
+      </>
+    ),
+    dresscode: (
+      <>
+        <label className="font-body text-xs text-smoke block mb-1">Orientações de vestimenta</label>
+        <Textarea
+          name="dresscode"
+          value={sectionContent.dresscode}
+          onChange={e => setSectionContent(p => ({ ...p, dresscode: e.target.value }))}
+          placeholder="Ex: Traje esporte fino. Preferência por tons terrosos e neutros."
+          rows={3}
+        />
+      </>
+    ),
+    schedule: (
+      <>
+        <label className="font-body text-xs text-smoke block mb-1">Programação do dia</label>
+        <p className="font-body text-[11px] text-smoke/70 mb-1.5">Uma linha por evento: &ldquo;18:00 Cerimônia&rdquo;</p>
+        <Textarea
+          name="schedule"
+          value={sectionContent.schedule}
+          onChange={e => setSectionContent(p => ({ ...p, schedule: e.target.value }))}
+          placeholder={"17:30 Recepção\n18:00 Cerimônia\n19:30 Coquetel\n21:00 Jantar e festa"}
+          rows={5}
+        />
+      </>
+    ),
+    directions: (
+      <div className="space-y-3">
+        <div>
+          <label className="font-body text-xs text-smoke block mb-1">Descrição</label>
+          <Textarea
+            name="directions"
+            value={sectionContent.directions}
+            onChange={e => setSectionContent(p => ({ ...p, directions: e.target.value }))}
+            placeholder="Ex: O local fica na Av. Paulista, 1000. Há estacionamento próprio."
+            rows={3}
+          />
+        </div>
+        <div>
+          <label className="font-body text-xs text-smoke block mb-1">Link do Google Maps (opcional)</label>
+          <input
+            type="url"
+            value={sectionContent.directions_url}
+            onChange={e => setSectionContent(p => ({ ...p, directions_url: e.target.value }))}
+            placeholder="https://maps.google.com/..."
+            className="w-full px-3 py-2 rounded-md border font-body text-sm outline-none focus:border-moss transition-colors"
+            style={{ borderColor: "rgba(13,10,11,0.12)" }}
+          />
+        </div>
+      </div>
+    ),
+  };
 
   return (
     <>
@@ -292,7 +607,7 @@ export function SiteEditor({ config, couple, plan = "free" }: { config: SiteConf
 
         {/* Aparência */}
         {tab === "aparencia" && (
-          <form ref={appearanceFormRef} onSubmit={handleSaveConfig} className="space-y-6">
+          <form ref={appearanceFormRef} onSubmit={handleSaveAppearance} className="space-y-6">
             <input type="hidden" name="show_gifts" value={config.show_gifts ? "on" : ""} />
             <input type="hidden" name="show_rsvp" value={config.show_rsvp ? "on" : ""} />
             <input type="hidden" name="show_about" value={config.show_about ? "on" : ""} />
@@ -300,13 +615,6 @@ export function SiteEditor({ config, couple, plan = "free" }: { config: SiteConf
             <input type="hidden" name="show_schedule" value={config.show_schedule ? "on" : ""} />
             <input type="hidden" name="show_directions" value={config.show_directions ? "on" : ""} />
             <input type="hidden" name="show_messages" value={config.show_messages ? "on" : ""} />
-            <input type="hidden" name="hero_title" value={config.hero_title ?? ""} />
-            <input type="hidden" name="hero_subtitle" value={config.hero_subtitle ?? ""} />
-            <input type="hidden" name="about_text" value={config.about_text ?? ""} />
-            <input type="hidden" name="dresscode" value={config.dresscode ?? ""} />
-            <input type="hidden" name="schedule" value={config.schedule ?? ""} />
-            <input type="hidden" name="directions" value={config.directions ?? ""} />
-            <input type="hidden" name="directions_url" value={config.directions_url ?? ""} />
 
             <div className="bg-white rounded-lg border p-6" style={{ borderColor: "rgba(13,10,11,0.08)" }}>
               <h3 className="font-display text-lg text-noir mb-4">Template</h3>
@@ -353,7 +661,6 @@ export function SiteEditor({ config, couple, plan = "free" }: { config: SiteConf
 
             <div className="bg-white rounded-lg border p-6" style={{ borderColor: "rgba(13,10,11,0.08)" }}>
               <h3 className="font-display text-lg text-noir mb-4">Paleta de Cores</h3>
-              {/* Hidden input: sends the actual palette value (custom includes the hex codes) */}
               <input type="hidden" name="palette" value={
                 selectedPalette === "custom"
                   ? `custom|${customColors[0]}|${customColors[1]}|${customColors[2]}`
@@ -385,7 +692,6 @@ export function SiteEditor({ config, couple, plan = "free" }: { config: SiteConf
                 })}
               </div>
 
-              {/* Custom palette color pickers */}
               {selectedPalette === "custom" && (
                 <div className="mt-4 p-4 rounded-lg border space-y-3" style={{ borderColor: "rgba(13,10,11,0.08)", background: "#FAFAF8" }}>
                   <p className="font-body text-xs text-smoke mb-3">Insira os códigos hexadecimais das suas cores</p>
@@ -448,169 +754,96 @@ export function SiteEditor({ config, couple, plan = "free" }: { config: SiteConf
           </form>
         )}
 
-        {/* Conteúdo */}
-        {tab === "conteudo" && (
-          <div className="space-y-6">
-            <form onSubmit={handleSaveCouple} className="bg-white rounded-lg border p-6 space-y-4" style={{ borderColor: "rgba(13,10,11,0.08)" }}>
-              <h3 className="font-display text-lg text-noir">Informações do Casal</h3>
-              <div className="grid grid-cols-2 gap-4">
-                <Input label="Nome — Noiva/Noivo 1" name="partner1_name" defaultValue={couple.partner1_name ?? couple.bride_name} placeholder="Maria" />
-                <Input label="Nome — Noivo/Noiva 2" name="partner2_name" defaultValue={couple.partner2_name ?? couple.groom_name} placeholder="João" />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <Input label="Data do casamento" name="wedding_date" type="date" defaultValue={couple.wedding_date ?? ""} />
-                <Input label="Local" name="wedding_location" defaultValue={couple.wedding_location ?? ""} placeholder="São Paulo, SP" />
-              </div>
-              <Button type="submit" loading={savingCouple}>
-                {saved ? "Salvo!" : "Salvar informações"}
-              </Button>
-            </form>
-
-            <form onSubmit={handleSaveConfig} className="bg-white rounded-lg border p-6 space-y-4" style={{ borderColor: "rgba(13,10,11,0.08)" }}>
-              <h3 className="font-display text-lg text-noir">Textos do Site</h3>
-              <input type="hidden" name="palette" value={selectedPalette === "custom" ? `custom|${customColors[0]}|${customColors[1]}|${customColors[2]}` : selectedPalette} />
-              <input type="hidden" name="template" value={selectedTemplate} />
-              <input type="hidden" name="cover_photo_url" value={config.cover_photo_url ?? ""} />
-              <input type="hidden" name="show_gifts" value={config.show_gifts ? "on" : ""} />
-              <input type="hidden" name="show_rsvp" value={config.show_rsvp ? "on" : ""} />
-              <input type="hidden" name="show_about" value={config.show_about ? "on" : ""} />
-              <input type="hidden" name="show_dresscode" value={config.show_dresscode ? "on" : ""} />
-              <input type="hidden" name="show_schedule" value={config.show_schedule ? "on" : ""} />
-              <input type="hidden" name="show_directions" value={config.show_directions ? "on" : ""} />
-              <input type="hidden" name="show_messages" value={config.show_messages ? "on" : ""} />
-
-              <Input
-                label="Título do hero"
-                name="hero_title"
-                defaultValue={config.hero_title ?? `${couple.partner1_name ?? couple.bride_name} & ${couple.partner2_name ?? couple.groom_name}`}
-                placeholder="Maria & João"
-              />
-              <Input
-                label="Subtítulo"
-                name="hero_subtitle"
-                defaultValue={config.hero_subtitle ?? ""}
-                placeholder="21 de novembro de 2026 · São Paulo"
-              />
-              <Textarea
-                label="Mensagem do casal (seção Sobre)"
-                name="about_text"
-                defaultValue={config.about_text ?? ""}
-                placeholder="Conte um pouco da história de vocês..."
-                rows={4}
-              />
-              <Button type="submit" loading={saving}>
-                {saved ? "Salvo!" : "Salvar textos"}
-              </Button>
-            </form>
-
-            <form onSubmit={handleSaveConfig} className="bg-white rounded-lg border p-6 space-y-4" style={{ borderColor: "rgba(13,10,11,0.08)" }}>
-              <h3 className="font-display text-lg text-noir">Seções extras</h3>
-              <input type="hidden" name="palette" value={selectedPalette === "custom" ? `custom|${customColors[0]}|${customColors[1]}|${customColors[2]}` : selectedPalette} />
-              <input type="hidden" name="template" value={selectedTemplate} />
-              <input type="hidden" name="cover_photo_url" value={config.cover_photo_url ?? ""} />
-              <input type="hidden" name="hero_title" value={config.hero_title ?? ""} />
-              <input type="hidden" name="hero_subtitle" value={config.hero_subtitle ?? ""} />
-              <input type="hidden" name="about_text" value={config.about_text ?? ""} />
-              <input type="hidden" name="show_gifts" value={config.show_gifts ? "on" : ""} />
-              <input type="hidden" name="show_rsvp" value={config.show_rsvp ? "on" : ""} />
-              <input type="hidden" name="show_about" value={config.show_about ? "on" : ""} />
-              <input type="hidden" name="show_dresscode" value={config.show_dresscode ? "on" : ""} />
-              <input type="hidden" name="show_schedule" value={config.show_schedule ? "on" : ""} />
-              <input type="hidden" name="show_directions" value={config.show_directions ? "on" : ""} />
-              <input type="hidden" name="show_messages" value={config.show_messages ? "on" : ""} />
-
-              <div>
-                <label className="font-body text-sm font-medium text-noir block mb-1.5">
-                  Dress Code
-                </label>
-                <Textarea
-                  name="dresscode"
-                  defaultValue={config.dresscode ?? ""}
-                  placeholder="Ex: Traje esporte fino. Preferência por tons terrosos e neutros. Evitar branco e preto."
-                  rows={3}
-                />
-              </div>
-
-              <div>
-                <label className="font-body text-sm font-medium text-noir block mb-1.5">
-                  Aviso na lista de presentes
-                </label>
-                <p className="font-body text-xs text-smoke mb-2">Aparece no topo da lista para seus convidados. Deixe em branco para ocultar.</p>
-                <Textarea
-                  name="gifts_notice"
-                  defaultValue={config.gifts_notice ?? ""}
-                  placeholder="Ex: Os nomes são criativos, mas os presentes são reais! Ao clicar em Presentear via Pix, o valor vai direto para a gente 💛"
-                  rows={3}
-                />
-              </div>
-
-              <div>
-                <label className="font-body text-sm font-medium text-noir block mb-1.5">
-                  Cronograma
-                </label>
-                <p className="font-body text-xs text-smoke mb-2">Uma linha por evento: &ldquo;18:00 Cerimônia&rdquo;</p>
-                <Textarea
-                  name="schedule"
-                  defaultValue={config.schedule ?? "17:00 Recepção dos convidados\n18:00 Cerimônia\n19:30 Coquetel\n21:00 Jantar\n23:00 Pista de dança"}
-                  placeholder={"17:30 Recepção\n18:00 Cerimônia\n19:30 Coquetel\n21:00 Jantar e festa"}
-                  rows={5}
-                />
-              </div>
-
-              <div className="space-y-3">
-                <div>
-                  <label className="font-body text-sm font-medium text-noir block mb-1.5">
-                    Como Chegar — Descrição
-                  </label>
-                  <Textarea
-                    name="directions"
-                    defaultValue={config.directions ?? ""}
-                    placeholder="Ex: O local fica na Av. Paulista, 1000. Há estacionamento próprio e o metrô mais próximo é o Trianon-MASP."
-                    rows={3}
-                  />
+        {/* Seções */}
+        {tab === "secoes" && (
+          <div className="space-y-4">
+            {/* Card: Informações do casal */}
+            <div className="bg-white rounded-lg border p-5" style={{ borderColor: "rgba(13,10,11,0.08)" }}>
+              <h3 className="font-display text-base text-noir mb-4">Informações do casal</h3>
+              <form onSubmit={handleSaveCouple} className="space-y-4">
+                <div className="grid grid-cols-2 gap-3">
+                  <Input label="Nome — Noiva/Noivo 1" name="partner1_name" defaultValue={couple.partner1_name ?? couple.bride_name} placeholder="Maria" />
+                  <Input label="Nome — Noivo/Noiva 2" name="partner2_name" defaultValue={couple.partner2_name ?? couple.groom_name} placeholder="João" />
                 </div>
-                <Input
-                  label="Link do Google Maps (opcional)"
-                  name="directions_url"
-                  defaultValue={config.directions_url ?? ""}
-                  placeholder="https://maps.google.com/..."
-                />
+                <div className="grid grid-cols-2 gap-3">
+                  <Input label="Data do casamento" name="wedding_date" type="date" defaultValue={couple.wedding_date ?? ""} />
+                  <Input label="Local" name="wedding_location" defaultValue={couple.wedding_location ?? ""} placeholder="São Paulo, SP" />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="font-body text-xs font-medium text-smoke block mb-1">Título do hero</label>
+                    <input
+                      type="text"
+                      value={sectionContent.hero_title}
+                      onChange={e => setSectionContent(p => ({ ...p, hero_title: e.target.value }))}
+                      placeholder={`${couple.partner1_name ?? couple.bride_name} & ${couple.partner2_name ?? couple.groom_name}`}
+                      className="w-full px-3 py-2 rounded-md border font-body text-sm outline-none focus:border-moss transition-colors"
+                      style={{ borderColor: "rgba(13,10,11,0.12)" }}
+                    />
+                  </div>
+                  <div>
+                    <label className="font-body text-xs font-medium text-smoke block mb-1">Subtítulo</label>
+                    <input
+                      type="text"
+                      value={sectionContent.hero_subtitle}
+                      onChange={e => setSectionContent(p => ({ ...p, hero_subtitle: e.target.value }))}
+                      placeholder="21 de novembro de 2026 · São Paulo"
+                      className="w-full px-3 py-2 rounded-md border font-body text-sm outline-none focus:border-moss transition-colors"
+                      style={{ borderColor: "rgba(13,10,11,0.12)" }}
+                    />
+                  </div>
+                </div>
+                <Button type="submit" loading={savingCouple} className="w-full sm:w-auto">
+                  {saved ? "Salvo!" : "Salvar informações"}
+                </Button>
+              </form>
+            </div>
+
+            {/* Seções do site */}
+            <div className="bg-white rounded-lg border p-5" style={{ borderColor: "rgba(13,10,11,0.08)" }}>
+              <div className="flex items-center justify-between mb-1">
+                <h3 className="font-display text-base text-noir">Seções do site</h3>
+              </div>
+              <p className="font-body text-xs text-smoke mb-4">Ative, renomeie e arraste para reordenar. Expanda para editar o conteúdo.</p>
+
+              <div className="space-y-2">
+                {sectionOrder.map((id, index) => {
+                  const hasContent = id in SECTIONS_WITH_CONTENT;
+                  const isExpanded = !!expanded[id];
+                  return (
+                    <SectionCard
+                      key={id}
+                      id={id}
+                      index={index}
+                      isOn={sectionChecked[id]}
+                      title={sectionTitles[id]}
+                      expanded={isExpanded}
+                      onToggle={() => setSectionChecked(prev => ({ ...prev, [id]: !prev[id] }))}
+                      onTitleChange={v => setSectionTitles(prev => ({ ...prev, [id]: v }))}
+                      onExpandToggle={() => setExpanded(prev => ({ ...prev, [id]: !prev[id] }))}
+                      onDragStart={() => handleDragStart(index)}
+                      onDragEnter={() => handleDragEnter(index)}
+                      onDragEnd={handleDragEnd}
+                    >
+                      {hasContent ? SECTIONS_WITH_CONTENT[id] : undefined}
+                    </SectionCard>
+                  );
+                })}
               </div>
 
-              <Button type="submit" loading={saving}>
-                {saved ? "Salvo!" : "Salvar seções extras"}
-              </Button>
-            </form>
+              <div className="mt-5 flex items-center justify-between gap-3">
+                <Button onClick={handleSaveSections} loading={saving} type="button">
+                  {saved ? "Salvo!" : "Salvar seções"}
+                </Button>
+                {error && <p className="text-rose text-xs font-body">{error}</p>}
+              </div>
+            </div>
           </div>
         )}
 
-        {/* Seções */}
-        {tab === "secoes" && (() => {
-          const parsedOrder: SectionId[] = (() => {
-            try { return JSON.parse(config.section_order ?? "null") ?? DEFAULT_ORDER; }
-            catch { return DEFAULT_ORDER; }
-          })();
-          const initialChecked: Record<SectionId, boolean> = {
-            about: config.show_about,
-            rsvp: config.show_rsvp,
-            gifts: config.show_gifts,
-            dresscode: config.show_dresscode,
-            schedule: config.show_schedule,
-            directions: config.show_directions,
-            messages: config.show_messages,
-          };
-          return (
-            <SectionsEditor
-              initialOrder={parsedOrder}
-              initialChecked={initialChecked}
-              onSaved={refreshPreview}
-            />
-          );
-        })()}
-
+        {/* Configurações */}
         {tab === "configuracoes" && (
           <div className="space-y-4">
-
             {/* Senha de acesso */}
             <div className="bg-white rounded-2xl border border-neutral-200 p-6">
               <div className="flex items-start justify-between gap-4 mb-4">
@@ -717,7 +950,7 @@ export function SiteEditor({ config, couple, plan = "free" }: { config: SiteConf
               disabled={savingSettings || (transEnabled && transLangs.length === 0)}
               className="btn-primary w-full py-3 disabled:opacity-40"
             >
-              {savingSettings ? "Salvando..." : settingsSaved ? "✓ Salvo!" : "Salvar configurações"}
+              {savingSettings ? "Salvando..." : settingsSaved ? "Salvo!" : "Salvar configurações"}
             </button>
           </div>
         )}
@@ -845,11 +1078,6 @@ export function SiteEditor({ config, couple, plan = "free" }: { config: SiteConf
                       <p className="font-body text-[10px] text-smoke truncate">{couple.slug}.weddiners.com.br</p>
                     </div>
                   </div>
-                  {/*
-                    Viewport 1280×1600 → hero (min-h-screen=1600px) fills full height.
-                    We scroll the iframe to 820px on load, jumping past the hero.
-                    scale=0.297 → visible area ≈ 380×461px showing sections.
-                  */}
                   <div className="flex-1 overflow-hidden relative">
                     <iframe
                       key={previewKey}
