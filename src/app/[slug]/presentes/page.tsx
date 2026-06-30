@@ -101,8 +101,8 @@ export default async function PresentesPublicasPage({ params, searchParams }: Pr
       {/* Banner aviso personalizado */}
       {giftsNotice && (
         <div className="bg-amber-50 border-y-2 border-amber-200 py-5 px-4">
-          <div className="max-w-2xl mx-auto flex items-start gap-4">
-            <div className="shrink-0 w-10 h-10 rounded-full bg-amber-200 flex items-center justify-center text-xl">🎁</div>
+          <div className="max-w-2xl mx-auto flex flex-col items-center gap-3 text-center">
+            <div className="w-10 h-10 rounded-full bg-amber-200 flex items-center justify-center text-xl">🎁</div>
             <p className="text-amber-800 font-body text-sm leading-relaxed">{giftsNotice}</p>
           </div>
         </div>
