@@ -20,7 +20,7 @@ function AboutSection({ config, colors }: { config: TemplateConfig; colors: Sect
   if (!config.showAbout || !config.aboutText) return null;
   const { accent, mainBg, text, subText } = colors;
   return (
-    <section style={{ background: mainBg }}>
+    <section data-weddiners-section="about" style={{ background: mainBg }}>
       <div className="max-w-5xl mx-auto px-6 py-24 grid md:grid-cols-2 gap-12 md:gap-20 items-center">
         {/* Left: cover photo as portrait if available, else ornamental block */}
         {config.coverPhotoUrl ? (
@@ -71,7 +71,7 @@ function DresscodeSection({ config, colors }: { config: TemplateConfig; colors: 
   if (!config.showDresscode || !config.dresscode) return null;
   const { accent, altBg, text, subText } = colors;
   return (
-    <section style={{ background: altBg }}>
+    <section data-weddiners-section="dresscode" style={{ background: altBg }}>
       <div className="max-w-3xl mx-auto px-6 py-24 text-center">
         <p className="text-xs tracking-[0.3em] uppercase mb-3" style={{ color: accent }}>Dress Code</p>
         <h2 className="mb-10" style={{ fontFamily: "var(--font-display)", fontSize: "clamp(2rem, 4vw, 2.8rem)", color: text, fontStyle: "italic" }}>
@@ -105,7 +105,7 @@ function ScheduleSection({ config, colors }: { config: TemplateConfig; colors: S
   });
 
   return (
-    <section className="relative overflow-hidden" style={{
+    <section data-weddiners-section="schedule" className="relative overflow-hidden" style={{
       background: schedulePhotoBg ?? (config.coverPhotoUrl
         ? undefined
         : "#1C2018"),
@@ -164,7 +164,7 @@ function DirectionsSection({ config, colors }: { config: TemplateConfig; colors:
   if (!config.showDirections || !config.directions) return null;
   const { accent, altBg, text, subText } = colors;
   return (
-    <section style={{ background: altBg }}>
+    <section data-weddiners-section="directions" style={{ background: altBg }}>
       <div className="max-w-4xl mx-auto px-6 py-24 grid md:grid-cols-[1fr_2fr] gap-16 items-start">
         <div>
           <p className="text-xs tracking-[0.3em] uppercase mb-4" style={{ color: accent }}>Como Chegar</p>
@@ -202,7 +202,7 @@ function CTASection({ config, slug, colors }: { config: TemplateConfig; slug: st
   if (!config.showRsvp && !config.showGifts) return null;
   const { accent, mainBg, text, subText, buttonRadius = "0.375rem" } = colors;
   return (
-    <section style={{ background: mainBg }}>
+    <section data-weddiners-section="rsvp" style={{ background: mainBg }}>
       <div className="max-w-2xl mx-auto px-6 py-24 text-center">
         <p className="text-xs tracking-[0.3em] uppercase mb-4" style={{ color: accent }}>Participe</p>
         <h2 className="mb-4" style={{ fontFamily: "var(--font-display)", fontSize: "clamp(2.2rem, 4vw, 3rem)", color: text, fontStyle: "italic" }}>
@@ -237,7 +237,7 @@ function MessagesBlock({ config, slug, messages, colors }: { config: TemplateCon
   if (!config.showMessages) return null;
   const { accent, altBg, text } = colors;
   return (
-    <section style={{ background: altBg }}>
+    <section data-weddiners-section="messages" style={{ background: altBg }}>
       <div className="max-w-3xl mx-auto px-6 py-24">
         <div className="text-center mb-14">
           <p className="text-xs tracking-[0.3em] uppercase mb-3" style={{ color: accent }}>Mural</p>

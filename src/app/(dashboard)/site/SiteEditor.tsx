@@ -254,6 +254,31 @@ export function SiteEditor({ config, couple, plan = "free" }: { config: SiteConf
 
   const refreshPreview = useCallback(() => setPreviewKey(k => k + 1), []);
 
+  // Ouve cliques nas seções do preview (postMessage do iframe)
+  useEffect(() => {
+    function handleMessage(e: MessageEvent) {
+      if (e.data?.type !== "weddiners-section-click") return;
+      const sectionId = e.data.sectionId as string;
+      if (!sectionId) return;
+
+      // Vai para a aba Seções
+      if (sectionId === "hero") {
+        setTab("secoes");
+        return;
+      }
+      setTab("secoes");
+      // Expande a seção clicada
+      setExpanded(prev => ({ ...prev, [sectionId as SectionId]: true }));
+      // Ativa a seção se estiver desligada
+      setSectionChecked(prev => {
+        if (prev[sectionId as SectionId] === false) return { ...prev, [sectionId as SectionId]: true };
+        return prev;
+      });
+    }
+    window.addEventListener("message", handleMessage);
+    return () => window.removeEventListener("message", handleMessage);
+  }, []);
+
   // Auto-save appearance when palette or template changes (debounced 600ms)
   useEffect(() => {
     if (isFirstAppearanceRender.current) { isFirstAppearanceRender.current = false; return; }

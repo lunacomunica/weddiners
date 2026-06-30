@@ -6,6 +6,7 @@ import { Romantico } from "./templates/Romantico";
 import { Moderno } from "./templates/Moderno";
 import { Rustico } from "./templates/Rustico";
 import { PasswordGate } from "./PasswordGate";
+import { EditModeClient } from "./EditModeClient";
 import type { TemplateConfig } from "./templates/types";
 
 // Cache de 5 minutos — o site público não precisa ser tempo real
@@ -88,5 +89,10 @@ export default async function WeddingPage({ params }: { params: { slug: string }
     rustico:   <Rustico   couple={coupleRef} config={templateConfig} slug={params.slug} messages={messages} />,
   };
 
-  return templates[template] ?? templates.classico;
+  return (
+    <>
+      <EditModeClient />
+      {templates[template] ?? templates.classico}
+    </>
+  );
 }

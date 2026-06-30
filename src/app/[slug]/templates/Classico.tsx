@@ -13,6 +13,7 @@ export function Classico({ config, slug, messages = [] }: TemplateProps & { mess
     <div style={{ fontFamily: "var(--font-body)", background: p.mainBg, color: p.text }}>
       {/* Hero */}
       <section
+        data-weddiners-section="hero"
         className="relative min-h-screen flex flex-col items-center justify-center text-center px-6"
         style={{
           background: config.coverPhotoUrl
