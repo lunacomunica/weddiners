@@ -107,7 +107,7 @@ export default async function DashboardPage() {
               <p className="text-xs text-neutral-400 font-body mt-1">{nomeCasal}</p>
             </div>
             <div className="flex flex-col gap-2 mt-4">
-              <Link href={`/${couple.slug}`} target="_blank" className="btn-primary text-center text-xs py-2">Ver site →</Link>
+              <Link href={`https://${couple.slug}.weddiners.com.br`} target="_blank" className="btn-primary text-center text-xs py-2">Ver site →</Link>
               <Link href="/site" className="text-center text-xs text-neutral-400 hover:text-neutral-600 font-body transition-colors">Editar aparência</Link>
             </div>
           </div>

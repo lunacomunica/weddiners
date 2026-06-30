@@ -301,10 +301,8 @@ export function SiteEditor({ config, couple, plan = "free" }: { config: SiteConf
     return () => { if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current); };
   }, [selectedPalette, selectedTemplate, customColors, selectedTypography, refreshPreview]);
 
-  const [publicUrl, setPublicUrl] = useState(`https://weddiners.com.br/${couple.slug}`);
-  useEffect(() => {
-    setPublicUrl(`${window.location.origin}/${couple.slug}`);
-  }, [couple.slug]);
+  // URL pública sempre no formato de subdomínio
+  const publicUrl = `https://${couple.slug}.weddiners.com.br`;
 
   // ─── Sections state ─────────────────────────────────────────────────────────
   const parsedOrder: SectionId[] = (() => {
@@ -1153,7 +1151,7 @@ export function SiteEditor({ config, couple, plan = "free" }: { config: SiteConf
               WhatsApp
             </a>
             <a
-              href={`/${couple.slug}`}
+              href={publicUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-md text-sm font-body font-medium border transition-colors hover:bg-ivory w-full"
@@ -1246,7 +1244,7 @@ export function SiteEditor({ config, couple, plan = "free" }: { config: SiteConf
               <p className="font-body text-[11px] text-smoke">{couple.slug}.weddiners.com.br</p>
             </div>
             <a
-              href={`/${couple.slug}`}
+              href={publicUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-1 font-body text-xs text-moss hover:underline px-2 py-1"
