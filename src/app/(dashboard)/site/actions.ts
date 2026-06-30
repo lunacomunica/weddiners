@@ -41,6 +41,8 @@ export async function updateSiteConfig(formData: FormData) {
     about_photo_url: formData.get("about_photo_url") as string || null,
     about_subtitle: formData.get("about_subtitle") as string || null,
     rsvp_subtitle: formData.get("rsvp_subtitle") as string || null,
+    rsvp_text: formData.get("rsvp_text") as string || null,
+    gifts_text: formData.get("gifts_text") as string || null,
     directions_subtitle: formData.get("directions_subtitle") as string || null,
     about_title: formData.get("about_title") as string || null,
     rsvp_title: formData.get("rsvp_title") as string || null,

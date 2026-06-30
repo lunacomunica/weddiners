@@ -209,7 +209,7 @@ function CTASection({ config, slug, colors }: { config: TemplateConfig; slug: st
           {config.rsvpSubtitle || "Sua presença é nosso maior presente"}
         </h2>
         <p className="text-sm mb-12" style={{ color: subText }}>
-          Confirme sua presença e, se quiser, confira nossa lista de presentes
+          {config.rsvpText || "Confirme sua presença e, se quiser, confira nossa lista de presentes"}
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           {config.showRsvp && (

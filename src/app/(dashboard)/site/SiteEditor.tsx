@@ -35,6 +35,8 @@ interface SiteConfig {
   schedule: string | null;
   directions: string | null;
   directions_url: string | null;
+  rsvp_text: string | null;
+  gifts_text: string | null;
   about_photo_url: string | null;
   about_subtitle: string | null;
   rsvp_subtitle: string | null;
@@ -341,6 +343,8 @@ export function SiteEditor({ config, couple, plan = "free" }: { config: SiteConf
     directions_url:      config.directions_url       ?? "",
     directions_subtitle: config.directions_subtitle  ?? "",
     rsvp_subtitle:       config.rsvp_subtitle        ?? "",
+    rsvp_text:           config.rsvp_text            ?? "",
+    gifts_text:          config.gifts_text           ?? "",
     hero_title:          config.hero_title            ?? "",
     hero_subtitle:       config.hero_subtitle         ?? "",
   });
@@ -378,6 +382,8 @@ export function SiteEditor({ config, couple, plan = "free" }: { config: SiteConf
     fd.set("about_photo_url", sectionContent.about_photo_url);
     fd.set("about_subtitle", sectionContent.about_subtitle);
     fd.set("rsvp_subtitle", sectionContent.rsvp_subtitle);
+    fd.set("rsvp_text", sectionContent.rsvp_text);
+    fd.set("gifts_text", sectionContent.gifts_text);
     fd.set("directions_subtitle", sectionContent.directions_subtitle);
     fd.set("dresscode", sectionContent.dresscode);
     fd.set("gifts_notice", sectionContent.gifts_notice);
@@ -509,30 +515,42 @@ export function SiteEditor({ config, couple, plan = "free" }: { config: SiteConf
       </div>
     ),
     rsvp: (
-      <div>
-        <label className="font-body text-xs text-smoke block mb-1">Subtítulo</label>
-        <input
-          type="text"
-          value={sectionContent.rsvp_subtitle}
-          onChange={e => setSectionContent(p => ({ ...p, rsvp_subtitle: e.target.value }))}
-          placeholder="Sua presença é nosso maior presente"
-          className="w-full px-3 py-2 rounded-md border font-body text-sm outline-none focus:border-moss transition-colors"
-          style={{ borderColor: "rgba(13,10,11,0.12)" }}
-        />
+      <div className="space-y-3">
+        <div>
+          <label className="font-body text-xs text-smoke block mb-1">Subtítulo</label>
+          <input
+            type="text"
+            value={sectionContent.rsvp_subtitle}
+            onChange={e => setSectionContent(p => ({ ...p, rsvp_subtitle: e.target.value }))}
+            placeholder="Sua presença é nosso maior presente"
+            className="w-full px-3 py-2 rounded-md border font-body text-sm outline-none focus:border-moss transition-colors"
+            style={{ borderColor: "rgba(13,10,11,0.12)" }}
+          />
+        </div>
+        <div>
+          <label className="font-body text-xs text-smoke block mb-1">Texto descritivo</label>
+          <Textarea
+            value={sectionContent.rsvp_text}
+            onChange={e => setSectionContent(p => ({ ...p, rsvp_text: e.target.value }))}
+            placeholder="Confirme sua presença e, se quiser, confira nossa lista de presentes"
+            rows={2}
+          />
+        </div>
       </div>
     ),
     gifts: (
-      <>
-        <label className="font-body text-xs text-smoke block mb-1">Aviso para convidados</label>
-        <p className="font-body text-[11px] text-smoke/70 mb-1.5">Aparece no topo da lista. Deixe em branco para ocultar.</p>
-        <Textarea
-          name="gifts_notice"
-          value={sectionContent.gifts_notice}
-          onChange={e => setSectionContent(p => ({ ...p, gifts_notice: e.target.value }))}
-          placeholder="Ex: Os nomes são criativos, mas os presentes são reais!"
-          rows={3}
-        />
-      </>
+      <div className="space-y-3">
+        <div>
+          <label className="font-body text-xs text-smoke block mb-1">Aviso para convidados</label>
+          <p className="font-body text-[11px] text-smoke/70 mb-1.5">Aparece no topo da lista de presentes.</p>
+          <Textarea
+            value={sectionContent.gifts_notice}
+            onChange={e => setSectionContent(p => ({ ...p, gifts_notice: e.target.value }))}
+            placeholder="Ex: Os nomes são criativos, mas os presentes são reais!"
+            rows={2}
+          />
+        </div>
+      </div>
     ),
     dresscode: (
       <>

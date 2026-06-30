@@ -73,6 +73,8 @@ export default async function WeddingPage({ params }: { params: { slug: string }
     aboutPhotoUrl: config?.about_photo_url ?? null,
     aboutSubtitle: config?.about_subtitle ?? null,
     rsvpSubtitle: config?.rsvp_subtitle ?? null,
+    rsvpText: config?.rsvp_text ?? null,
+    giftsText: config?.gifts_text ?? null,
     directionsSubtitle: config?.directions_subtitle ?? null,
     translationsEnabled: !!couple.translations_enabled,
     translationLanguages: (couple.translation_languages as string[]) ?? [],

@@ -34,6 +34,8 @@ export interface TemplateConfig {
   aboutPhotoUrl: string | null;
   aboutSubtitle: string | null;
   rsvpSubtitle: string | null;
+  rsvpText: string | null;
+  giftsText: string | null;
   directionsSubtitle: string | null;
 }
 
