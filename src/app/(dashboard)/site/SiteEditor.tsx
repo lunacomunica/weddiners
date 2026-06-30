@@ -4,7 +4,6 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
-import { QRCodeDisplay } from "@/components/QRCodeDisplay";
 import { updateSiteConfig, updateCoupleInfo, updateAppearance, updateSiteSettings, updateSections } from "./actions";
 
 type SectionId = "about" | "rsvp" | "gifts" | "dresscode" | "schedule" | "directions" | "messages";

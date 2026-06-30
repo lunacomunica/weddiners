@@ -256,7 +256,7 @@ export function GroupsPanel({ groups: initialGroups, guests: initialGuests, slug
                                   const allSelected = filteredIds.every(id => selectedGuests.includes(id));
                                   setSelectedGuests(allSelected
                                     ? selectedGuests.filter(id => !filteredIds.includes(id))
-                                    : [...new Set([...selectedGuests, ...filteredIds])]
+                                    : Array.from(new Set([...selectedGuests, ...filteredIds]))
                                   );
                                 }}
                                 className="text-xs text-sage hover:underline"
