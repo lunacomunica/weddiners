@@ -70,6 +70,10 @@ export default async function WeddingPage({ params }: { params: { slug: string }
     scheduleTitle: config?.schedule_title ?? "Cronograma",
     directionsTitle: config?.directions_title ?? "Como Chegar",
     messagesTitle: config?.messages_title ?? "Mural de Recados",
+    aboutPhotoUrl: config?.about_photo_url ?? null,
+    aboutSubtitle: config?.about_subtitle ?? null,
+    rsvpSubtitle: config?.rsvp_subtitle ?? null,
+    directionsSubtitle: config?.directions_subtitle ?? null,
     translationsEnabled: !!couple.translations_enabled,
     translationLanguages: (couple.translation_languages as string[]) ?? [],
     sectionOrder: (() => {

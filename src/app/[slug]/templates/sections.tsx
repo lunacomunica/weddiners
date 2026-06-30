@@ -22,11 +22,11 @@ function AboutSection({ config, colors }: { config: TemplateConfig; colors: Sect
   return (
     <section data-weddiners-section="about" style={{ background: mainBg }}>
       <div className="max-w-5xl mx-auto px-6 py-24 grid md:grid-cols-2 gap-12 md:gap-20 items-center">
-        {/* Left: cover photo as portrait if available, else ornamental block */}
-        {config.coverPhotoUrl ? (
+        {/* Left: section photo, then cover photo, else ornamental block */}
+        {(config.aboutPhotoUrl || config.coverPhotoUrl) ? (
           <div className="relative aspect-[3/4] rounded-lg overflow-hidden shadow-lg">
             <img
-              src={config.coverPhotoUrl}
+              src={config.aboutPhotoUrl || config.coverPhotoUrl!}
               alt="Foto do casal"
               className="absolute inset-0 w-full h-full object-cover"
             />
@@ -54,7 +54,7 @@ function AboutSection({ config, colors }: { config: TemplateConfig; colors: Sect
             color: text,
             fontStyle: "italic",
           }}>
-            Uma história de amor que vale celebrar
+            {config.aboutSubtitle || "Uma história de amor que vale celebrar"}
           </h2>
           <div className="w-10 h-px mb-8" style={{ background: accent }} />
           <p className="leading-relaxed text-base whitespace-pre-line" style={{ color: subText, lineHeight: "1.9" }}>
@@ -169,7 +169,7 @@ function DirectionsSection({ config, colors }: { config: TemplateConfig; colors:
         <div>
           <p className="text-xs tracking-[0.3em] uppercase mb-4" style={{ color: accent }}>Como Chegar</p>
           <h2 className="leading-tight" style={{ fontFamily: "var(--font-display)", fontSize: "clamp(1.8rem, 3vw, 2.4rem)", color: text, fontStyle: "italic" }}>
-            Nos encontramos aqui
+            {config.directionsSubtitle || "Nos encontramos aqui"}
           </h2>
           {config.weddingLocation && (
             <p className="mt-4 text-sm" style={{ color: subText }}>{config.weddingLocation}</p>
@@ -206,7 +206,7 @@ function CTASection({ config, slug, colors }: { config: TemplateConfig; slug: st
       <div className="max-w-2xl mx-auto px-6 py-24 text-center">
         <p className="text-xs tracking-[0.3em] uppercase mb-4" style={{ color: accent }}>Participe</p>
         <h2 className="mb-4" style={{ fontFamily: "var(--font-display)", fontSize: "clamp(2.2rem, 4vw, 3rem)", color: text, fontStyle: "italic" }}>
-          Sua presença é nosso maior presente
+          {config.rsvpSubtitle || "Sua presença é nosso maior presente"}
         </h2>
         <p className="text-sm mb-12" style={{ color: subText }}>
           Confirme sua presença e, se quiser, confira nossa lista de presentes

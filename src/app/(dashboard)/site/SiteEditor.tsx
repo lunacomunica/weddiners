@@ -35,6 +35,10 @@ interface SiteConfig {
   schedule: string | null;
   directions: string | null;
   directions_url: string | null;
+  about_photo_url: string | null;
+  about_subtitle: string | null;
+  rsvp_subtitle: string | null;
+  directions_subtitle: string | null;
   show_dresscode: boolean;
   show_schedule: boolean;
   show_directions: boolean;
@@ -327,14 +331,18 @@ export function SiteEditor({ config, couple, plan = "free" }: { config: SiteConf
     messages:   config.messages_title   ?? "",
   });
   const [sectionContent, setSectionContent] = useState({
-    about_text:     config.about_text      ?? "",
-    dresscode:      config.dresscode       ?? "",
-    gifts_notice:   config.gifts_notice    ?? "",
-    schedule:       config.schedule        ?? "",
-    directions:     config.directions      ?? "",
-    directions_url: config.directions_url  ?? "",
-    hero_title:     config.hero_title      ?? "",
-    hero_subtitle:  config.hero_subtitle   ?? "",
+    about_text:          config.about_text          ?? "",
+    about_photo_url:     config.about_photo_url     ?? "",
+    about_subtitle:      config.about_subtitle      ?? "",
+    dresscode:           config.dresscode            ?? "",
+    gifts_notice:        config.gifts_notice        ?? "",
+    schedule:            config.schedule             ?? "",
+    directions:          config.directions           ?? "",
+    directions_url:      config.directions_url       ?? "",
+    directions_subtitle: config.directions_subtitle  ?? "",
+    rsvp_subtitle:       config.rsvp_subtitle        ?? "",
+    hero_title:          config.hero_title            ?? "",
+    hero_subtitle:       config.hero_subtitle         ?? "",
   });
   const [expanded, setExpanded] = useState<Partial<Record<SectionId, boolean>>>({});
 
@@ -367,6 +375,10 @@ export function SiteEditor({ config, couple, plan = "free" }: { config: SiteConf
     fd.set("hero_title", sectionContent.hero_title);
     fd.set("hero_subtitle", sectionContent.hero_subtitle);
     fd.set("about_text", sectionContent.about_text);
+    fd.set("about_photo_url", sectionContent.about_photo_url);
+    fd.set("about_subtitle", sectionContent.about_subtitle);
+    fd.set("rsvp_subtitle", sectionContent.rsvp_subtitle);
+    fd.set("directions_subtitle", sectionContent.directions_subtitle);
     fd.set("dresscode", sectionContent.dresscode);
     fd.set("gifts_notice", sectionContent.gifts_notice);
     fd.set("schedule", sectionContent.schedule);
@@ -460,16 +472,54 @@ export function SiteEditor({ config, couple, plan = "free" }: { config: SiteConf
   // Sections with expandable content
   const SECTIONS_WITH_CONTENT: Partial<Record<SectionId, React.ReactNode>> = {
     about: (
-      <>
-        <label className="font-body text-xs text-smoke block mb-1">Texto da seção</label>
-        <Textarea
-          name="about_text"
-          value={sectionContent.about_text}
-          onChange={e => setSectionContent(p => ({ ...p, about_text: e.target.value }))}
-          placeholder="Conte um pouco da história de vocês..."
-          rows={4}
+      <div className="space-y-3">
+        <div>
+          <label className="font-body text-xs text-smoke block mb-1">Subtítulo da seção</label>
+          <input
+            type="text"
+            value={sectionContent.about_subtitle}
+            onChange={e => setSectionContent(p => ({ ...p, about_subtitle: e.target.value }))}
+            placeholder="Uma história de amor que vale celebrar"
+            className="w-full px-3 py-2 rounded-md border font-body text-sm outline-none focus:border-moss transition-colors"
+            style={{ borderColor: "rgba(13,10,11,0.12)" }}
+          />
+        </div>
+        <div>
+          <label className="font-body text-xs text-smoke block mb-1">Foto da seção (URL)</label>
+          <input
+            type="url"
+            value={sectionContent.about_photo_url}
+            onChange={e => setSectionContent(p => ({ ...p, about_photo_url: e.target.value }))}
+            placeholder="https://... (usa foto de capa se vazio)"
+            className="w-full px-3 py-2 rounded-md border font-body text-sm outline-none focus:border-moss transition-colors"
+            style={{ borderColor: "rgba(13,10,11,0.12)" }}
+          />
+          <p className="font-body text-[11px] text-smoke/60 mt-1">Se vazio, usa a foto de capa.</p>
+        </div>
+        <div>
+          <label className="font-body text-xs text-smoke block mb-1">Texto da seção</label>
+          <Textarea
+            name="about_text"
+            value={sectionContent.about_text}
+            onChange={e => setSectionContent(p => ({ ...p, about_text: e.target.value }))}
+            placeholder="Conte um pouco da história de vocês..."
+            rows={4}
+          />
+        </div>
+      </div>
+    ),
+    rsvp: (
+      <div>
+        <label className="font-body text-xs text-smoke block mb-1">Subtítulo</label>
+        <input
+          type="text"
+          value={sectionContent.rsvp_subtitle}
+          onChange={e => setSectionContent(p => ({ ...p, rsvp_subtitle: e.target.value }))}
+          placeholder="Sua presença é nosso maior presente"
+          className="w-full px-3 py-2 rounded-md border font-body text-sm outline-none focus:border-moss transition-colors"
+          style={{ borderColor: "rgba(13,10,11,0.12)" }}
         />
-      </>
+      </div>
     ),
     gifts: (
       <>
@@ -511,6 +561,17 @@ export function SiteEditor({ config, couple, plan = "free" }: { config: SiteConf
     ),
     directions: (
       <div className="space-y-3">
+        <div>
+          <label className="font-body text-xs text-smoke block mb-1">Subtítulo</label>
+          <input
+            type="text"
+            value={sectionContent.directions_subtitle}
+            onChange={e => setSectionContent(p => ({ ...p, directions_subtitle: e.target.value }))}
+            placeholder="Nos encontramos aqui"
+            className="w-full px-3 py-2 rounded-md border font-body text-sm outline-none focus:border-moss transition-colors"
+            style={{ borderColor: "rgba(13,10,11,0.12)" }}
+          />
+        </div>
         <div>
           <label className="font-body text-xs text-smoke block mb-1">Descrição</label>
           <Textarea

@@ -30,6 +30,11 @@ export interface TemplateConfig {
   scheduleTitle: string;
   directionsTitle: string;
   messagesTitle: string;
+  // Subtítulos e foto por seção
+  aboutPhotoUrl: string | null;
+  aboutSubtitle: string | null;
+  rsvpSubtitle: string | null;
+  directionsSubtitle: string | null;
 }
 
 export interface TemplateProps {
