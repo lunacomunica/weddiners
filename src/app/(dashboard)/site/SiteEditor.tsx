@@ -560,7 +560,7 @@ export function SiteEditor({ config, couple, plan = "free" }: { config: SiteConf
         </div>
 
         {/* Scrollable content */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        <div className="flex-1 overflow-y-auto p-4 space-y-4 pb-20">
 
         {/* Aparência */}
         {tab === "aparencia" && (
@@ -950,6 +950,40 @@ export function SiteEditor({ config, couple, plan = "free" }: { config: SiteConf
         </div>
 
         </div>{/* end scrollable content */}
+
+        {/* Botão salvar fixo no rodapé */}
+        <div className="shrink-0 border-t bg-white px-4 py-3" style={{ borderColor: "rgba(13,10,11,0.08)" }}>
+          {tab === "aparencia" && (
+            <button
+              type="button"
+              onClick={() => appearanceFormRef.current?.requestSubmit()}
+              disabled={saving}
+              className="w-full btn-primary py-2.5 text-sm disabled:opacity-40"
+            >
+              {saving ? "Salvando..." : saved ? "✓ Salvo!" : "Salvar aparência"}
+            </button>
+          )}
+          {tab === "secoes" && (
+            <button
+              type="button"
+              onClick={handleSaveSections}
+              disabled={saving}
+              className="w-full btn-primary py-2.5 text-sm disabled:opacity-40"
+            >
+              {saving ? "Salvando..." : saved ? "✓ Salvo!" : "Salvar seções"}
+            </button>
+          )}
+          {tab === "configuracoes" && (
+            <button
+              type="button"
+              onClick={handleSaveSettings}
+              disabled={savingSettings || (transEnabled && transLangs.length === 0)}
+              className="w-full btn-primary py-2.5 text-sm disabled:opacity-40"
+            >
+              {savingSettings ? "Salvando..." : settingsSaved ? "✓ Salvo!" : "Salvar configurações"}
+            </button>
+          )}
+        </div>
       </div>{/* end editor sidebar */}
 
       {/* ── Live Preview (ocupa o resto da tela) ── */}
@@ -1015,7 +1049,7 @@ export function SiteEditor({ config, couple, plan = "free" }: { config: SiteConf
                 <iframe
                   key={previewKey}
                   ref={iframeRef}
-                  src={`/${couple.slug}`}
+                  src={`/${couple.slug}?_preview=${previewKey}`}
                   className="absolute top-0 left-0"
                   style={{ width: 390, height: 804, transform: "scale(0.769)", transformOrigin: "top left", border: "none" }}
                   title="Prévia mobile"
@@ -1035,7 +1069,7 @@ export function SiteEditor({ config, couple, plan = "free" }: { config: SiteConf
               <div className="flex-1 overflow-hidden relative">
                 <iframe
                   key={previewKey}
-                  src={`/${couple.slug}`}
+                  src={`/${couple.slug}?_preview=${previewKey}`}
                   className="absolute top-0 left-0 w-full h-full"
                   style={{ border: "none" }}
                   title="Prévia desktop"
