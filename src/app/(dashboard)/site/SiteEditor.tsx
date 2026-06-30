@@ -4,6 +4,7 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/Button";
 import { Textarea } from "@/components/ui/Textarea";
 import { PhotoUpload } from "./PhotoUpload";
+import { TYPOGRAPHY_PAIRINGS } from "@/app/[slug]/templates/typography";
 import { updateSiteConfig, updateCoupleInfo, updateAppearance, updateSiteSettings, updateSections } from "./actions";
 
 type SectionId = "about" | "rsvp" | "gifts" | "dresscode" | "schedule" | "directions" | "messages";
@@ -27,6 +28,7 @@ interface SiteConfig {
   cover_photo_url: string | null;
   palette: string | null;
   template: string | null;
+  typography: string | null;
   show_gifts: boolean;
   show_rsvp: boolean;
   show_about: boolean;
@@ -254,6 +256,7 @@ export function SiteEditor({ config, couple, plan = "free" }: { config: SiteConf
   const initialPaletteId = config.palette?.startsWith("custom|") ? "custom" : (config.palette ?? "sage");
   const [selectedPalette, setSelectedPalette] = useState(initialPaletteId);
   const [selectedTemplate, setSelectedTemplate] = useState(config.template ?? "classico");
+  const [selectedTypography, setSelectedTypography] = useState(config.typography ?? "default");
   const initialCustomColors = parseCustomPalette(config.palette);
   const [customColors, setCustomColors] = useState<[string, string, string]>(initialCustomColors);
 
@@ -292,11 +295,11 @@ export function SiteEditor({ config, couple, plan = "free" }: { config: SiteConf
       const paletteValue = selectedPalette === "custom"
         ? `custom|${customColors[0]}|${customColors[1]}|${customColors[2]}`
         : selectedPalette;
-      const result = await updateAppearance(paletteValue, selectedTemplate, sectionContent.cover_photo_url || null);
+      const result = await updateAppearance(paletteValue, selectedTemplate, sectionContent.cover_photo_url || null, selectedTypography);
       if (!result?.error) refreshPreview();
     }, 600);
     return () => { if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current); };
-  }, [selectedPalette, selectedTemplate, customColors, refreshPreview]);
+  }, [selectedPalette, selectedTemplate, customColors, selectedTypography, refreshPreview]);
 
   const [publicUrl, setPublicUrl] = useState(`https://weddiners.com.br/${couple.slug}`);
   useEffect(() => {
@@ -438,6 +441,7 @@ export function SiteEditor({ config, couple, plan = "free" }: { config: SiteConf
     fd.set("schedule", config.schedule ?? "");
     fd.set("directions", config.directions ?? "");
     fd.set("directions_url", config.directions_url ?? "");
+    fd.set("typography", selectedTypography);
     const result = await updateSiteConfig(fd);
     if (result?.error) setError(result.error);
     else { setSaved(true); setTimeout(() => setSaved(false), 2000); refreshPreview(); }
@@ -724,6 +728,50 @@ export function SiteEditor({ config, couple, plan = "free" }: { config: SiteConf
                   <p className="font-body text-xs text-smoke">3 templates exclusivos desbloqueados no <a href="/planos" className="text-moss font-medium hover:underline">Plano Pro</a></p>
                 </div>
               )}
+            </div>
+
+            {/* Typography */}
+            <div className="bg-white rounded-lg border p-6" style={{ borderColor: "rgba(13,10,11,0.08)" }}>
+              <h3 className="font-display text-lg text-noir mb-1">Tipografia</h3>
+              <p className="font-body text-xs text-smoke mb-4">Escolha o par de fontes do seu site</p>
+              {/* Load Google Fonts for preview in the sidebar */}
+              <style dangerouslySetInnerHTML={{ __html: `@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;1,400&family=Cormorant+Garamond:ital,wght@0,400;1,400&family=DM+Serif+Display:ital@0;1&family=Montserrat:wght@600&family=Libre+Baskerville:wght@400&display=swap');` }} />
+              <div className="flex flex-col gap-2">
+                {Object.entries(TYPOGRAPHY_PAIRINGS).map(([key, t]) => {
+                  const isSelected = selectedTypography === key;
+                  return (
+                    <button
+                      key={key}
+                      type="button"
+                      onClick={() => setSelectedTypography(key)}
+                      className={`flex items-center gap-4 rounded-xl border-2 p-3 text-left transition-all w-full ${
+                        isSelected
+                          ? "border-moss bg-moss/5"
+                          : "border-transparent bg-ivory hover:border-moss/30 hover:bg-white"
+                      }`}
+                    >
+                      {/* Preview box */}
+                      <div className="shrink-0 w-14 h-14 rounded-lg bg-white border flex flex-col items-center justify-center gap-0.5 overflow-hidden" style={{ borderColor: "rgba(13,10,11,0.1)" }}>
+                        <span style={{ fontFamily: t.displayStyle, fontSize: "0.9rem", lineHeight: 1.1, color: "#1C2018" }}>Aa</span>
+                        <span style={{ fontFamily: t.bodyStyle, fontSize: "0.5rem", letterSpacing: "0.05em", color: "#7A8C6A" }}>Texto</span>
+                      </div>
+                      {/* Info */}
+                      <div className="flex-1 min-w-0">
+                        <p className="font-body text-sm font-medium text-noir">{t.label}</p>
+                        <p className="font-body text-xs text-smoke mt-0.5">{t.desc}</p>
+                      </div>
+                      {/* Check */}
+                      <div className={`shrink-0 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${isSelected ? "border-moss bg-moss" : "border-smoke/30"}`}>
+                        {isSelected && (
+                          <svg width="10" height="10" fill="none" stroke="white" strokeWidth={2.5} viewBox="0 0 24 24">
+                            <path d="M5 13l4 4L19 7" strokeLinecap="round" strokeLinejoin="round"/>
+                          </svg>
+                        )}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
 
             <div className="bg-white rounded-lg border p-6" style={{ borderColor: "rgba(13,10,11,0.08)" }}>

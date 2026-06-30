@@ -7,6 +7,7 @@ import { Moderno } from "./templates/Moderno";
 import { Rustico } from "./templates/Rustico";
 import { PasswordGate } from "./PasswordGate";
 import { EditModeClient } from "./EditModeClient";
+import { FontInjector } from "./FontInjector";
 import type { TemplateConfig } from "./templates/types";
 
 // Cache de 5 minutos — o site público não precisa ser tempo real
@@ -78,6 +79,7 @@ export default async function WeddingPage({ params }: { params: { slug: string }
     directionsSubtitle: config?.directions_subtitle ?? null,
     translationsEnabled: !!couple.translations_enabled,
     translationLanguages: (couple.translation_languages as string[]) ?? [],
+    typography: config?.typography ?? null,
     sectionOrder: (() => {
       try { return JSON.parse(config?.section_order ?? "null") ?? ["about","rsvp","gifts","dresscode","schedule","directions","messages"]; }
       catch { return ["about","rsvp","gifts","dresscode","schedule","directions","messages"]; }
@@ -97,6 +99,7 @@ export default async function WeddingPage({ params }: { params: { slug: string }
 
   return (
     <>
+      <FontInjector typography={templateConfig.typography} />
       <EditModeClient />
       {templates[template] ?? templates.classico}
     </>

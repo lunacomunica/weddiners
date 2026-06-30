@@ -22,6 +22,7 @@ export interface TemplateConfig {
   palette: string | null;
   translationsEnabled: boolean;
   translationLanguages: string[];
+  typography: string | null;
   // Títulos customizáveis por seção
   aboutTitle: string;
   rsvpTitle: string;

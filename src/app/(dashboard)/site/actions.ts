@@ -77,6 +77,7 @@ export async function updateSiteConfig(formData: FormData) {
     dresscode_title: formData.get("dresscode_title") as string || null,
     schedule_title: formData.get("schedule_title") as string || null,
     directions_title: formData.get("directions_title") as string || null,
+    typography: formData.get("typography") as string || null,
     messages_title: formData.get("messages_title") as string || null,
     // Preserve existing section visibility
     show_about:      currentConfig?.show_about      ?? true,
@@ -102,8 +103,8 @@ export async function updateSiteConfig(formData: FormData) {
   return { success: true };
 }
 
-// Saves only palette + template + cover_photo — never touches content fields
-export async function updateAppearance(palette: string, template: string, coverPhotoUrl: string | null) {
+// Saves palette + template + cover_photo + typography — never touches content fields
+export async function updateAppearance(palette: string, template: string, coverPhotoUrl: string | null, typography?: string) {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { error: "Não autorizado" };
@@ -122,7 +123,13 @@ export async function updateAppearance(palette: string, template: string, coverP
 
   const { error } = await supabase
     .from("site_configs")
-    .update({ palette, template: safeTemplate, cover_photo_url: coverPhotoUrl, updated_at: new Date().toISOString() })
+    .update({
+      palette,
+      template: safeTemplate,
+      cover_photo_url: coverPhotoUrl,
+      ...(typography !== undefined ? { typography } : {}),
+      updated_at: new Date().toISOString(),
+    })
     .eq("couple_id", couple.id);
 
   if (error) return { error: error.message };
