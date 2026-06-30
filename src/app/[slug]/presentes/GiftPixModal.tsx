@@ -115,7 +115,7 @@ export function GiftPixModal({ open, onClose, gift, coupleId, pixKey, pixKeyType
           <div className="w-full">
             <p className="text-xs text-smoke font-body mb-1.5 text-center">
               Valor sugerido: <span className="font-semibold">{fmtBRL(baseAmount)}</span>
-              {" — "}queira contribuir com outro valor?
+              {" · "}Clique abaixo para contribuir com outro valor
             </p>
             <div className="relative">
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-body text-smoke">R$</span>
