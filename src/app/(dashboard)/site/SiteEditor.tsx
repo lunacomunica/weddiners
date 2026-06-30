@@ -3,6 +3,7 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/Button";
 import { Textarea } from "@/components/ui/Textarea";
+import { PhotoUpload } from "./PhotoUpload";
 import { updateSiteConfig, updateCoupleInfo, updateAppearance, updateSiteSettings, updateSections } from "./actions";
 
 type SectionId = "about" | "rsvp" | "gifts" | "dresscode" | "schedule" | "directions" | "messages";
@@ -489,18 +490,14 @@ export function SiteEditor({ config, couple, plan = "free" }: { config: SiteConf
             style={{ borderColor: "rgba(13,10,11,0.12)" }}
           />
         </div>
-        <div>
-          <label className="font-body text-xs text-smoke block mb-1">Foto da seção (URL)</label>
-          <input
-            type="url"
-            value={sectionContent.about_photo_url}
-            onChange={e => setSectionContent(p => ({ ...p, about_photo_url: e.target.value }))}
-            placeholder="https://... (usa foto de capa se vazio)"
-            className="w-full px-3 py-2 rounded-md border font-body text-sm outline-none focus:border-moss transition-colors"
-            style={{ borderColor: "rgba(13,10,11,0.12)" }}
-          />
-          <p className="font-body text-[11px] text-smoke/60 mt-1">Se vazio, usa a foto de capa.</p>
-        </div>
+        <PhotoUpload
+          slot="about"
+          value={sectionContent.about_photo_url}
+          onChange={url => setSectionContent(p => ({ ...p, about_photo_url: url }))}
+          label="Foto da seção"
+          hint="Se não enviada, usa a foto de capa."
+          aspectRatio="3/4"
+        />
         <div>
           <label className="font-body text-xs text-smoke block mb-1">Texto da seção</label>
           <Textarea
@@ -916,18 +913,14 @@ export function SiteEditor({ config, couple, plan = "free" }: { config: SiteConf
                       style={{ borderColor: "rgba(13,10,11,0.12)" }}
                     />
                   </div>
-                  <div>
-                    <label className="font-body text-xs text-smoke block mb-1">Foto de capa (URL)</label>
-                    <input
-                      type="url"
-                      value={sectionContent.cover_photo_url}
-                      onChange={e => setSectionContent(p => ({ ...p, cover_photo_url: e.target.value }))}
-                      placeholder="https://... (Unsplash, Google Drive, etc)"
-                      className="w-full px-3 py-2 rounded-md border font-body text-sm outline-none focus:border-moss transition-colors"
-                      style={{ borderColor: "rgba(13,10,11,0.12)" }}
-                    />
-                    <p className="font-body text-[11px] text-smoke/60 mt-1">Recomendado: 1920×1080px. Aparece também no fundo da seção Cronograma.</p>
-                  </div>
+                  <PhotoUpload
+                    slot="cover"
+                    value={sectionContent.cover_photo_url}
+                    onChange={url => setSectionContent(p => ({ ...p, cover_photo_url: url }))}
+                    label="Foto de capa"
+                    hint="Recomendado: 1920×1080px. Aparece também no fundo da seção Cronograma."
+                    aspectRatio="16/9"
+                  />
                 </div>
               )}
             </div>

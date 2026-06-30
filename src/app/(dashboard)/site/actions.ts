@@ -3,6 +3,33 @@
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 
+export async function uploadSitePhoto(formData: FormData) {
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: "Não autorizado" };
+
+  const { data: couple } = await supabase.from("couples").select("id").eq("user_id", user.id).single();
+  if (!couple) return { error: "Não autorizado" };
+
+  const file = formData.get("file") as File;
+  const slot = (formData.get("slot") as string) || "cover"; // "cover" | "about"
+  if (!file || !file.size) return { error: "Arquivo não encontrado" };
+
+  const ext = file.name.split(".").pop()?.toLowerCase() ?? "jpg";
+  const path = `${couple.id}/${slot}.${ext}`;
+
+  const { error: uploadError } = await supabase.storage
+    .from("site-photos")
+    .upload(path, file, { upsert: true, contentType: file.type });
+
+  if (uploadError) return { error: uploadError.message };
+
+  const { data: { publicUrl } } = supabase.storage.from("site-photos").getPublicUrl(path);
+  const url = `${publicUrl}?t=${Date.now()}`;
+
+  return { success: true, url };
+}
+
 export async function updateSiteConfig(formData: FormData) {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
