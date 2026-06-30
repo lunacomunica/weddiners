@@ -3,10 +3,17 @@
 import { useEffect, useState } from "react";
 
 function getTimeLeft(weddingDate: string) {
-  const target = new Date(weddingDate).getTime();
+  if (!weddingDate) return null;
+
+  // "2026-11-20" → parseia como meia-noite no horário LOCAL (não UTC)
+  // new Date("2026-11-20") seria UTC, causando bug em fusos negativos
+  const [year, month, day] = weddingDate.split("-").map(Number);
+  const target = new Date(year, month - 1, day, 0, 0, 0, 0).getTime();
+
   const now = Date.now();
   const diff = target - now;
   if (diff <= 0) return null;
+
   return {
     days: Math.floor(diff / (1000 * 60 * 60 * 24)),
     hours: Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
@@ -16,7 +23,10 @@ function getTimeLeft(weddingDate: string) {
 }
 
 export function CountdownClient({ weddingDate, primaryColor }: { weddingDate: string; primaryColor: string }) {
-  const [time, setTime] = useState<ReturnType<typeof getTimeLeft>>(null);
+  // Lazy init: calcula na primeira renderização, sem flash de "Hoje é o grande dia!"
+  const [time, setTime] = useState<ReturnType<typeof getTimeLeft>>(
+    () => getTimeLeft(weddingDate)
+  );
 
   useEffect(() => {
     setTime(getTimeLeft(weddingDate));

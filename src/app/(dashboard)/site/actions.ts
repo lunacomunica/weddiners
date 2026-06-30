@@ -8,7 +8,7 @@ export async function uploadSitePhoto(formData: FormData) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { error: "Não autorizado" };
 
-  const { data: couple } = await supabase.from("couples").select("id").eq("user_id", user.id).single();
+  const { data: couple } = await supabase.from("couples").select("id, slug").eq("user_id", user.id).single();
   if (!couple) return { error: "Não autorizado" };
 
   const file = formData.get("file") as File;
@@ -26,6 +26,16 @@ export async function uploadSitePhoto(formData: FormData) {
 
   const { data: { publicUrl } } = supabase.storage.from("site-photos").getPublicUrl(path);
   const url = `${publicUrl}?t=${Date.now()}`;
+
+  // Persiste imediatamente no banco — não depende de "Salvar seções"
+  const column = slot === "cover" ? "cover_photo_url" : "about_photo_url";
+  await supabase
+    .from("site_configs")
+    .update({ [column]: url, updated_at: new Date().toISOString() })
+    .eq("couple_id", couple.id);
+
+  revalidatePath("/site");
+  revalidatePath(`/${couple.slug}`);
 
   return { success: true, url };
 }
