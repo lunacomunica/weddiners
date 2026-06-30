@@ -242,7 +242,6 @@ export function SiteEditor({ config, couple, plan = "free" }: { config: SiteConf
   const [tab, setTab] = useState<Tab>("aparencia");
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
-  const [savingCouple, setSavingCouple] = useState(false);
   const [error, setError] = useState("");
   const [device, setDevice] = useState<"desktop" | "mobile">("desktop");
   const [previewKey, setPreviewKey] = useState(0);
@@ -293,10 +292,7 @@ export function SiteEditor({ config, couple, plan = "free" }: { config: SiteConf
       const paletteValue = selectedPalette === "custom"
         ? `custom|${customColors[0]}|${customColors[1]}|${customColors[2]}`
         : selectedPalette;
-      const coverUrl = appearanceFormRef.current
-        ? (new FormData(appearanceFormRef.current).get("cover_photo_url") as string | null) || null
-        : null;
-      const result = await updateAppearance(paletteValue, selectedTemplate, coverUrl);
+      const result = await updateAppearance(paletteValue, selectedTemplate, sectionContent.cover_photo_url || null);
       if (!result?.error) refreshPreview();
     }, 600);
     return () => { if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current); };
@@ -347,7 +343,15 @@ export function SiteEditor({ config, couple, plan = "free" }: { config: SiteConf
     gifts_text:          config.gifts_text           ?? "",
     hero_title:          config.hero_title            ?? "",
     hero_subtitle:       config.hero_subtitle         ?? "",
+    cover_photo_url:     config.cover_photo_url       ?? "",
   });
+  const [coupleFields, setCoupleFields] = useState({
+    partner1_name:    couple.partner1_name ?? couple.bride_name ?? "",
+    partner2_name:    couple.partner2_name ?? couple.groom_name ?? "",
+    wedding_date:     couple.wedding_date ?? "",
+    wedding_location: couple.wedding_location ?? "",
+  });
+  const [heroExpanded, setHeroExpanded] = useState(false);
   const [expanded, setExpanded] = useState<Partial<Record<SectionId, boolean>>>({});
 
   // Drag & drop
@@ -375,7 +379,7 @@ export function SiteEditor({ config, couple, plan = "free" }: { config: SiteConf
     const fd = new FormData();
     fd.set("palette", selectedPalette === "custom" ? `custom|${customColors[0]}|${customColors[1]}|${customColors[2]}` : selectedPalette);
     fd.set("template", selectedTemplate);
-    fd.set("cover_photo_url", config.cover_photo_url ?? "");
+    fd.set("cover_photo_url", sectionContent.cover_photo_url);
     fd.set("hero_title", sectionContent.hero_title);
     fd.set("hero_subtitle", sectionContent.hero_subtitle);
     fd.set("about_text", sectionContent.about_text);
@@ -398,10 +402,17 @@ export function SiteEditor({ config, couple, plan = "free" }: { config: SiteConf
     fd.set("directions_title", sectionTitles.directions);
     fd.set("messages_title", sectionTitles.messages);
 
-    // Save content + titles via updateSiteConfig
+    // Also save couple info
+    const couplefd = new FormData();
+    couplefd.set("partner1_name", coupleFields.partner1_name);
+    couplefd.set("partner2_name", coupleFields.partner2_name);
+    couplefd.set("wedding_date", coupleFields.wedding_date);
+    couplefd.set("wedding_location", coupleFields.wedding_location);
+
     const [contentResult, sectionsResult] = await Promise.all([
       updateSiteConfig(fd),
       updateSections(sectionOrder, sectionChecked),
+      updateCoupleInfo(couplefd),
     ]);
 
     if (contentResult?.error) { setError(contentResult.error); setSaving(false); return; }
@@ -411,17 +422,6 @@ export function SiteEditor({ config, couple, plan = "free" }: { config: SiteConf
     setTimeout(() => setSaved(false), 2000);
     refreshPreview();
     setSaving(false);
-  }
-
-  // Couple save handler
-  async function handleSaveCouple(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    setSavingCouple(true);
-    setError("");
-    const result = await updateCoupleInfo(new FormData(e.currentTarget));
-    if (result?.error) setError(result.error);
-    else { setSaved(true); setTimeout(() => setSaved(false), 2000); refreshPreview(); }
-    setSavingCouple(false);
   }
 
   // Appearance save (for the button in the tab)
@@ -653,37 +653,72 @@ export function SiteEditor({ config, couple, plan = "free" }: { config: SiteConf
             <input type="hidden" name="show_messages" value={config.show_messages ? "on" : ""} />
 
             <div className="bg-white rounded-lg border p-6" style={{ borderColor: "rgba(13,10,11,0.08)" }}>
-              <h3 className="font-display text-lg text-noir mb-4">Template</h3>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <h3 className="font-display text-lg text-noir mb-1">Template</h3>
+              <p className="font-body text-xs text-smoke mb-4">Escolha o visual do seu site</p>
+              <div className="flex flex-col gap-2">
                 {TEMPLATES.map(t => {
                   const locked = plan !== "pro" && t.id !== "classico";
                   const isSelected = selectedTemplate === t.id;
                   return (
-                    <label key={t.id} className={locked ? "cursor-not-allowed" : "cursor-pointer"} onClick={() => !locked && setSelectedTemplate(t.id)}>
-                      <input type="radio" name="template" value={t.id} checked={isSelected} disabled={locked} onChange={() => !locked && setSelectedTemplate(t.id)} className="sr-only" />
+                    <button
+                      key={t.id}
+                      type="button"
+                      disabled={locked}
+                      onClick={() => !locked && setSelectedTemplate(t.id)}
+                      className={`flex items-center gap-4 rounded-xl border-2 p-3 text-left transition-all w-full group ${
+                        isSelected
+                          ? "border-moss bg-moss/5"
+                          : locked
+                          ? "border-transparent bg-ivory opacity-50 cursor-not-allowed"
+                          : "border-transparent bg-ivory hover:border-moss/30 hover:bg-white cursor-pointer"
+                      }`}
+                    >
+                      {/* Mini color swatch strip */}
                       <div
-                        className={`border-2 rounded-lg overflow-hidden transition-all relative ${isSelected ? "border-moss" : "border-transparent"}`}
-                        style={locked ? { opacity: 0.45, filter: "grayscale(0.3)" } : undefined}
+                        className="shrink-0 w-14 h-14 rounded-lg flex flex-col items-center justify-center gap-1 relative overflow-hidden"
+                        style={{ background: t.preview.bg }}
                       >
-                        <div className="h-20 flex flex-col items-center justify-center gap-1 px-2" style={{ background: t.preview.bg }}>
-                          <div className="w-8 h-0.5 rounded" style={{ background: t.preview.accent }} />
-                          <p className="text-xs font-semibold" style={{ fontFamily: "var(--font-display)", color: t.preview.text, fontSize: "0.7rem" }}>A & B</p>
-                          <div className="w-5 h-0.5 rounded" style={{ background: t.preview.accent }} />
-                        </div>
-                        <div className="p-2 bg-ivory">
-                          <div className="flex items-center justify-center gap-1">
-                            <p className="font-body text-xs font-medium text-noir text-center">{t.label}</p>
-                            {locked && (
-                              <svg width="10" height="10" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" className="text-smoke shrink-0"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4" strokeLinecap="round"/></svg>
-                            )}
+                        <div className="w-7 h-px" style={{ background: t.preview.accent + "cc" }} />
+                        <p style={{
+                          fontFamily: "Georgia, serif",
+                          fontSize: "0.6rem",
+                          letterSpacing: "0.08em",
+                          color: t.preview.text,
+                          opacity: 0.85,
+                        }}>A & B</p>
+                        <div className="w-4 h-px" style={{ background: t.preview.accent + "88" }} />
+                        {locked && (
+                          <div className="absolute inset-0 flex items-center justify-center bg-black/30 rounded-lg">
+                            <svg width="12" height="12" fill="none" stroke="white" strokeWidth={2} viewBox="0 0 24 24">
+                              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                              <path d="M7 11V7a5 5 0 0 1 10 0v4" strokeLinecap="round"/>
+                            </svg>
                           </div>
-                          {locked
-                            ? <p className="font-body text-[10px] text-moss text-center">Pro</p>
-                            : <p className="font-body text-[10px] text-smoke text-center">{t.desc}</p>
-                          }
-                        </div>
+                        )}
                       </div>
-                    </label>
+
+                      {/* Info */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <p className="font-body text-sm font-medium text-noir">{t.label}</p>
+                          {locked && (
+                            <span className="text-[10px] font-semibold tracking-wide text-moss bg-moss/10 px-1.5 py-0.5 rounded-full">PRO</span>
+                          )}
+                        </div>
+                        <p className="font-body text-xs text-smoke mt-0.5">{t.desc}</p>
+                      </div>
+
+                      {/* Check */}
+                      <div className={`shrink-0 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
+                        isSelected ? "border-moss bg-moss" : "border-smoke/30"
+                      }`}>
+                        {isSelected && (
+                          <svg width="10" height="10" fill="none" stroke="white" strokeWidth={2.5} viewBox="0 0 24 24">
+                            <path d="M5 13l4 4L19 7" strokeLinecap="round" strokeLinejoin="round"/>
+                          </svg>
+                        )}
+                      </div>
+                    </button>
                   );
                 })}
               </div>
@@ -773,17 +808,6 @@ export function SiteEditor({ config, couple, plan = "free" }: { config: SiteConf
               )}
             </div>
 
-            <div className="bg-white rounded-lg border p-6" style={{ borderColor: "rgba(13,10,11,0.08)" }}>
-              <h3 className="font-display text-lg text-noir mb-4">Foto de Capa</h3>
-              <Input
-                label="URL da imagem"
-                name="cover_photo_url"
-                defaultValue={config.cover_photo_url ?? ""}
-                placeholder="https://..."
-              />
-              <p className="text-smoke text-xs font-body mt-2">Cole um link de imagem do Unsplash ou similar (recomendado: 1920×1080)</p>
-            </div>
-
             <Button type="submit" loading={saving}>
               {saved ? "Salvo!" : "Salvar aparência"}
             </Button>
@@ -793,32 +817,97 @@ export function SiteEditor({ config, couple, plan = "free" }: { config: SiteConf
         {/* Seções */}
         {tab === "secoes" && (
           <div className="space-y-4">
-            {/* Card: Informações do casal */}
-            <div className="bg-white rounded-lg border p-5" style={{ borderColor: "rgba(13,10,11,0.08)" }}>
-              <h3 className="font-display text-base text-noir mb-4">Informações do casal</h3>
-              <form onSubmit={handleSaveCouple} className="space-y-4">
-                <div className="grid grid-cols-2 gap-3">
-                  <Input label="Nome — Noiva/Noivo 1" name="partner1_name" defaultValue={couple.partner1_name ?? couple.bride_name} placeholder="Maria" />
-                  <Input label="Nome — Noivo/Noiva 2" name="partner2_name" defaultValue={couple.partner2_name ?? couple.groom_name} placeholder="João" />
+
+            {/* Card: Capa & Identificação (hero) */}
+            <div className="bg-white rounded-lg border overflow-hidden" style={{ borderColor: "rgba(13,10,11,0.08)" }}>
+              {/* Header row */}
+              <button
+                type="button"
+                onClick={() => setHeroExpanded(v => !v)}
+                className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-ivory/60 transition-colors"
+              >
+                {/* Icon */}
+                <div className="shrink-0 w-7 h-7 rounded-md flex items-center justify-center" style={{ background: "rgba(58,74,48,0.08)" }}>
+                  <svg width="13" height="13" fill="none" stroke="#3A4A30" strokeWidth={1.8} viewBox="0 0 24 24">
+                    <rect x="3" y="3" width="18" height="18" rx="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M3 9h18M9 21V9" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
                 </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <Input label="Data do casamento" name="wedding_date" type="date" defaultValue={couple.wedding_date ?? ""} />
-                  <Input label="Local" name="wedding_location" defaultValue={couple.wedding_location ?? ""} placeholder="São Paulo, SP" />
+                <div className="flex-1 min-w-0">
+                  <p className="font-body text-sm font-medium text-noir">Capa & Identificação</p>
+                  <p className="font-body text-[11px] text-smoke">Foto, nomes, data e textos da tela inicial</p>
                 </div>
-                <div className="grid grid-cols-2 gap-3">
+                <svg
+                  width="14" height="14" fill="none" stroke="currentColor" strokeWidth={2}
+                  viewBox="0 0 24 24" className={`shrink-0 text-smoke transition-transform ${heroExpanded ? "rotate-180" : ""}`}
+                >
+                  <path d="M6 9l6 6 6-6" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </button>
+
+              {/* Expanded content */}
+              {heroExpanded && (
+                <div className="px-4 pb-4 pt-1 border-t space-y-3" style={{ borderColor: "rgba(13,10,11,0.06)" }}>
+                  <div className="grid grid-cols-2 gap-3 pt-1">
+                    <div>
+                      <label className="font-body text-xs text-smoke block mb-1">Noiva/Noivo 1</label>
+                      <input
+                        type="text"
+                        value={coupleFields.partner1_name}
+                        onChange={e => setCoupleFields(p => ({ ...p, partner1_name: e.target.value }))}
+                        placeholder="Maria"
+                        className="w-full px-3 py-2 rounded-md border font-body text-sm outline-none focus:border-moss transition-colors"
+                        style={{ borderColor: "rgba(13,10,11,0.12)" }}
+                      />
+                    </div>
+                    <div>
+                      <label className="font-body text-xs text-smoke block mb-1">Noivo/Noiva 2</label>
+                      <input
+                        type="text"
+                        value={coupleFields.partner2_name}
+                        onChange={e => setCoupleFields(p => ({ ...p, partner2_name: e.target.value }))}
+                        placeholder="João"
+                        className="w-full px-3 py-2 rounded-md border font-body text-sm outline-none focus:border-moss transition-colors"
+                        style={{ borderColor: "rgba(13,10,11,0.12)" }}
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="font-body text-xs text-smoke block mb-1">Data do casamento</label>
+                      <input
+                        type="date"
+                        value={coupleFields.wedding_date}
+                        onChange={e => setCoupleFields(p => ({ ...p, wedding_date: e.target.value }))}
+                        className="w-full px-3 py-2 rounded-md border font-body text-sm outline-none focus:border-moss transition-colors"
+                        style={{ borderColor: "rgba(13,10,11,0.12)" }}
+                      />
+                    </div>
+                    <div>
+                      <label className="font-body text-xs text-smoke block mb-1">Local</label>
+                      <input
+                        type="text"
+                        value={coupleFields.wedding_location}
+                        onChange={e => setCoupleFields(p => ({ ...p, wedding_location: e.target.value }))}
+                        placeholder="São Paulo, SP"
+                        className="w-full px-3 py-2 rounded-md border font-body text-sm outline-none focus:border-moss transition-colors"
+                        style={{ borderColor: "rgba(13,10,11,0.12)" }}
+                      />
+                    </div>
+                  </div>
                   <div>
-                    <label className="font-body text-xs font-medium text-smoke block mb-1">Título do hero</label>
+                    <label className="font-body text-xs text-smoke block mb-1">Título principal</label>
                     <input
                       type="text"
                       value={sectionContent.hero_title}
                       onChange={e => setSectionContent(p => ({ ...p, hero_title: e.target.value }))}
-                      placeholder={`${couple.partner1_name ?? couple.bride_name} & ${couple.partner2_name ?? couple.groom_name}`}
+                      placeholder={`${coupleFields.partner1_name || "Maria"} & ${coupleFields.partner2_name || "João"}`}
                       className="w-full px-3 py-2 rounded-md border font-body text-sm outline-none focus:border-moss transition-colors"
                       style={{ borderColor: "rgba(13,10,11,0.12)" }}
                     />
                   </div>
                   <div>
-                    <label className="font-body text-xs font-medium text-smoke block mb-1">Subtítulo</label>
+                    <label className="font-body text-xs text-smoke block mb-1">Subtítulo</label>
                     <input
                       type="text"
                       value={sectionContent.hero_subtitle}
@@ -828,11 +917,20 @@ export function SiteEditor({ config, couple, plan = "free" }: { config: SiteConf
                       style={{ borderColor: "rgba(13,10,11,0.12)" }}
                     />
                   </div>
+                  <div>
+                    <label className="font-body text-xs text-smoke block mb-1">Foto de capa (URL)</label>
+                    <input
+                      type="url"
+                      value={sectionContent.cover_photo_url}
+                      onChange={e => setSectionContent(p => ({ ...p, cover_photo_url: e.target.value }))}
+                      placeholder="https://... (Unsplash, Google Drive, etc)"
+                      className="w-full px-3 py-2 rounded-md border font-body text-sm outline-none focus:border-moss transition-colors"
+                      style={{ borderColor: "rgba(13,10,11,0.12)" }}
+                    />
+                    <p className="font-body text-[11px] text-smoke/60 mt-1">Recomendado: 1920×1080px. Aparece também no fundo da seção Cronograma.</p>
+                  </div>
                 </div>
-                <Button type="submit" loading={savingCouple} className="w-full sm:w-auto">
-                  {saved ? "Salvo!" : "Salvar informações"}
-                </Button>
-              </form>
+              )}
             </div>
 
             {/* Seções do site */}
