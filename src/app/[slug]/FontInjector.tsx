@@ -13,9 +13,9 @@ export function FontInjector({ typography }: { typography: string | null }) {
         rel="stylesheet"
       />
       <style>{`
-        :root {
-          --font-display: ${p.displayStyle};
-          --font-body: ${p.bodyStyle};
+        html, body, :root {
+          --font-display: ${p.displayStyle} !important;
+          --font-body: ${p.bodyStyle} !important;
         }
       `}</style>
     </>
