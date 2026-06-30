@@ -1,11 +1,14 @@
 import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
+import { Suspense } from "react";
 
 export const revalidate = 300;
 import { GiftCard } from "./GiftCard";
+import { SortBar } from "./SortBar";
 
 interface Props {
   params: { slug: string };
+  searchParams: { sort?: string };
 }
 
 const categoryLabels: Record<string, string> = {
@@ -15,7 +18,7 @@ const categoryLabels: Record<string, string> = {
   livre: "🎁 Livre",
 };
 
-export default async function PresentesPublicasPage({ params }: Props) {
+export default async function PresentesPublicasPage({ params, searchParams }: Props) {
   const supabase = createClient();
 
   const { data: couple } = await supabase
@@ -33,8 +36,14 @@ export default async function PresentesPublicasPage({ params }: Props) {
     );
   }
 
+  const sort = searchParams?.sort ?? "order";
+  const giftsQuery = supabase.from("gifts").select("*").eq("couple_id", couple.id).eq("is_received", false);
+  if (sort === "price_asc") giftsQuery.order("amount", { ascending: true });
+  else if (sort === "price_desc") giftsQuery.order("amount", { ascending: false });
+  else giftsQuery.order("order_index", { ascending: true });
+
   const [{ data: gifts }, { data: siteConfig }] = await Promise.all([
-    supabase.from("gifts").select("*").eq("couple_id", couple.id).eq("is_received", false).order("order_index", { ascending: true }),
+    giftsQuery,
     supabase.from("site_configs").select("cover_photo_url, gifts_notice").eq("couple_id", couple.id).single(),
   ]);
 
@@ -101,15 +110,20 @@ export default async function PresentesPublicasPage({ params }: Props) {
 
       {/* Conteúdo */}
       <div className="max-w-5xl mx-auto px-4 py-10">
-        {categories.length > 0 && (
-          <div className="flex gap-2 flex-wrap mb-8">
-            {categories.map(cat => cat && (
-              <span key={cat} className="px-4 py-1.5 bg-white border border-noir/10 rounded-full text-sm font-body text-smoke">
-                {categoryLabels[cat] ?? cat}
-              </span>
-            ))}
-          </div>
-        )}
+        <div className="flex flex-wrap items-start justify-between gap-4 mb-8">
+          {categories.length > 0 ? (
+            <div className="flex gap-2 flex-wrap">
+              {categories.map(cat => cat && (
+                <span key={cat} className="px-4 py-1.5 bg-white border border-noir/10 rounded-full text-sm font-body text-smoke">
+                  {categoryLabels[cat] ?? cat}
+                </span>
+              ))}
+            </div>
+          ) : <div />}
+          <Suspense>
+            <SortBar slug={params.slug} />
+          </Suspense>
+        </div>
 
         {!gifts || gifts.length === 0 ? (
           <div className="text-center py-20 text-smoke font-body">

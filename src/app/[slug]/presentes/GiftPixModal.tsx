@@ -40,22 +40,40 @@ export function GiftPixModal({ open, onClose, gift, coupleId, pixKey, pixKeyType
   const [giverName, setGiverName] = useState("");
   const [giverEmail, setGiverEmail] = useState("");
   const [message, setMessage] = useState("");
+  const [customAmount, setCustomAmount] = useState<string>("");
+  const [amountError, setAmountError] = useState("");
 
+  const baseAmount = Number(gift.amount);
+  const parsedCustom = parseFloat(customAmount.replace(",", "."));
+  const effectiveAmount = customAmount.trim() !== "" && !isNaN(parsedCustom) && parsedCustom > 0
+    ? parsedCustom
+    : baseAmount;
+
+  // Regenerate QR whenever open state or effective amount changes
   useEffect(() => {
-    if (!open) { setStep("pix"); setCopied(false); return; }
+    if (!open) { setStep("pix"); setCopied(false); setCustomAmount(""); setAmountError(""); return; }
 
     const payload = generatePixPayload({
       pixKey,
       pixKeyType,
       holderName: pixHolderName,
       city: pixCity || "Brasil",
-      amount: Number(gift.amount),
+      amount: effectiveAmount,
       description: gift.title.slice(0, 30),
     });
     setPixCode(payload);
     QRCode.toDataURL(payload, { width: 240, margin: 2, color: { dark: "#1C2018", light: "#FFFFFF" } })
       .then(setQrDataUrl);
-  }, [open, gift, pixKey, pixKeyType, pixHolderName, pixCity]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, effectiveAmount, gift.title, pixKey, pixKeyType, pixHolderName, pixCity]);
+
+  function handleAmountChange(raw: string) {
+    // Allow digits, comma and dot only
+    const sanitized = raw.replace(/[^0-9.,]/g, "");
+    setCustomAmount(sanitized);
+    setCopied(false);
+    setAmountError("");
+  }
 
   async function handleCopy() {
     await navigator.clipboard.writeText(pixCode);
@@ -71,7 +89,7 @@ export function GiftPixModal({ open, onClose, gift, coupleId, pixKey, pixKeyType
     formData.set("couple_id", coupleId);
     formData.set("giver_name", giverName);
     formData.set("giver_email", giverEmail);
-    formData.set("amount", String(gift.amount));
+    formData.set("amount", String(effectiveAmount));
     formData.set("message", message);
     formData.set("pix_key", pixKey);
     formData.set("pix_holder_name", pixHolderName);
@@ -89,11 +107,37 @@ export function GiftPixModal({ open, onClose, gift, coupleId, pixKey, pixKeyType
           <div className="w-full bg-sage/10 border border-sage/20 rounded-xl px-4 py-3 text-center">
             <p className="text-sm font-body text-moss">
               Você está presenteando <strong>{coupleName}</strong> com{" "}
-              <strong>{fmtBRL(Number(gift.amount))}</strong> via Pix 💚
+              <strong>{fmtBRL(effectiveAmount)}</strong> via Pix 💚
             </p>
           </div>
 
-          <p className="text-smoke text-sm font-body text-center">
+          {/* Campo de valor customizável */}
+          <div className="w-full">
+            <p className="text-xs text-smoke font-body mb-1.5 text-center">
+              Valor sugerido: <span className="font-semibold">{fmtBRL(baseAmount)}</span>
+              {" — "}queira contribuir com outro valor?
+            </p>
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-body text-smoke">R$</span>
+              <input
+                type="text"
+                inputMode="decimal"
+                value={customAmount}
+                onChange={e => handleAmountChange(e.target.value)}
+                placeholder={baseAmount.toFixed(2).replace(".", ",")}
+                className="w-full pl-9 pr-4 py-2.5 rounded-lg border font-body text-sm text-center outline-none focus:border-moss transition-colors"
+                style={{ borderColor: "rgba(28,32,24,0.15)" }}
+              />
+            </div>
+            {amountError && <p className="text-rose text-xs font-body mt-1 text-center">{amountError}</p>}
+            {customAmount.trim() !== "" && !isNaN(parsedCustom) && parsedCustom > 0 && parsedCustom !== baseAmount && (
+              <p className="text-moss text-xs font-body mt-1 text-center">
+                ✓ QR Code atualizado para {fmtBRL(parsedCustom)}
+              </p>
+            )}
+          </div>
+
+          <p className="text-smoke text-sm font-body text-center -mt-1">
             Escaneie o QR Code ou copie o código Pix abaixo.
           </p>
 
@@ -121,7 +165,7 @@ export function GiftPixModal({ open, onClose, gift, coupleId, pixKey, pixKeyType
             <p className="text-xs text-smoke font-body text-center mb-3">
               Valor:{" "}
               <span className="font-semibold text-moss">
-                {fmtBRL(Number(gift.amount))}
+                {fmtBRL(effectiveAmount)}
               </span>
             </p>
             <Button className="w-full" onClick={() => setStep("confirm")}>
