@@ -1,6 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
-import { Header } from "@/components/dashboard/Header";
 import { SiteEditor } from "./SiteEditor";
 
 export default async function SitePage() {
@@ -33,14 +32,8 @@ export default async function SitePage() {
   };
 
   return (
-    <>
-      <Header
-        title="Meu Site"
-        subtitle="Personalize a aparência e o conteúdo do seu site de casamento"
-      />
-      <div className="p-4 md:p-8">
-        <SiteEditor config={siteConfig} couple={couple} plan={(couple.plan ?? "free") as "free" | "pro"} />
-      </div>
-    </>
+    <div className="h-screen overflow-hidden flex flex-col">
+      <SiteEditor config={siteConfig} couple={couple} plan={(couple.plan ?? "free") as "free" | "pro"} />
+    </div>
   );
 }

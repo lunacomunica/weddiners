@@ -239,9 +239,8 @@ export function SiteEditor({ config, couple, plan = "free" }: { config: SiteConf
   const [saved, setSaved] = useState(false);
   const [savingCouple, setSavingCouple] = useState(false);
   const [error, setError] = useState("");
-  const [device, setDevice] = useState<"mobile" | "desktop">("mobile");
+  const [device, setDevice] = useState<"desktop" | "mobile">("desktop");
   const [previewKey, setPreviewKey] = useState(0);
-  const [mobilePreviewOpen, setMobilePreviewOpen] = useState(false);
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const appearanceFormRef = useRef<HTMLFormElement>(null);
   const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -514,96 +513,30 @@ export function SiteEditor({ config, couple, plan = "free" }: { config: SiteConf
   };
 
   return (
-    <>
-    {/* Modal de prévia para mobile/tablet */}
-    {mobilePreviewOpen && (
-      <div className="xl:hidden fixed inset-0 z-50 bg-black/80 flex flex-col">
-        <div className="flex items-center justify-between px-4 py-3 bg-white border-b shrink-0">
-          <p className="font-semibold text-sm text-neutral-800">Prévia do site</p>
-          <div className="flex items-center gap-3">
-            <div className="flex gap-1 bg-neutral-100 rounded-lg p-0.5">
-              <button onClick={() => setDevice("mobile")} className={["p-1.5 rounded-md transition-colors", device === "mobile" ? "bg-white shadow-sm text-moss" : "text-neutral-400"].join(" ")}>
-                <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2"/><circle cx="12" cy="18" r="1" fill="currentColor" stroke="none"/></svg>
+    <div className="flex h-full">
+      {/* ── Editor Sidebar ── */}
+      <div className="w-[360px] shrink-0 flex flex-col h-full bg-ivory border-r overflow-hidden" style={{ borderColor: "rgba(13,10,11,0.08)" }}>
+
+        {/* Tabs header */}
+        <div className="shrink-0 px-4 pt-4 pb-3 border-b bg-white" style={{ borderColor: "rgba(13,10,11,0.08)" }}>
+          <div className="flex gap-1 bg-ivory rounded-lg p-1">
+            {tabs.map(t => (
+              <button
+                key={t.id}
+                onClick={() => setTab(t.id)}
+                className={`flex-1 py-2 rounded-md font-body text-xs font-medium transition-all ${
+                  tab === t.id ? "bg-moss text-white shadow-sm" : "text-smoke hover:text-noir"
+                }`}
+              >
+                {t.label}
               </button>
-              <button onClick={() => setDevice("desktop")} className={["p-1.5 rounded-md transition-colors", device === "desktop" ? "bg-white shadow-sm text-moss" : "text-neutral-400"].join(" ")}>
-                <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4" strokeLinecap="round"/></svg>
-              </button>
-            </div>
-            <a href={`/${couple.slug}`} target="_blank" rel="noopener noreferrer" className="text-xs text-moss font-medium hover:underline">Abrir →</a>
-            <button onClick={() => setMobilePreviewOpen(false)} className="text-neutral-500 hover:text-neutral-800 p-1">
-              <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12" strokeLinecap="round" strokeLinejoin="round"/></svg>
-            </button>
+            ))}
           </div>
-        </div>
-        <div className="flex-1 bg-neutral-100 flex items-start justify-center overflow-hidden p-4">
-          {device === "mobile" ? (
-            <div className="rounded-[2rem] border-4 border-white/30 overflow-hidden shadow-2xl bg-white shrink-0" style={{ width: 260, height: 536 }}>
-              <div className="w-full h-full overflow-hidden relative">
-                <iframe
-                  key={previewKey + "_m"}
-                  src={`/${couple.slug}`}
-                  className="absolute top-0 left-0"
-                  style={{ width: 390, height: 804, transform: "scale(0.667)", transformOrigin: "top left", border: "none" }}
-                  title="Prévia mobile"
-                />
-              </div>
-            </div>
-          ) : (
-            <div className="w-full h-full flex flex-col bg-white rounded-xl overflow-hidden shadow-2xl">
-              <div className="flex items-center gap-1.5 px-3 py-2 bg-white border-b shrink-0">
-                <div className="w-2.5 h-2.5 rounded-full bg-rose/60"/><div className="w-2.5 h-2.5 rounded-full bg-gold/60"/><div className="w-2.5 h-2.5 rounded-full bg-emerald-400/60"/>
-                <div className="flex-1 bg-neutral-100 rounded px-3 py-1 mx-2"><p className="text-[10px] text-neutral-400 truncate">{couple.slug}.weddiners.com.br</p></div>
-              </div>
-              <div className="flex-1 overflow-hidden relative">
-                <iframe
-                  key={previewKey + "_d"}
-                  src={`/${couple.slug}`}
-                  onLoad={(e) => { try { const doc = e.currentTarget.contentDocument ?? e.currentTarget.contentWindow?.document; doc?.documentElement?.scrollTo?.(0, 820); } catch {} }}
-                  className="absolute top-0 left-0"
-                  style={{ width: 1280, height: 1600, transform: "scale(0.297)", transformOrigin: "top left", border: "none" }}
-                  title="Prévia desktop"
-                />
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-    )}
-
-    <div className="grid grid-cols-1 xl:grid-cols-[1fr_380px] gap-6">
-      {/* Editor Panel */}
-      <div>
-        {/* Botão ver prévia — só aparece em telas < xl */}
-        <div className="xl:hidden mb-4">
-          <button
-            onClick={() => setMobilePreviewOpen(true)}
-            className="w-full flex items-center justify-center gap-2 bg-white border border-neutral-200 rounded-xl py-3 text-sm font-medium text-moss hover:bg-sage/5 transition-colors"
-          >
-            <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" strokeLinecap="round" strokeLinejoin="round"/><circle cx="12" cy="12" r="3"/></svg>
-            Ver prévia do site
-          </button>
+          {error && <p className="text-rose text-xs font-body mt-2">{error}</p>}
         </div>
 
-        {/* Tabs */}
-        <div className="flex gap-1 bg-white border rounded-lg p-1 mb-6 w-fit" style={{ borderColor: "rgba(13,10,11,0.08)" }}>
-          {tabs.map(t => (
-            <button
-              key={t.id}
-              onClick={() => setTab(t.id)}
-              className={`px-5 py-2 rounded-md font-body text-sm font-medium transition-all ${
-                tab === t.id
-                  ? "bg-moss text-white shadow-sm"
-                  : "text-smoke hover:text-noir"
-              }`}
-            >
-              {t.label}
-            </button>
-          ))}
-        </div>
-
-        {error && (
-          <p className="text-rose text-sm font-body mb-4">{error}</p>
-        )}
+        {/* Scrollable content */}
+        <div className="flex-1 overflow-y-auto p-4 space-y-4">
 
         {/* Aparência */}
         {tab === "aparencia" && (
@@ -955,165 +888,139 @@ export function SiteEditor({ config, couple, plan = "free" }: { config: SiteConf
           </div>
         )}
 
-        {/* Compartilhar */}
-        <div className="mt-8 bg-white rounded-lg border p-6" style={{ borderColor: "rgba(13,10,11,0.08)" }}>
-          <h3 className="font-display text-lg text-noir mb-4">Compartilhar seu site</h3>
-          <div className="flex gap-6 items-start flex-wrap">
-            <QRCodeDisplay url={publicUrl} />
-            <div className="flex-1 min-w-[200px] space-y-3">
-              <div>
-                <p className="font-body text-xs text-smoke mb-1.5">Link do site</p>
-                <div className="flex items-center gap-2 bg-ivory rounded-md px-3 py-2.5">
-                  <p className="font-body text-xs text-moss truncate flex-1">{publicUrl}</p>
-                  <button
-                    type="button"
-                    onClick={() => navigator.clipboard.writeText(publicUrl)}
-                    className="text-smoke hover:text-moss text-xs font-body shrink-0 transition-colors"
-                  >
-                    Copiar
-                  </button>
-                </div>
-              </div>
-              <a
-                href={`https://wa.me/?text=${encodeURIComponent(`Olá! Confirme sua presença no nosso casamento: ${publicUrl}`)}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2 px-4 py-2.5 rounded-md text-white text-sm font-body font-medium transition-opacity hover:opacity-90 w-full justify-center"
-                style={{ background: "#25D366" }}
+        {/* Compartilhar — no fim do painel */}
+        <div className="bg-white rounded-lg border p-5" style={{ borderColor: "rgba(13,10,11,0.08)" }}>
+          <h3 className="font-display text-base text-noir mb-3">Compartilhar</h3>
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 bg-ivory rounded-md px-3 py-2.5">
+              <p className="font-body text-xs text-moss truncate flex-1">{publicUrl}</p>
+              <button
+                type="button"
+                onClick={() => navigator.clipboard.writeText(publicUrl)}
+                className="text-smoke hover:text-moss text-xs font-body shrink-0 transition-colors"
               >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-                Compartilhar no WhatsApp
-              </a>
-              <a
-                href={`/${couple.slug}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-md text-sm font-body font-medium border transition-colors hover:bg-ivory w-full"
-                style={{ borderColor: "rgba(13,10,11,0.12)", color: "#3A4A30" }}
-              >
-                <svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" strokeLinecap="round" strokeLinejoin="round"/><polyline points="15 3 21 3 21 9" strokeLinecap="round" strokeLinejoin="round"/><line x1="10" y1="14" x2="21" y2="3" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                Abrir site público
-              </a>
+                Copiar
+              </button>
             </div>
+            <a
+              href={`https://wa.me/?text=${encodeURIComponent(`Olá! Confirme sua presença no nosso casamento: ${publicUrl}`)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 px-4 py-2.5 rounded-md text-white text-sm font-body font-medium transition-opacity hover:opacity-90 w-full justify-center"
+              style={{ background: "#25D366" }}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+              WhatsApp
+            </a>
+            <a
+              href={`/${couple.slug}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-md text-sm font-body font-medium border transition-colors hover:bg-ivory w-full"
+              style={{ borderColor: "rgba(13,10,11,0.12)", color: "#3A4A30" }}
+            >
+              <svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" strokeLinecap="round" strokeLinejoin="round"/><polyline points="15 3 21 3 21 9" strokeLinecap="round" strokeLinejoin="round"/><line x1="10" y1="14" x2="21" y2="3" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              Abrir site público
+            </a>
           </div>
         </div>
-      </div>
 
-      {/* Live Preview Panel */}
-      <div className="hidden xl:block">
-        <div className="sticky top-6">
-          <div className="bg-white rounded-lg border overflow-hidden" style={{ borderColor: "rgba(13,10,11,0.08)" }}>
-            {/* Toolbar */}
-            <div className="px-4 py-3 border-b flex items-center justify-between" style={{ borderColor: "rgba(13,10,11,0.08)" }}>
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => setDevice("mobile")}
-                  title="Mobile"
-                  className={`p-1.5 rounded transition-colors ${device === "mobile" ? "bg-moss/10 text-moss" : "text-smoke hover:text-noir"}`}
-                >
-                  <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
-                    <rect x="5" y="2" width="14" height="20" rx="2" />
-                    <circle cx="12" cy="18" r="1" fill="currentColor" stroke="none" />
-                  </svg>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setDevice("desktop")}
-                  title="Desktop"
-                  className={`p-1.5 rounded transition-colors ${device === "desktop" ? "bg-moss/10 text-moss" : "text-smoke hover:text-noir"}`}
-                >
-                  <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
-                    <rect x="2" y="3" width="20" height="14" rx="2" />
-                    <path d="M8 21h8M12 17v4" strokeLinecap="round" />
-                  </svg>
-                </button>
-                <button
-                  type="button"
-                  onClick={refreshPreview}
-                  title="Atualizar"
-                  className="p-1.5 rounded text-smoke hover:text-noir transition-colors"
-                >
-                  <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
-                    <path d="M23 4v6h-6M1 20v-6h6" strokeLinecap="round" strokeLinejoin="round" />
-                    <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                </button>
-              </div>
-              <a
-                href={`/${couple.slug}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="font-body text-xs text-moss hover:underline"
-              >
-                Abrir →
-              </a>
-            </div>
+        </div>{/* end scrollable content */}
+      </div>{/* end editor sidebar */}
 
-            {/* iframe container */}
-            <div className={`bg-gray-100 flex items-start justify-center overflow-hidden transition-all ${device === "mobile" ? "h-[560px]" : "h-[500px]"}`}>
-              {device === "mobile" ? (
-                <div className="mt-4 rounded-[2rem] border-4 border-noir/20 overflow-hidden shadow-xl bg-white shrink-0" style={{ width: 260, height: 536 }}>
-                  <div className="w-full h-full overflow-hidden relative">
-                    <iframe
-                      key={previewKey}
-                      ref={iframeRef}
-                      src={`/${couple.slug}`}
-                      onLoad={(e) => {
-                        try { (e.currentTarget.contentDocument?.documentElement ?? e.currentTarget.contentWindow?.document?.documentElement)?.scrollTo?.(0, 0); } catch {}
-                      }}
-                      className="absolute top-0 left-0"
-                      style={{ width: 390, height: 804, transform: "scale(0.667)", transformOrigin: "top left", border: "none" }}
-                      title="Prévia mobile"
-                    />
-                  </div>
-                </div>
-              ) : (
-                <div className="w-full h-full flex flex-col">
-                  <div className="flex items-center gap-1.5 px-3 py-2 bg-white border-b shrink-0" style={{ borderColor: "rgba(13,10,11,0.08)" }}>
-                    <div className="w-2.5 h-2.5 rounded-full bg-rose/60" />
-                    <div className="w-2.5 h-2.5 rounded-full bg-gold/60" />
-                    <div className="w-2.5 h-2.5 rounded-full bg-emerald-400/60" />
-                    <div className="flex-1 bg-ivory rounded px-3 py-1 mx-2">
-                      <p className="font-body text-[10px] text-smoke truncate">{couple.slug}.weddiners.com.br</p>
-                    </div>
-                  </div>
-                  <div className="flex-1 overflow-hidden relative">
-                    <iframe
-                      key={previewKey}
-                      src={`/${couple.slug}`}
-                      onLoad={(e) => {
-                        try {
-                          const doc = e.currentTarget.contentDocument ?? e.currentTarget.contentWindow?.document;
-                          doc?.documentElement?.scrollTo?.(0, 820);
-                        } catch {}
-                      }}
-                      className="absolute top-0 left-0"
-                      style={{ width: 1280, height: 1600, transform: "scale(0.297)", transformOrigin: "top left", border: "none" }}
-                      title="Prévia desktop"
-                    />
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Link */}
-            <div className="p-3 border-t" style={{ borderColor: "rgba(13,10,11,0.08)" }}>
-              <div className="flex items-center gap-2 bg-ivory rounded-md px-3 py-2">
-                <p className="font-body text-xs text-moss truncate flex-1">{couple.slug}</p>
-                <button
-                  type="button"
-                  onClick={() => navigator.clipboard.writeText(publicUrl)}
-                  className="text-smoke hover:text-moss text-xs font-body shrink-0"
-                >
-                  Copiar
-                </button>
-              </div>
-            </div>
+      {/* ── Live Preview (ocupa o resto da tela) ── */}
+      <div className="flex-1 flex flex-col h-full bg-neutral-100 overflow-hidden">
+        {/* Toolbar */}
+        <div className="shrink-0 flex items-center justify-between px-4 py-2.5 bg-white border-b" style={{ borderColor: "rgba(13,10,11,0.08)" }}>
+          <div className="flex items-center gap-1">
+            <button
+              type="button"
+              onClick={() => setDevice("mobile")}
+              title="Mobile"
+              className={`p-2 rounded-lg transition-colors ${device === "mobile" ? "bg-moss/10 text-moss" : "text-smoke hover:text-noir"}`}
+            >
+              <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+                <rect x="5" y="2" width="14" height="20" rx="2" />
+                <circle cx="12" cy="18" r="1" fill="currentColor" stroke="none" />
+              </svg>
+            </button>
+            <button
+              type="button"
+              onClick={() => setDevice("desktop")}
+              title="Desktop"
+              className={`p-2 rounded-lg transition-colors ${device === "desktop" ? "bg-moss/10 text-moss" : "text-smoke hover:text-noir"}`}
+            >
+              <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+                <rect x="2" y="3" width="20" height="14" rx="2" />
+                <path d="M8 21h8M12 17v4" strokeLinecap="round" />
+              </svg>
+            </button>
+            <button
+              type="button"
+              onClick={refreshPreview}
+              title="Atualizar prévia"
+              className="p-2 rounded-lg text-smoke hover:text-noir transition-colors"
+            >
+              <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+                <path d="M23 4v6h-6M1 20v-6h6" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </button>
           </div>
+          <div className="flex items-center gap-2">
+            <div className="bg-ivory border rounded-full px-3 py-1" style={{ borderColor: "rgba(13,10,11,0.08)" }}>
+              <p className="font-body text-[11px] text-smoke">{couple.slug}.weddiners.com.br</p>
+            </div>
+            <a
+              href={`/${couple.slug}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1 font-body text-xs text-moss hover:underline px-2 py-1"
+            >
+              Abrir
+              <svg width="11" height="11" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" strokeLinecap="round" strokeLinejoin="round"/><polyline points="15 3 21 3 21 9" strokeLinecap="round" strokeLinejoin="round"/><line x1="10" y1="14" x2="21" y2="3" strokeLinecap="round" strokeLinejoin="round"/></svg>
+            </a>
+          </div>
+        </div>
+
+        {/* Preview area */}
+        <div className="flex-1 flex items-start justify-center overflow-hidden p-6">
+          {device === "mobile" ? (
+            <div className="rounded-[2.5rem] border-[6px] border-noir/20 overflow-hidden shadow-2xl bg-white shrink-0" style={{ width: 300, height: 620 }}>
+              <div className="w-full h-full overflow-hidden relative">
+                <iframe
+                  key={previewKey}
+                  ref={iframeRef}
+                  src={`/${couple.slug}`}
+                  className="absolute top-0 left-0"
+                  style={{ width: 390, height: 804, transform: "scale(0.769)", transformOrigin: "top left", border: "none" }}
+                  title="Prévia mobile"
+                />
+              </div>
+            </div>
+          ) : (
+            <div className="w-full h-full max-w-5xl flex flex-col bg-white rounded-xl overflow-hidden shadow-xl border" style={{ borderColor: "rgba(13,10,11,0.08)" }}>
+              <div className="flex items-center gap-1.5 px-3 py-2 border-b shrink-0" style={{ borderColor: "rgba(13,10,11,0.08)" }}>
+                <div className="w-3 h-3 rounded-full bg-rose/60" />
+                <div className="w-3 h-3 rounded-full bg-gold/60" />
+                <div className="w-3 h-3 rounded-full bg-emerald-400/60" />
+                <div className="flex-1 bg-ivory rounded px-3 py-1 mx-2">
+                  <p className="font-body text-[10px] text-smoke truncate">{couple.slug}.weddiners.com.br</p>
+                </div>
+              </div>
+              <div className="flex-1 overflow-hidden relative">
+                <iframe
+                  key={previewKey}
+                  src={`/${couple.slug}`}
+                  className="absolute top-0 left-0 w-full h-full"
+                  style={{ border: "none" }}
+                  title="Prévia desktop"
+                />
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
-    </>
   );
 }
