@@ -427,22 +427,21 @@ export function SiteEditor({ config, couple, plan = "free" }: { config: SiteConf
     setSaving(false);
   }
 
-  // Appearance save (for the button in the tab)
+  // Appearance save — toca APENAS palette + template + typography + cover
+  // NUNCA chama updateSiteConfig para não sobrescrever conteúdo das seções
   async function handleSaveAppearance(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setSaving(true);
     setError("");
-    const fd = new FormData(e.currentTarget);
-    fd.set("hero_title", config.hero_title ?? "");
-    fd.set("hero_subtitle", config.hero_subtitle ?? "");
-    fd.set("about_text", config.about_text ?? "");
-    fd.set("dresscode", config.dresscode ?? "");
-    fd.set("gifts_notice", config.gifts_notice ?? "");
-    fd.set("schedule", config.schedule ?? "");
-    fd.set("directions", config.directions ?? "");
-    fd.set("directions_url", config.directions_url ?? "");
-    fd.set("typography", selectedTypography);
-    const result = await updateSiteConfig(fd);
+    const paletteValue = selectedPalette === "custom"
+      ? `custom|${customColors[0]}|${customColors[1]}|${customColors[2]}`
+      : selectedPalette;
+    const result = await updateAppearance(
+      paletteValue,
+      selectedTemplate,
+      sectionContent.cover_photo_url || null,
+      selectedTypography
+    );
     if (result?.error) setError(result.error);
     else { setSaved(true); setTimeout(() => setSaved(false), 2000); refreshPreview(); }
     setSaving(false);
