@@ -46,7 +46,7 @@ function AboutSection({ config, colors }: { config: TemplateConfig; colors: Sect
         {/* Right: editorial text */}
         <div>
           <p className="text-xs tracking-[0.3em] uppercase mb-6" style={{ color: accent }}>
-            Nossa história
+            {config.aboutTitle || "Nossa história"}
           </p>
           <h2 className="mb-8 leading-tight" style={{
             fontFamily: "var(--font-display)",
@@ -73,7 +73,7 @@ function DresscodeSection({ config, colors }: { config: TemplateConfig; colors: 
   return (
     <section data-weddiners-section="dresscode" style={{ background: altBg }}>
       <div className="max-w-3xl mx-auto px-6 py-24 text-center">
-        <p className="text-xs tracking-[0.3em] uppercase mb-3" style={{ color: accent }}>Dress Code</p>
+        <p className="text-xs tracking-[0.3em] uppercase mb-3" style={{ color: accent }}>{config.dresscodeTitle || "Dress Code"}</p>
         <h2 className="mb-10" style={{ fontFamily: "var(--font-display)", fontSize: "clamp(2rem, 4vw, 2.8rem)", color: text, fontStyle: "italic" }}>
           Vista-se para o grande dia
         </h2>
@@ -119,14 +119,14 @@ function ScheduleSection({ config, colors }: { config: TemplateConfig; colors: S
       <div className="absolute inset-0" style={{ background: "rgba(0,0,0,0.72)" }} />
 
       <div className="relative z-10 max-w-3xl mx-auto px-6 py-24 text-center">
-        <p className="text-xs tracking-[0.3em] uppercase mb-3 text-white/50">Programação do dia</p>
+        <p className="text-xs tracking-[0.3em] uppercase mb-3 text-white/50">{config.scheduleTitle || "Cronograma"}</p>
         <h2 className="mb-16" style={{
           fontFamily: "var(--font-display)",
           fontSize: "clamp(2.2rem, 5vw, 3.5rem)",
           color: "#fff",
           fontStyle: "italic",
         }}>
-          Cronograma
+          {config.scheduleTitle || "Cronograma"}
         </h2>
 
         {/* Timeline */}
@@ -167,7 +167,7 @@ function DirectionsSection({ config, colors }: { config: TemplateConfig; colors:
     <section data-weddiners-section="directions" style={{ background: altBg }}>
       <div className="max-w-4xl mx-auto px-6 py-24 grid md:grid-cols-[1fr_2fr] gap-16 items-start">
         <div>
-          <p className="text-xs tracking-[0.3em] uppercase mb-4" style={{ color: accent }}>Como Chegar</p>
+          <p className="text-xs tracking-[0.3em] uppercase mb-4" style={{ color: accent }}>{config.directionsTitle || "Como Chegar"}</p>
           <h2 className="leading-tight" style={{ fontFamily: "var(--font-display)", fontSize: "clamp(1.8rem, 3vw, 2.4rem)", color: text, fontStyle: "italic" }}>
             {config.directionsSubtitle || "Nos encontramos aqui"}
           </h2>
@@ -204,7 +204,7 @@ function CTASection({ config, slug, colors }: { config: TemplateConfig; slug: st
   return (
     <section data-weddiners-section="rsvp" style={{ background: mainBg }}>
       <div className="max-w-2xl mx-auto px-6 py-24 text-center">
-        <p className="text-xs tracking-[0.3em] uppercase mb-4" style={{ color: accent }}>Participe</p>
+        <p className="text-xs tracking-[0.3em] uppercase mb-4" style={{ color: accent }}>{config.rsvpTitle || "Participe"}</p>
         <h2 className="mb-4" style={{ fontFamily: "var(--font-display)", fontSize: "clamp(2.2rem, 4vw, 3rem)", color: text, fontStyle: "italic" }}>
           {config.rsvpSubtitle || "Sua presença é nosso maior presente"}
         </h2>
@@ -240,9 +240,9 @@ function MessagesBlock({ config, slug, messages, colors }: { config: TemplateCon
     <section data-weddiners-section="messages" style={{ background: altBg }}>
       <div className="max-w-3xl mx-auto px-6 py-24">
         <div className="text-center mb-14">
-          <p className="text-xs tracking-[0.3em] uppercase mb-3" style={{ color: accent }}>Mural</p>
+          <p className="text-xs tracking-[0.3em] uppercase mb-3" style={{ color: accent }}>{config.messagesTitle || "Mural"}</p>
           <h2 style={{ fontFamily: "var(--font-display)", fontSize: "clamp(2rem, 4vw, 2.8rem)", color: text, fontStyle: "italic" }}>
-            Deixe seu recado
+            {config.messagesTitle || "Deixe seu recado"}
           </h2>
         </div>
         <MessagesSection slug={slug} initialMessages={messages} accentColor={accent} textColor={text} />
