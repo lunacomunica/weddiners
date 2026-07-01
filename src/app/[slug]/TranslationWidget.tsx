@@ -32,7 +32,7 @@ export function TranslationWidget({ languages }: { languages: string[] }) {
     const match = document.cookie.match(/googtrans=\/pt\/([^;]+)/);
     return match ? match[1] : "pt";
   });
-  const [gtReady, setGtReady] = useState(false);
+  const [_gtReady, setGtReady] = useState(false);
   const dropRef = useRef<HTMLDivElement>(null);
 
   // Load Google Translate script once
