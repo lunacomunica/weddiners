@@ -27,7 +27,11 @@ declare global {
 
 export function TranslationWidget({ languages }: { languages: string[] }) {
   const [open, setOpen] = useState(false);
-  const [current, setCurrent] = useState("pt");
+  const [current, setCurrent] = useState(() => {
+    if (typeof document === "undefined") return "pt";
+    const match = document.cookie.match(/googtrans=\/pt\/([^;]+)/);
+    return match ? match[1] : "pt";
+  });
   const [gtReady, setGtReady] = useState(false);
   const dropRef = useRef<HTMLDivElement>(null);
 
@@ -61,25 +65,18 @@ export function TranslationWidget({ languages }: { languages: string[] }) {
     setOpen(false);
 
     if (code === "pt") {
-      // Reset to Portuguese
-      const select = document.querySelector<HTMLSelectElement>(".goog-te-combo");
-      if (select) {
-        select.value = "pt";
-        select.dispatchEvent(new Event("change"));
-      } else {
-        // Force reload without hash
-        const url = new URL(window.location.href);
-        url.hash = "";
-        window.location.href = url.href;
-      }
+      // Remove translation cookie and reload
+      document.cookie = "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/";
+      document.cookie = "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=" + window.location.hostname;
+      window.location.reload();
       return;
     }
 
-    const select = document.querySelector<HTMLSelectElement>(".goog-te-combo");
-    if (select) {
-      select.value = code;
-      select.dispatchEvent(new Event("change"));
-    }
+    // Set the googtrans cookie and reload — most reliable method
+    const cookieVal = `/pt/${code}`;
+    document.cookie = `googtrans=${cookieVal}; path=/`;
+    document.cookie = `googtrans=${cookieVal}; path=/; domain=${window.location.hostname}`;
+    window.location.reload();
   }
 
   const allLangs = [{ code: "pt", ...LANG_LABELS["pt"] }, ...languages.map(c => ({ code: c, ...(LANG_LABELS[c] ?? { label: c, flag: "🌐" }) }))];
@@ -111,8 +108,7 @@ export function TranslationWidget({ languages }: { languages: string[] }) {
 
         <button
           onClick={() => setOpen(v => !v)}
-          disabled={!gtReady}
-          className="flex items-center gap-2 bg-white rounded-full shadow-lg border border-neutral-100 px-4 py-2.5 text-sm font-medium text-neutral-700 hover:shadow-xl transition-all disabled:opacity-50 notranslate"
+          className="flex items-center gap-2 bg-white rounded-full shadow-lg border border-neutral-100 px-4 py-2.5 text-sm font-medium text-neutral-700 hover:shadow-xl transition-all notranslate"
         >
           <span className="text-base">{currentLang.flag}</span>
           <span>{currentLang.label}</span>

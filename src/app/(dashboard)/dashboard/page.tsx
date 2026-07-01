@@ -103,11 +103,11 @@ export default async function DashboardPage() {
           <div className="bg-white rounded-2xl border border-neutral-200 p-6 flex flex-col justify-between">
             <div>
               <p className="text-xs text-neutral-400 uppercase tracking-widest font-body mb-2">Meu site</p>
-              <p className="font-display text-lg text-neutral-800 leading-snug break-all">{couple.slug}.weddiners.com.br</p>
+              <p className="font-display text-lg text-neutral-800 leading-snug break-all">app.weddiners.com.br/{couple.slug}</p>
               <p className="text-xs text-neutral-400 font-body mt-1">{nomeCasal}</p>
             </div>
             <div className="flex flex-col gap-2 mt-4">
-              <Link href={`https://${couple.slug}.weddiners.com.br`} target="_blank" className="btn-primary text-center text-xs py-2">Ver site →</Link>
+              <Link href={`https://app.weddiners.com.br/${couple.slug}`} target="_blank" className="btn-primary text-center text-xs py-2">Ver site →</Link>
               <Link href="/site" className="text-center text-xs text-neutral-400 hover:text-neutral-600 font-body transition-colors">Editar aparência</Link>
             </div>
           </div>

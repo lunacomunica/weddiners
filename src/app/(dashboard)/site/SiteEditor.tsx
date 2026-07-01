@@ -302,7 +302,7 @@ export function SiteEditor({ config, couple, plan = "free" }: { config: SiteConf
   }, [selectedPalette, selectedTemplate, customColors, selectedTypography, refreshPreview]);
 
   // URL pública sempre no formato de subdomínio
-  const publicUrl = `https://${couple.slug}.weddiners.com.br`;
+  const publicUrl = `https://app.weddiners.com.br/${couple.slug}`;
 
   // ─── Sections state ─────────────────────────────────────────────────────────
   const parsedOrder: SectionId[] = (() => {
@@ -1241,7 +1241,7 @@ export function SiteEditor({ config, couple, plan = "free" }: { config: SiteConf
           </div>
           <div className="flex items-center gap-2">
             <div className="bg-ivory border rounded-full px-3 py-1" style={{ borderColor: "rgba(13,10,11,0.08)" }}>
-              <p className="font-body text-[11px] text-smoke">{couple.slug}.weddiners.com.br</p>
+              <p className="font-body text-[11px] text-smoke">app.weddiners.com.br/{couple.slug}</p>
             </div>
             <a
               href={publicUrl}
@@ -1277,7 +1277,7 @@ export function SiteEditor({ config, couple, plan = "free" }: { config: SiteConf
                 <div className="w-3 h-3 rounded-full bg-gold/60" />
                 <div className="w-3 h-3 rounded-full bg-emerald-400/60" />
                 <div className="flex-1 bg-ivory rounded px-3 py-1 mx-2">
-                  <p className="font-body text-[10px] text-smoke truncate">{couple.slug}.weddiners.com.br</p>
+                  <p className="font-body text-[10px] text-smoke truncate">app.weddiners.com.br/{couple.slug}</p>
                 </div>
               </div>
               <div className="flex-1 overflow-hidden relative">
