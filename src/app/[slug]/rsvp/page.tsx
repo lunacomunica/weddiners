@@ -4,6 +4,7 @@ import { useSearchParams } from "next/navigation";
 import { useState, useEffect, Suspense } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { submitRsvp } from "./actions";
+import { PinRsvpInput } from "../PinRsvpInput";
 
 interface Guest {
   id: string;
@@ -84,11 +85,27 @@ function RsvpForm({ slug }: { slug: string }) {
 
   if (!guest || !guestId) {
     return (
-      <div className="min-h-screen bg-ivory flex items-center justify-center px-4">
-        <div className="text-center max-w-sm">
-          <p className="font-display text-4xl text-noir mb-3">💌</p>
-          <h1 className="font-display text-2xl text-noir mb-2">Link inválido</h1>
-          <p className="font-body text-smoke text-sm">Este link de confirmação não é válido. Solicite um novo link ao casal.</p>
+      <div className="min-h-screen bg-ivory flex items-center justify-center px-4 py-12">
+        <div className="w-full max-w-md">
+          <div className="text-center mb-10">
+            <p className="font-display text-gold text-lg tracking-wide mb-1">Confirmação de Presença</p>
+            {couple && (
+              <h1 className="font-display text-4xl text-noir">
+                {couple.partner1_name} & {couple.partner2_name}
+              </h1>
+            )}
+            {couple?.wedding_date && (
+              <p className="font-body text-smoke text-sm mt-2">
+                {new Date(couple.wedding_date + "T00:00:00").toLocaleDateString("pt-BR", { day: "numeric", month: "long", year: "numeric" })}
+              </p>
+            )}
+            <div className="w-12 h-px bg-gold mx-auto mt-4" />
+          </div>
+          <div className="bg-white rounded-lg border p-8 shadow-sm text-center" style={{ borderColor: "rgba(13,10,11,0.08)" }}>
+            <p className="font-display text-xl text-noir mb-1">Qual é o seu nome?</p>
+            <p className="font-body text-smoke text-sm mb-8">Digite seu nome completo para confirmar sua presença</p>
+            <PinRsvpInput slug={slug} accent="#9C8456" buttonRadius="0.375rem" />
+          </div>
         </div>
       </div>
     );
