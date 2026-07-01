@@ -197,9 +197,9 @@ function DirectionsSection({ config, colors }: { config: TemplateConfig; colors:
   );
 }
 
-// ─── CTA (RSVP + Gifts) ──────────────────────────────────────────────────────
+// ─── CTA (RSVP) ──────────────────────────────────────────────────────────────
 function CTASection({ config, slug, colors }: { config: TemplateConfig; slug: string; colors: SectionColors }) {
-  if (!config.showRsvp && !config.showGifts) return null;
+  if (!config.showRsvp) return null;
   const { accent, mainBg, text, subText, buttonRadius = "0.375rem" } = colors;
   return (
     <section data-weddiners-section="rsvp" style={{ background: mainBg }}>
@@ -211,22 +211,105 @@ function CTASection({ config, slug, colors }: { config: TemplateConfig; slug: st
         <p className="text-sm mb-12" style={{ color: subText }}>
           {config.rsvpText || "Confirme sua presença e, se quiser, confira nossa lista de presentes"}
         </p>
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          {config.showRsvp && (
-            <Link href={`/${slug}/rsvp`}
-              className="px-10 py-4 text-white text-sm font-medium transition-opacity hover:opacity-90"
-              style={{ background: accent, borderRadius: buttonRadius }}>
-              Confirmar presença
-            </Link>
-          )}
-          {config.showGifts && (
-            <Link href={`/${slug}/presentes`}
-              className="px-10 py-4 text-sm font-medium border transition-colors hover:bg-black/5"
-              style={{ borderColor: accent, color: accent, borderRadius: buttonRadius }}>
-              Lista de presentes
-            </Link>
-          )}
+        <Link href={`/${slug}/rsvp`}
+          className="inline-block px-10 py-4 text-white text-sm font-medium transition-opacity hover:opacity-90"
+          style={{ background: accent, borderRadius: buttonRadius }}>
+          Confirmar presença
+        </Link>
+      </div>
+    </section>
+  );
+}
+
+// ─── Gifts Preview ────────────────────────────────────────────────────────────
+function GiftsSection({ config, slug, colors }: { config: TemplateConfig; slug: string; colors: SectionColors }) {
+  if (!config.showGifts) return null;
+  const { accent, altBg, text, buttonRadius = "0.375rem" } = colors;
+  const gifts = config.giftsPreview ?? [];
+
+  return (
+    <section data-weddiners-section="gifts" style={{ background: altBg }}>
+      <div className="max-w-5xl mx-auto px-6 py-24">
+        {/* Header */}
+        <div className="text-center mb-14">
+          <p className="text-xs tracking-[0.3em] uppercase mb-3" style={{ color: accent }}>
+            {config.giftsTitle || "Lista de Presentes"}
+          </p>
+          <h2 className="mb-4" style={{ fontFamily: "var(--font-display)", fontSize: "clamp(2rem, 4vw, 3rem)", color: text, fontStyle: "italic" }}>
+            {config.giftsText || "Escolha um presente especial para nós"}
+          </h2>
         </div>
+
+        {/* Gift cards preview */}
+        {gifts.length > 0 ? (
+          <>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-10">
+              {gifts.map(gift => (
+                <Link
+                  key={gift.id}
+                  href={`/${slug}/presentes`}
+                  className="group bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow border"
+                  style={{ borderColor: `${accent}18` }}
+                >
+                  {/* Foto ou placeholder */}
+                  <div className="aspect-square overflow-hidden relative" style={{ background: `${accent}10` }}>
+                    {gift.photo_url ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={gift.photo_url}
+                        alt={gift.name}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                    ) : (
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <svg width="32" height="32" fill="none" stroke={accent} strokeWidth={1.2} viewBox="0 0 24 24" opacity={0.4}>
+                          <path d="M20 12v10H4V12M22 7H2v5h20V7zM12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                      </div>
+                    )}
+                  </div>
+                  {/* Info */}
+                  <div className="p-3 md:p-4">
+                    <p className="font-medium text-sm leading-snug line-clamp-2" style={{ color: text, fontFamily: "var(--font-body)" }}>
+                      {gift.name}
+                    </p>
+                    {gift.amount != null && gift.amount > 0 && (
+                      <p className="text-xs mt-1 font-medium" style={{ color: accent }}>
+                        {gift.amount.toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 0 })}
+                      </p>
+                    )}
+                  </div>
+                </Link>
+              ))}
+            </div>
+
+            <div className="text-center">
+              <Link
+                href={`/${slug}/presentes`}
+                className="inline-flex items-center gap-2 px-8 py-3.5 text-sm font-medium border-2 transition-opacity hover:opacity-75"
+                style={{ borderColor: accent, color: accent, borderRadius: buttonRadius }}
+              >
+                Ver lista completa
+                <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path d="M5 12h14M12 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </Link>
+            </div>
+          </>
+        ) : (
+          <div className="text-center">
+            <Link
+              href={`/${slug}/presentes`}
+              className="inline-flex items-center gap-2 px-8 py-3.5 text-sm font-medium border-2 transition-all hover:opacity-80"
+              style={{ borderColor: accent, color: accent, borderRadius: buttonRadius }}
+            >
+              Ver lista de presentes
+              <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <path d="M5 12h14M12 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </Link>
+          </div>
+        )}
       </div>
     </section>
   );
@@ -260,24 +343,22 @@ export function renderSections(
 ) {
   const sectionMap: Record<string, React.ReactNode> = {
     about:      <AboutSection      key="about"      config={config} colors={colors} />,
+    rsvp:       <CTASection        key="rsvp"       config={config} slug={slug} colors={colors} />,
+    gifts:      <GiftsSection      key="gifts"      config={config} slug={slug} colors={colors} />,
     dresscode:  <DresscodeSection  key="dresscode"  config={config} colors={colors} />,
     schedule:   <ScheduleSection   key="schedule"   config={config} colors={colors} />,
     directions: <DirectionsSection key="directions" config={config} colors={colors} />,
     messages:   <MessagesBlock     key="messages"   config={config} slug={slug} messages={messages} colors={colors} />,
   };
 
-  const ctaSection = <CTASection key="cta" config={config} slug={slug} colors={colors} />;
   const rendered: React.ReactNode[] = [];
-  let ctaAdded = false;
-
   for (const id of config.sectionOrder) {
-    if (id === "rsvp" || id === "gifts") {
-      if (!ctaAdded) { rendered.push(ctaSection); ctaAdded = true; }
-    } else {
-      rendered.push(sectionMap[id] ?? null);
-    }
+    rendered.push(sectionMap[id] ?? null);
   }
 
-  if (!ctaAdded) rendered.push(ctaSection);
+  // Garantia: se rsvp e gifts não estiverem na ordem, adiciona ao fim
+  if (!config.sectionOrder.includes("rsvp")) rendered.push(<CTASection key="rsvp-fallback" config={config} slug={slug} colors={colors} />);
+  if (!config.sectionOrder.includes("gifts")) rendered.push(<GiftsSection key="gifts-fallback" config={config} slug={slug} colors={colors} />);
+
   return rendered;
 }

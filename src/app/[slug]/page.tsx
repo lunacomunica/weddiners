@@ -33,9 +33,10 @@ export default async function WeddingPage({ params }: { params: { slug: string }
     }
   }
 
-  const [{ data: config }, { data: messagesData }] = await Promise.all([
+  const [{ data: config }, { data: messagesData }, { data: giftsData }] = await Promise.all([
     supabase.from("site_configs").select("*").eq("couple_id", couple.id).single(),
     supabase.from("messages").select("id, guest_name, message, created_at").eq("couple_id", couple.id).eq("approved", true).order("created_at", { ascending: false }),
+    supabase.from("gifts").select("id, name, description, amount, photo_url, category").eq("couple_id", couple.id).eq("is_received", false).order("order_index", { ascending: true }).limit(6),
   ]);
 
   const name1 = couple.partner1_name || couple.bride_name;
@@ -77,6 +78,7 @@ export default async function WeddingPage({ params }: { params: { slug: string }
     rsvpText: config?.rsvp_text ?? null,
     giftsText: config?.gifts_text ?? null,
     directionsSubtitle: config?.directions_subtitle ?? null,
+    giftsPreview: giftsData ?? [],
     translationsEnabled: !!couple.translations_enabled,
     translationLanguages: (couple.translation_languages as string[]) ?? [],
     typography: config?.typography ?? null,

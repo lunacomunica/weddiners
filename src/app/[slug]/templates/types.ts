@@ -38,6 +38,8 @@ export interface TemplateConfig {
   rsvpText: string | null;
   giftsText: string | null;
   directionsSubtitle: string | null;
+  // Prévia de presentes para seção no site
+  giftsPreview: { id: string; name: string; description: string | null; amount: number | null; photo_url: string | null; category: string | null }[];
 }
 
 export interface TemplateProps {
