@@ -4,6 +4,7 @@ import type { TemplateProps } from "./types";
 import { getPaletteTheme } from "./palettes";
 import { TranslationWidget } from "../TranslationWidget";
 import { buildGoogleCalendarUrl } from "./googleCalendarUrl";
+import { AddToCalendarButton } from "../AddToCalendarButton";
 
 type Messages = { id: string; guest_name: string; message: string; created_at: string }[];
 
@@ -36,19 +37,11 @@ export function Rustico({ config, slug, messages = [] }: TemplateProps & { messa
             {config.heroSubtitle && <p className="text-white/75 text-base">{config.heroSubtitle}</p>}
             {config.weddingLocation && <p className="text-white/50 text-sm mt-1">{config.weddingLocation}</p>}
             {config.weddingDate && (
-              <a
-                href={buildGoogleCalendarUrl({ title: config.heroTitle, date: config.weddingDate, location: config.weddingLocation })}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-6 inline-flex items-center gap-2 px-5 py-2.5 text-xs font-medium transition-all hover:bg-white/10"
-                style={{ border: "1px solid rgba(255,255,255,0.3)", color: "rgba(255,255,255,0.8)" }}
-              >
-                <svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
-                  <rect x="3" y="4" width="18" height="18" rx="2" strokeLinecap="round" strokeLinejoin="round"/>
-                  <path d="M16 2v4M8 2v4M3 10h18" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-                Salvar no Google Agenda
-              </a>
+              <AddToCalendarButton
+                slug={slug}
+                googleCalendarUrl={buildGoogleCalendarUrl({ title: config.heroTitle, date: config.weddingDate, location: config.weddingLocation })}
+                variant="pill"
+              />
             )}
           </div>
         </div>
