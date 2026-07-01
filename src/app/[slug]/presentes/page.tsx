@@ -98,12 +98,21 @@ export default async function PresentesPublicasPage({ params, searchParams }: Pr
         </div>
       </div>
 
-      {/* Banner aviso personalizado */}
+      {/* Aviso personalizado — faixa elegante */}
       {giftsNotice && (
-        <div className="bg-amber-50 border-y-2 border-amber-200 py-5 px-4">
-          <div className="max-w-2xl mx-auto flex flex-col items-center gap-3 text-center">
-            <div className="w-10 h-10 rounded-full bg-amber-200 flex items-center justify-center text-xl">🎁</div>
-            <p className="text-amber-800 font-body text-sm leading-relaxed">{giftsNotice}</p>
+        <div className="bg-[#FAFAF8] border-b border-[#4A5C3E]/10 py-6 px-4">
+          <div className="max-w-xl mx-auto text-center">
+            {/* Ornamento decorativo */}
+            <div className="flex items-center justify-center gap-3 mb-3">
+              <div className="h-px w-10 bg-[#4A5C3E]/20" />
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4A5C3E" strokeWidth={1.5} opacity={0.5}>
+                <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              <div className="h-px w-10 bg-[#4A5C3E]/20" />
+            </div>
+            <p className="font-body text-sm leading-relaxed text-[#4A5C3E]/75 italic">
+              {giftsNotice}
+            </p>
           </div>
         </div>
       )}
