@@ -212,17 +212,11 @@ function CTASection({ config, slug, colors }: { config: TemplateConfig; slug: st
           {config.rsvpSubtitle || "Confirme sua presença"}
         </h2>
         <p className="text-sm mb-10" style={{ color: subText }}>
-          {config.rsvpText || "Digite o PIN do seu convite para confirmar"}
+          {config.rsvpText || "Digite seu nome para confirmar presença"}
         </p>
 
         <PinRsvpInput slug={slug} accent={accent} buttonRadius={buttonRadius} />
 
-        <p className="mt-6 text-xs" style={{ color: subText }}>
-          Não tem PIN?{" "}
-          <Link href={`/${slug}/rsvp`} className="underline underline-offset-2 hover:opacity-70 transition-opacity" style={{ color: accent }}>
-            Confirme por aqui
-          </Link>
-        </p>
 
         <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
           {config.weddingDate && (
