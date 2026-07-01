@@ -240,76 +240,72 @@ function GiftsSection({ config, slug, colors }: { config: TemplateConfig; slug: 
           </h2>
         </div>
 
-        {/* Gift cards preview */}
-        {gifts.length > 0 ? (
-          <>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-10">
-              {gifts.map(gift => (
-                <Link
-                  key={gift.id}
-                  href={`/${slug}/presentes`}
-                  className="group bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow border"
-                  style={{ borderColor: `${accent}18` }}
-                >
-                  {/* Foto ou placeholder */}
-                  <div className="aspect-square overflow-hidden relative" style={{ background: `${accent}10` }}>
-                    {gift.photo_url ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={gift.photo_url}
-                        alt={gift.name}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                      />
-                    ) : (
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <svg width="32" height="32" fill="none" stroke={accent} strokeWidth={1.2} viewBox="0 0 24 24" opacity={0.4}>
-                          <path d="M20 12v10H4V12M22 7H2v5h20V7zM12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z" strokeLinecap="round" strokeLinejoin="round"/>
-                        </svg>
-                      </div>
-                    )}
-                  </div>
-                  {/* Info */}
-                  <div className="p-3 md:p-4">
-                    <p className="font-medium text-sm leading-snug line-clamp-2" style={{ color: text, fontFamily: "var(--font-body)" }}>
-                      {gift.name}
-                    </p>
-                    {gift.amount != null && gift.amount > 0 && (
-                      <p className="text-xs mt-1 font-medium" style={{ color: accent }}>
-                        {gift.amount.toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 0 })}
-                      </p>
-                    )}
-                  </div>
-                </Link>
-              ))}
-            </div>
-
-            <div className="text-center">
-              <Link
-                href={`/${slug}/presentes`}
-                className="inline-flex items-center gap-2 px-8 py-3.5 text-sm font-medium border-2 transition-opacity hover:opacity-75"
-                style={{ borderColor: accent, color: accent, borderRadius: buttonRadius }}
-              >
-                Ver lista completa
-                <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                  <path d="M5 12h14M12 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </Link>
-            </div>
-          </>
-        ) : (
-          <div className="text-center">
+        {/* Gift cards grid */}
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6 mb-12">
+          {gifts.length > 0 ? gifts.map(gift => (
             <Link
+              key={gift.id}
               href={`/${slug}/presentes`}
-              className="inline-flex items-center gap-2 px-8 py-3.5 text-sm font-medium border-2 transition-all hover:opacity-80"
-              style={{ borderColor: accent, color: accent, borderRadius: buttonRadius }}
+              className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all"
+              style={{ border: `1px solid ${accent}20` }}
             >
-              Ver lista de presentes
-              <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                <path d="M5 12h14M12 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
+              {/* Foto — proporção 4:3 para destaque */}
+              <div className="relative overflow-hidden" style={{ aspectRatio: "4/3", background: `${accent}12` }}>
+                {gift.photo_url ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={gift.photo_url}
+                    alt={gift.name}
+                    className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                ) : (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
+                    <svg width="36" height="36" fill="none" stroke={accent} strokeWidth={1} viewBox="0 0 24 24" opacity={0.35}>
+                      <path d="M20 12v10H4V12M22 7H2v5h20V7zM12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </div>
+                )}
+                {/* Overlay hover */}
+                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity" style={{ background: "rgba(0,0,0,0.35)" }}>
+                  <span className="text-white text-xs font-medium px-3 py-1.5 rounded-full" style={{ background: "rgba(255,255,255,0.2)", backdropFilter: "blur(4px)" }}>
+                    Ver presente
+                  </span>
+                </div>
+              </div>
+              {/* Info */}
+              <div className="p-3 md:p-4">
+                <p className="font-medium text-sm leading-snug line-clamp-2 mb-1" style={{ color: text, fontFamily: "var(--font-body)" }}>
+                  {gift.name}
+                </p>
+                {gift.amount != null && gift.amount > 0 ? (
+                  <p className="text-xs font-semibold" style={{ color: accent }}>
+                    {gift.amount.toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 0 })}
+                  </p>
+                ) : (
+                  <p className="text-xs" style={{ color: `${accent}80` }}>Livre escolha</p>
+                )}
+              </div>
             </Link>
-          </div>
-        )}
+          )) : (
+            // Placeholders vazios enquanto não há presentes cadastrados
+            [1,2,3].map(i => (
+              <div key={i} className="rounded-2xl overflow-hidden" style={{ border: `1px dashed ${accent}30`, aspectRatio: "4/3", background: `${accent}06` }} />
+            ))
+          )}
+        </div>
+
+        <div className="text-center">
+          <Link
+            href={`/${slug}/presentes`}
+            className="inline-flex items-center gap-2 px-8 py-4 text-sm font-medium border-2 transition-opacity hover:opacity-75"
+            style={{ borderColor: accent, color: accent, borderRadius: buttonRadius }}
+          >
+            Ver lista completa
+            <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <path d="M5 12h14M12 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </Link>
+        </div>
       </div>
     </section>
   );
