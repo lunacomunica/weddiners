@@ -25,7 +25,7 @@ export default async function ConvidadosPage({ searchParams }: { searchParams: {
       .order("name", { ascending: true }),
     supabase
       .from("guest_groups")
-      .select("id, name, token")
+      .select("id, name, token, pin")
       .eq("couple_id", couple.id)
       .order("name"),
   ]);

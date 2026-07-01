@@ -3,6 +3,7 @@ import { MessagesSection } from "../MessagesSection";
 import type { TemplateConfig } from "./types";
 import { buildGoogleCalendarUrl } from "./googleCalendarUrl";
 import { AddToCalendarButton } from "../AddToCalendarButton";
+import { PinRsvpInput } from "../PinRsvpInput";
 
 type Messages = { id: string; guest_name: string; message: string; created_at: string }[];
 
@@ -208,17 +209,22 @@ function CTASection({ config, slug, colors }: { config: TemplateConfig; slug: st
       <div className="max-w-2xl mx-auto px-6 py-24 text-center">
         <p className="text-xs tracking-[0.3em] uppercase mb-4" style={{ color: accent }}>{config.rsvpTitle || "Participe"}</p>
         <h2 className="mb-4" style={{ fontFamily: "var(--font-display)", fontSize: "clamp(2.2rem, 4vw, 3rem)", color: text, fontStyle: "italic" }}>
-          {config.rsvpSubtitle || "Sua presença é nosso maior presente"}
+          {config.rsvpSubtitle || "Confirme sua presença"}
         </h2>
-        <p className="text-sm mb-12" style={{ color: subText }}>
-          {config.rsvpText || "Confirme sua presença e, se quiser, confira nossa lista de presentes"}
+        <p className="text-sm mb-10" style={{ color: subText }}>
+          {config.rsvpText || "Digite o PIN do seu convite para confirmar"}
         </p>
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-          <Link href={`/${slug}/rsvp`}
-            className="px-10 py-4 text-white text-sm font-medium transition-opacity hover:opacity-90"
-            style={{ background: accent, borderRadius: buttonRadius }}>
-            Confirmar presença
+
+        <PinRsvpInput slug={slug} accent={accent} buttonRadius={buttonRadius} />
+
+        <p className="mt-6 text-xs" style={{ color: subText }}>
+          Não tem PIN?{" "}
+          <Link href={`/${slug}/rsvp`} className="underline underline-offset-2 hover:opacity-70 transition-opacity" style={{ color: accent }}>
+            Confirme por aqui
           </Link>
+        </p>
+
+        <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
           {config.weddingDate && (
             <AddToCalendarButton
               slug={slug}

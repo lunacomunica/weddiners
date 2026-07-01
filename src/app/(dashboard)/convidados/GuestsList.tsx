@@ -22,6 +22,7 @@ interface Guest {
   save_the_date_status: "nao_enviado" | "enviado" | "visualizado";
   guest_type: "adulto" | "crianca" | null;
   child_age: number | null;
+  pin: string | null;
 }
 
 const statusMap = {
@@ -97,7 +98,14 @@ export function GuestsList({ guests, slug }: { guests: Guest[]; slug: string }) 
               return (
                 <tr key={guest.id} className={`border-b border-noir/5 hover:bg-ivory/60 transition-colors ${i === guests.length - 1 ? "border-0" : ""}`}>
                   <td className="px-4 py-3">
-                    <p className="font-body text-sm font-medium text-noir">{guest.name}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="font-body text-sm font-medium text-noir">{guest.name}</p>
+                      {guest.pin && (
+                        <span className="text-xs font-mono font-semibold px-1.5 py-0.5 rounded bg-neutral-100 text-neutral-500 border border-neutral-200">
+                          {guest.pin}
+                        </span>
+                      )}
+                    </div>
                     <p className="font-body text-xs text-smoke">
                       {guest.guest_type === "crianca"
                         ? `👶 Criança${guest.child_age != null ? ` · ${guest.child_age} anos` : ""}`

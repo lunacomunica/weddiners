@@ -15,6 +15,7 @@ interface Group {
   id: string;
   name: string;
   token: string;
+  pin: string | null;
 }
 
 interface Props {
@@ -29,6 +30,7 @@ export function GroupsPanel({ groups: initialGroups, guests: initialGuests, slug
   const [newGroupName, setNewGroupName] = useState("");
   const [creating, setCreating] = useState(false);
   const [copiedToken, setCopiedToken] = useState<string | null>(null);
+  const [copiedPin, setCopiedPin] = useState<string | null>(null);
   const [expandedGroup, setExpandedGroup] = useState<string | null>(null);
   const [assigningGuest, setAssigningGuest] = useState<string | null>(null); // groupId
   const [selectedGuests, setSelectedGuests] = useState<string[]>([]);
@@ -90,6 +92,12 @@ export function GroupsPanel({ groups: initialGroups, guests: initialGuests, slug
     navigator.clipboard.writeText(url);
     setCopiedToken(token);
     setTimeout(() => setCopiedToken(null), 2000);
+  }
+
+  function copyGroupPin(pin: string, groupId: string) {
+    navigator.clipboard.writeText(pin);
+    setCopiedPin(groupId);
+    setTimeout(() => setCopiedPin(null), 2000);
   }
 
   const ungrouped = guests.filter(g => !g.group_id);
@@ -172,6 +180,17 @@ export function GroupsPanel({ groups: initialGroups, guests: initialGuests, slug
                       </p>
                     </div>
                   </button>
+
+                  {/* PIN badge */}
+                  {group.pin && (
+                    <button
+                      onClick={() => copyGroupPin(group.pin!, group.id)}
+                      className={["flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-mono font-semibold border transition-all shrink-0", copiedPin === group.id ? "bg-emerald-50 border-emerald-200 text-emerald-600" : "border-neutral-200 bg-neutral-50 text-neutral-600 hover:border-sage hover:text-sage"].join(" ")}
+                      title="Copiar PIN"
+                    >
+                      {copiedPin === group.id ? "✓ Copiado" : `PIN: ${group.pin}`}
+                    </button>
+                  )}
 
                   {/* Ações */}
                   <div className="flex gap-1 shrink-0">

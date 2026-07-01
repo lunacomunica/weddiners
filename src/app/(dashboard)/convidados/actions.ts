@@ -3,6 +3,24 @@
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 
+// SQL to run in Supabase:
+// ALTER TABLE guests ADD COLUMN IF NOT EXISTS pin VARCHAR(6);
+// ALTER TABLE guest_groups ADD COLUMN IF NOT EXISTS pin VARCHAR(6);
+
+async function generateUniquePinForCouple(
+  supabase: ReturnType<typeof createClient>,
+  coupleId: string,
+  table: "guests" | "guest_groups"
+): Promise<string> {
+  for (let i = 0; i < 20; i++) {
+    const pin = String(Math.floor(1000 + Math.random() * 9000));
+    const { data } = await supabase.from(table).select("id").eq("couple_id", coupleId).eq("pin", pin).maybeSingle();
+    if (!data) return pin;
+  }
+  // fallback: 6 digits
+  return String(Math.floor(100000 + Math.random() * 900000));
+}
+
 async function getCoupleId() {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -30,8 +48,10 @@ export async function createGuest(formData: FormData) {
   }
 
   const guestType = formData.get("guest_type") as string || "adulto";
+  const pin = await generateUniquePinForCouple(supabase, coupleId, "guests");
   const { error } = await supabase.from("guests").insert({
     couple_id: coupleId,
+    pin,
     name: formData.get("name") as string,
     email: formData.get("email") as string || null,
     phone: formData.get("phone") as string || null,
@@ -113,10 +133,11 @@ export async function importGuestsFromCSV(rows: { name: string; email?: string; 
 
 export async function createGuestGroup(name: string) {
   const { supabase, coupleId } = await getCoupleId();
+  const pin = await generateUniquePinForCouple(supabase, coupleId, "guest_groups");
   const { data, error } = await supabase
     .from("guest_groups")
-    .insert({ couple_id: coupleId, name })
-    .select("id, name, token")
+    .insert({ couple_id: coupleId, name, pin })
+    .select("id, name, token, pin")
     .single();
   if (error) return { error: error.message };
   revalidatePath("/convidados");
