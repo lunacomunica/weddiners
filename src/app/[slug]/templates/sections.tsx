@@ -251,11 +251,11 @@ function GiftsSection({ config, slug, colors }: { config: TemplateConfig; slug: 
             >
               {/* Foto — proporção 4:3 para destaque */}
               <div className="relative overflow-hidden" style={{ aspectRatio: "4/3", background: `${accent}12` }}>
-                {gift.photo_url ? (
+                {gift.image_url ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
-                    src={gift.photo_url}
-                    alt={gift.name}
+                    src={gift.image_url}
+                    alt={gift.title}
                     className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
                 ) : (
@@ -275,7 +275,7 @@ function GiftsSection({ config, slug, colors }: { config: TemplateConfig; slug: 
               {/* Info */}
               <div className="p-3 md:p-4">
                 <p className="font-medium text-sm leading-snug line-clamp-2 mb-1" style={{ color: text, fontFamily: "var(--font-body)" }}>
-                  {gift.name}
+                  {gift.title}
                 </p>
                 {gift.amount != null && gift.amount > 0 ? (
                   <p className="text-xs font-semibold" style={{ color: accent }}>

@@ -39,7 +39,7 @@ export interface TemplateConfig {
   giftsText: string | null;
   directionsSubtitle: string | null;
   // Prévia de presentes para seção no site
-  giftsPreview: { id: string; name: string; description: string | null; amount: number | null; photo_url: string | null; category: string | null }[];
+  giftsPreview: { id: string; title: string; description: string | null; amount: number | null; image_url: string | null; category: string | null }[];
 }
 
 export interface TemplateProps {
