@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { MessagesSection } from "../MessagesSection";
 import type { TemplateConfig } from "./types";
+import { buildGoogleCalendarUrl } from "./googleCalendarUrl";
 
 type Messages = { id: string; guest_name: string; message: string; created_at: string }[];
 
@@ -211,11 +212,28 @@ function CTASection({ config, slug, colors }: { config: TemplateConfig; slug: st
         <p className="text-sm mb-12" style={{ color: subText }}>
           {config.rsvpText || "Confirme sua presença e, se quiser, confira nossa lista de presentes"}
         </p>
-        <Link href={`/${slug}/rsvp`}
-          className="inline-block px-10 py-4 text-white text-sm font-medium transition-opacity hover:opacity-90"
-          style={{ background: accent, borderRadius: buttonRadius }}>
-          Confirmar presença
-        </Link>
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+          <Link href={`/${slug}/rsvp`}
+            className="px-10 py-4 text-white text-sm font-medium transition-opacity hover:opacity-90"
+            style={{ background: accent, borderRadius: buttonRadius }}>
+            Confirmar presença
+          </Link>
+          {config.weddingDate && (
+            <a
+              href={buildGoogleCalendarUrl({ title: config.heroTitle, date: config.weddingDate, location: config.weddingLocation })}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-6 py-4 text-sm font-medium border transition-opacity hover:opacity-70"
+              style={{ borderColor: accent, color: accent, borderRadius: buttonRadius }}
+            >
+              <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+                <rect x="3" y="4" width="18" height="18" rx="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M16 2v4M8 2v4M3 10h18" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              Salvar na agenda
+            </a>
+          )}
+        </div>
       </div>
     </section>
   );

@@ -3,6 +3,7 @@ import { CountdownClient } from "../CountdownClient";
 import { MessagesSection } from "../MessagesSection";
 import type { TemplateProps } from "./types";
 import { getPaletteTheme } from "./palettes";
+import { buildGoogleCalendarUrl } from "./googleCalendarUrl";
 import { TranslationWidget } from "../TranslationWidget";
 
 type Messages = { id: string; guest_name: string; message: string; created_at: string }[];
@@ -39,6 +40,21 @@ export function Moderno({ config, slug, messages = [] }: TemplateProps & { messa
               <Link href={`/${slug}/presentes`} className="px-7 py-3.5 text-sm font-medium tracking-wide border" style={{ borderColor: p.accent, color: p.accent }}>
                 Lista de presentes
               </Link>
+            )}
+            {config.weddingDate && (
+              <a
+                href={buildGoogleCalendarUrl({ title: config.heroTitle, date: config.weddingDate, location: config.weddingLocation })}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-7 py-3.5 text-sm font-medium tracking-wide border transition-opacity hover:opacity-70"
+                style={{ borderColor: p.accent + "60", color: p.subText }}
+              >
+                <svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+                  <rect x="3" y="4" width="18" height="18" rx="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M16 2v4M8 2v4M3 10h18" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                Salvar na agenda
+              </a>
             )}
           </div>
         </div>
