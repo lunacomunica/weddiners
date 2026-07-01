@@ -44,7 +44,7 @@ export function Romantico({ config, slug, messages = [] }: TemplateProps & { mes
               style={{
                 border: `1px solid ${hasPhoto ? "rgba(255,255,255,0.35)" : p.accent + "50"}`,
                 color: hasPhoto ? "rgba(255,255,255,0.85)" : p.accent,
-                backdropFilter: hasPhoto ? "blur(4px)" : undefined,
+                ...(hasPhoto ? { backdropFilter: "blur(4px)" } : {}),
               }}
             >
               <svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
