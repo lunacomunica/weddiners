@@ -1,7 +1,20 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
+const DASHBOARD_ROUTES = ["/dashboard", "/site", "/presentes", "/convidados", "/configuracoes", "/planos", "/fornecedores", "/mesas", "/pagamentos", "/planejamento", "/recados", "/referencias"];
+const AUTH_ROUTES = ["/login", "/cadastro", "/reset-senha"];
+
 export async function updateSession(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+
+  const isDashboardRoute = DASHBOARD_ROUTES.some(r => pathname === r || pathname.startsWith(r + "/"));
+  const isAuthRoute = AUTH_ROUTES.some(r => pathname.startsWith(r));
+
+  // Rotas públicas não precisam verificar auth — evita timeout do middleware
+  if (!isDashboardRoute && !isAuthRoute) {
+    return NextResponse.next({ request });
+  }
+
   let supabaseResponse = NextResponse.next({ request });
 
   const supabase = createServerClient(
@@ -26,22 +39,6 @@ export async function updateSession(request: NextRequest) {
   );
 
   const { data: { user } } = await supabase.auth.getUser();
-
-  const isAuthRoute = request.nextUrl.pathname.startsWith("/login") ||
-    request.nextUrl.pathname.startsWith("/cadastro");
-  const isDashboardRoute =
-    request.nextUrl.pathname === "/dashboard" ||
-    request.nextUrl.pathname.startsWith("/dashboard/") ||
-    request.nextUrl.pathname === "/site" ||
-    request.nextUrl.pathname.startsWith("/site/") ||
-    request.nextUrl.pathname === "/presentes" ||
-    request.nextUrl.pathname.startsWith("/presentes/") ||
-    request.nextUrl.pathname === "/convidados" ||
-    request.nextUrl.pathname.startsWith("/convidados/") ||
-    request.nextUrl.pathname === "/configuracoes" ||
-    request.nextUrl.pathname.startsWith("/configuracoes/") ||
-    request.nextUrl.pathname === "/planos" ||
-    request.nextUrl.pathname.startsWith("/planos/");
 
   if (!user && isDashboardRoute) {
     return NextResponse.redirect(new URL("/login", request.url));
