@@ -103,7 +103,7 @@ export function GroupsPanel({ groups: initialGroups, guests: initialGuests, slug
   }
 
   const ungrouped = guests.filter(g => !g.group_id);
-  const grouped = guests.filter(g => g.group_id);
+  const _grouped = guests.filter(g => g.group_id);
   const totalAdultos = guests.reduce((sum, g) => sum + (g.adults ?? 1), 0);
   const totalCriancas = guests.reduce((sum, g) => sum + (g.children ?? 0), 0);
   const totalPessoas = totalAdultos + totalCriancas;

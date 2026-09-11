@@ -1,16 +1,8 @@
 "use server";
 
-import { createClient } from "@/lib/supabase/server";
+import { getCoupleId } from "@/lib/getCoupleId";
 import { revalidatePath } from "next/cache";
 import type { Reference } from "./referencesData";
-
-async function getCoupleId() {
-  const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return null;
-  const { data } = await supabase.from("couples").select("id").eq("user_id", user.id).single();
-  return data?.id ?? null;
-}
 
 // Converte base64 (data URL) em Buffer para upload no Storage
 function base64ToBuffer(dataUrl: string): { buffer: Buffer; mimeType: string } {
@@ -37,9 +29,7 @@ export async function addReference(data: {
   sourceUrl?: string;
   sourceType: Reference["sourceType"];
 }): Promise<{ reference?: Reference; error?: string }> {
-  const supabase = createClient();
-  const coupleId = await getCoupleId();
-  if (!coupleId) return { error: "Não autorizado" };
+  const { supabase, coupleId } = await getCoupleId();
 
   let imageUrl = data.imageData;
 
@@ -93,9 +83,7 @@ export async function addReference(data: {
 }
 
 export async function deleteReference(id: string): Promise<{ error?: string }> {
-  const supabase = createClient();
-  const coupleId = await getCoupleId();
-  if (!coupleId) return { error: "Não autorizado" };
+  const { supabase, coupleId } = await getCoupleId();
 
   // Busca o registro para saber se tem arquivo no Storage
   const { data: row } = await supabase

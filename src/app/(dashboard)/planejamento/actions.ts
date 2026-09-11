@@ -1,16 +1,9 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { getCoupleId } from "@/lib/getCoupleId";
 import { revalidatePath } from "next/cache";
 import { DEFAULT_ITEMS } from "./checklistData";
-
-async function getCoupleId() {
-  const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return null;
-  const { data } = await supabase.from("couples").select("id").eq("user_id", user.id).single();
-  return data?.id ?? null;
-}
 
 // Seeds default items if the couple has none yet
 export async function ensureDefaultItems(coupleId: string) {
@@ -36,9 +29,7 @@ export async function ensureDefaultItems(coupleId: string) {
 }
 
 export async function toggleChecklistItem(id: string, done: boolean) {
-  const supabase = createClient();
-  const coupleId = await getCoupleId();
-  if (!coupleId) return { error: "Não autorizado" };
+  const { supabase, coupleId } = await getCoupleId();
 
   const { error } = await supabase
     .from("checklist_items")
@@ -57,9 +48,7 @@ export async function createChecklistItem(
   monthsBefore: number,
   tip?: string
 ) {
-  const supabase = createClient();
-  const coupleId = await getCoupleId();
-  if (!coupleId) return { error: "Não autorizado" };
+  const { supabase, coupleId } = await getCoupleId();
 
   const { error } = await supabase.from("checklist_items").insert({
     couple_id: coupleId,
@@ -77,9 +66,7 @@ export async function createChecklistItem(
 }
 
 export async function deleteChecklistItem(id: string) {
-  const supabase = createClient();
-  const coupleId = await getCoupleId();
-  if (!coupleId) return { error: "Não autorizado" };
+  const { supabase, coupleId } = await getCoupleId();
 
   const { error } = await supabase
     .from("checklist_items")

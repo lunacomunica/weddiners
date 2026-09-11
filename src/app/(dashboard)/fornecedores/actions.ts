@@ -1,15 +1,8 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { getCoupleId } from "@/lib/getCoupleId";
 import { revalidatePath } from "next/cache";
-
-async function getCoupleId() {
-  const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return null;
-  const { data } = await supabase.from("couples").select("id").eq("user_id", user.id).single();
-  return data?.id ?? null;
-}
 
 // Mapa de categoria do fornecedor → categoria do checklist + palavra-chave no título
 const VENDOR_CHECKLIST_MAP: Record<string, { checklistCategory: string; keyword: string }[]> = {
@@ -67,9 +60,7 @@ export async function createVendor(data: {
   contactName: string; phone: string; site?: string;
   notes?: string; contractedValue?: number;
 }) {
-  const supabase = createClient();
-  const coupleId = await getCoupleId();
-  if (!coupleId) return { error: "Não autorizado" };
+  const { supabase, coupleId } = await getCoupleId();
 
   const { error } = await supabase.from("vendors").insert({
     couple_id: coupleId,
@@ -98,9 +89,7 @@ export async function updateVendor(id: string, data: {
   contactName: string; phone: string; site?: string;
   notes?: string; contractedValue?: number;
 }) {
-  const supabase = createClient();
-  const coupleId = await getCoupleId();
-  if (!coupleId) return { error: "Não autorizado" };
+  const { supabase, coupleId } = await getCoupleId();
 
   const { error } = await supabase
     .from("vendors")
@@ -129,9 +118,7 @@ export async function updateVendor(id: string, data: {
 }
 
 export async function uploadContract(vendorId: string, formData: FormData) {
-  const supabase = createClient();
-  const coupleId = await getCoupleId();
-  if (!coupleId) return { error: "Não autorizado" };
+  const { supabase, coupleId } = await getCoupleId();
 
   const file = formData.get("file") as File;
   if (!file) return { error: "Arquivo não encontrado" };
@@ -154,9 +141,7 @@ export async function uploadContract(vendorId: string, formData: FormData) {
 }
 
 export async function deleteVendor(id: string) {
-  const supabase = createClient();
-  const coupleId = await getCoupleId();
-  if (!coupleId) return { error: "Não autorizado" };
+  const { supabase, coupleId } = await getCoupleId();
 
   const { error } = await supabase
     .from("vendors")
@@ -174,9 +159,7 @@ export async function deleteVendor(id: string) {
 export async function createQuote(vendorId: string, data: {
   title: string; value: number; includes?: string; validUntil?: string;
 }) {
-  const supabase = createClient();
-  const coupleId = await getCoupleId();
-  if (!coupleId) return { error: "Não autorizado" };
+  const { supabase, coupleId } = await getCoupleId();
 
   const { error } = await supabase.from("quotes").insert({
     vendor_id: vendorId,
@@ -194,9 +177,7 @@ export async function createQuote(vendorId: string, data: {
 }
 
 export async function chooseQuote(quoteId: string, vendorId: string, value: number) {
-  const supabase = createClient();
-  const coupleId = await getCoupleId();
-  if (!coupleId) return { error: "Não autorizado" };
+  const { supabase, coupleId } = await getCoupleId();
 
   // Busca a categoria do fornecedor antes de atualizar
   const { data: vendor } = await supabase
@@ -228,9 +209,7 @@ export async function chooseQuote(quoteId: string, vendorId: string, value: numb
 // ─── Budget ──────────────────────────────────────────────────────────────────
 
 export async function updateTotalBudget(totalBudget: number) {
-  const supabase = createClient();
-  const coupleId = await getCoupleId();
-  if (!coupleId) return { error: "Não autorizado" };
+  const { supabase, coupleId } = await getCoupleId();
 
   const { error } = await supabase
     .from("couples")
@@ -245,9 +224,7 @@ export async function updateTotalBudget(totalBudget: number) {
 // ─── Payments / Parcelas ────────────────────────────────────────────────────
 
 export async function setPaymentMethod(vendorId: string, formaPagamento: string) {
-  const supabase = createClient();
-  const coupleId = await getCoupleId();
-  if (!coupleId) return { error: "Não autorizado" };
+  const { supabase, coupleId } = await getCoupleId();
 
   const { error } = await supabase
     .from("vendors")
@@ -263,9 +240,7 @@ export async function setPaymentMethod(vendorId: string, formaPagamento: string)
 export async function createInstallment(vendorId: string, data: {
   numero: number; valor: number; vencimento: string;
 }) {
-  const supabase = createClient();
-  const coupleId = await getCoupleId();
-  if (!coupleId) return { error: "Não autorizado" };
+  const { supabase, coupleId } = await getCoupleId();
 
   const { data: row, error } = await supabase
     .from("vendor_payments")
@@ -286,9 +261,7 @@ export async function createInstallment(vendorId: string, data: {
 }
 
 export async function updateInstallment(id: string, data: { valor: number; vencimento: string }) {
-  const supabase = createClient();
-  const coupleId = await getCoupleId();
-  if (!coupleId) return { error: "Não autorizado" };
+  const { supabase, coupleId } = await getCoupleId();
 
   const { error } = await supabase
     .from("vendor_payments")
@@ -302,9 +275,7 @@ export async function updateInstallment(id: string, data: { valor: number; venci
 }
 
 export async function toggleInstallmentPaid(id: string, paid: boolean) {
-  const supabase = createClient();
-  const coupleId = await getCoupleId();
-  if (!coupleId) return { error: "Não autorizado" };
+  const { supabase, coupleId } = await getCoupleId();
 
   const { error } = await supabase
     .from("vendor_payments")
@@ -318,9 +289,7 @@ export async function toggleInstallmentPaid(id: string, paid: boolean) {
 }
 
 export async function deleteInstallment(id: string) {
-  const supabase = createClient();
-  const coupleId = await getCoupleId();
-  if (!coupleId) return { error: "Não autorizado" };
+  const { supabase, coupleId } = await getCoupleId();
 
   await supabase.from("vendor_payments").delete().eq("id", id).eq("couple_id", coupleId);
   revalidatePath("/fornecedores");
@@ -328,9 +297,7 @@ export async function deleteInstallment(id: string) {
 }
 
 export async function deleteQuote(id: string) {
-  const supabase = createClient();
-  const coupleId = await getCoupleId();
-  if (!coupleId) return { error: "Não autorizado" };
+  const { supabase, coupleId } = await getCoupleId();
 
   const { error } = await supabase
     .from("quotes")

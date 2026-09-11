@@ -1,20 +1,7 @@
 "use server";
 
-import { createClient } from "@/lib/supabase/server";
+import { getCoupleId } from "@/lib/getCoupleId";
 import { revalidatePath } from "next/cache";
-
-async function getCoupleId() {
-  const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error("Não autenticado");
-  const { data: couple } = await supabase
-    .from("couples")
-    .select("id")
-    .eq("user_id", user.id)
-    .single();
-  if (!couple) throw new Error("Casal não encontrado");
-  return { supabase, coupleId: couple.id };
-}
 
 export async function createGift(formData: FormData) {
   const { supabase, coupleId } = await getCoupleId();

@@ -1,20 +1,10 @@
 "use server";
 
-import { createClient } from "@/lib/supabase/server";
+import { getCoupleId } from "@/lib/getCoupleId";
 import { revalidatePath } from "next/cache";
 
-async function getCoupleId() {
-  const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return null;
-  const { data } = await supabase.from("couples").select("id").eq("user_id", user.id).single();
-  return data?.id ?? null;
-}
-
 export async function createTable(name: string, capacity: number) {
-  const supabase = createClient();
-  const coupleId = await getCoupleId();
-  if (!coupleId) return { error: "Não autorizado" };
+  const { supabase, coupleId } = await getCoupleId();
 
   const { error } = await supabase.from("tables").insert({ couple_id: coupleId, name, capacity });
   if (error) return { error: error.message };
@@ -23,9 +13,7 @@ export async function createTable(name: string, capacity: number) {
 }
 
 export async function updateTable(id: string, name: string, capacity: number) {
-  const supabase = createClient();
-  const coupleId = await getCoupleId();
-  if (!coupleId) return { error: "Não autorizado" };
+  const { supabase, coupleId } = await getCoupleId();
 
   const { error } = await supabase
     .from("tables")
@@ -38,9 +26,7 @@ export async function updateTable(id: string, name: string, capacity: number) {
 }
 
 export async function deleteTable(id: string) {
-  const supabase = createClient();
-  const coupleId = await getCoupleId();
-  if (!coupleId) return { error: "Não autorizado" };
+  const { supabase, coupleId } = await getCoupleId();
 
   // Guests are automatically unassigned (ON DELETE SET NULL via FK)
   const { error } = await supabase
@@ -55,9 +41,7 @@ export async function deleteTable(id: string) {
 }
 
 export async function assignGuestToTable(guestId: string, tableId: string | null) {
-  const supabase = createClient();
-  const coupleId = await getCoupleId();
-  if (!coupleId) return { error: "Não autorizado" };
+  const { supabase, coupleId } = await getCoupleId();
 
   // Check capacity if assigning (not removing)
   if (tableId) {
