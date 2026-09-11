@@ -101,9 +101,50 @@ export function GroupsPanel({ groups: initialGroups, guests: initialGuests, slug
   }
 
   const ungrouped = guests.filter(g => !g.group_id);
+  const totalPessoas = guests.length;
+  const totalAdultos = guests.filter(g => g.guest_type !== "crianca").length;
+  const totalCriancas = guests.filter(g => g.guest_type === "crianca").length;
 
   return (
     <div className="space-y-4">
+
+      {/* Resumo */}
+      {groups.length > 0 && (
+        <div className="flex flex-wrap gap-3">
+          <div className="bg-white border border-neutral-200 rounded-xl px-4 py-3 flex items-center gap-2.5">
+            <span className="text-lg">👥</span>
+            <div>
+              <p className="text-xs text-neutral-400 font-body leading-none mb-0.5">Total de grupos</p>
+              <p className="text-sm font-semibold text-neutral-800">{groups.length}</p>
+            </div>
+          </div>
+          <div className="bg-white border border-neutral-200 rounded-xl px-4 py-3 flex items-center gap-2.5">
+            <span className="text-lg">🧑</span>
+            <div>
+              <p className="text-xs text-neutral-400 font-body leading-none mb-0.5">Total de pessoas</p>
+              <p className="text-sm font-semibold text-neutral-800">{totalPessoas}</p>
+            </div>
+          </div>
+          {totalAdultos > 0 && (
+            <div className="bg-white border border-neutral-200 rounded-xl px-4 py-3 flex items-center gap-2.5">
+              <span className="text-lg">🧔</span>
+              <div>
+                <p className="text-xs text-neutral-400 font-body leading-none mb-0.5">Adultos</p>
+                <p className="text-sm font-semibold text-neutral-800">{totalAdultos}</p>
+              </div>
+            </div>
+          )}
+          {totalCriancas > 0 && (
+            <div className="bg-white border border-neutral-200 rounded-xl px-4 py-3 flex items-center gap-2.5">
+              <span className="text-lg">👶</span>
+              <div>
+                <p className="text-xs text-neutral-400 font-body leading-none mb-0.5">Crianças</p>
+                <p className="text-sm font-semibold text-neutral-800">{totalCriancas}</p>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Criar grupo */}
       <div className="bg-white rounded-2xl border border-neutral-200 p-5">
