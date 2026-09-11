@@ -50,7 +50,7 @@ export function InvitePartnerSection() {
           ) : (
             <div className="space-y-3">
               <div className="flex items-center gap-2 bg-neutral-50 border border-neutral-200 rounded-xl px-3 py-2.5">
-                <span className="flex-1 text-xs font-mono text-neutral-600 truncate">{link}</span>
+                <span className="flex-1 text-xs font-mono text-neutral-600 truncate min-w-0">{link}</span>
                 <button
                   onClick={handleCopy}
                   className={`shrink-0 text-xs font-medium px-3 py-1.5 rounded-lg transition-all ${copied ? "bg-emerald-50 text-emerald-600 border border-emerald-200" : "bg-white border border-neutral-200 text-neutral-600 hover:border-sage hover:text-sage"}`}
