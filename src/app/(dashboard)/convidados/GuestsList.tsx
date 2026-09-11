@@ -45,6 +45,36 @@ export function GuestsList({ guests, slug }: { guests: Guest[]; slug: string }) 
     Object.fromEntries(guests.map(g => [g.id, g.save_the_date_status ?? "nao_enviado"]))
   );
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [bulkLoading, setBulkLoading] = useState(false);
+
+  const allSelected = guests.length > 0 && selected.size === guests.length;
+  const someSelected = selected.size > 0;
+
+  function toggleAll() {
+    setSelected(allSelected ? new Set() : new Set(guests.map(g => g.id)));
+  }
+
+  function toggleOne(id: string) {
+    setSelected(prev => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  }
+
+  async function bulkSetStd(status: "nao_enviado" | "enviado" | "visualizado") {
+    setBulkLoading(true);
+    const ids = Array.from(selected);
+    setStdStatus(prev => {
+      const next = { ...prev };
+      ids.forEach(id => { next[id] = status; });
+      return next;
+    });
+    await Promise.all(ids.map(id => updateSaveTheDateStatus(id, status)));
+    setSelected(new Set());
+    setBulkLoading(false);
+  }
 
   async function cycleSaveTheDate(guestId: string) {
     const current = stdStatus[guestId] ?? "nao_enviado";
@@ -80,10 +110,45 @@ export function GuestsList({ guests, slug }: { guests: Guest[]; slug: string }) 
 
   return (
     <>
+      {/* Barra de ações em massa */}
+      {someSelected && (
+        <div className="flex items-center gap-3 bg-moss text-white px-4 py-3 rounded-xl mb-3 flex-wrap">
+          <span className="font-body text-sm font-medium">
+            {selected.size} selecionado{selected.size > 1 ? "s" : ""}
+          </span>
+          <div className="flex-1" />
+          <span className="font-body text-xs text-white/70">Marcar save the date como:</span>
+          {(["nao_enviado", "enviado", "visualizado"] as const).map(s => (
+            <button
+              key={s}
+              onClick={() => bulkSetStd(s)}
+              disabled={bulkLoading}
+              className="text-xs px-3 py-1.5 rounded-lg font-medium bg-white/15 hover:bg-white/25 transition-colors disabled:opacity-50"
+            >
+              {stdMap[s].label}
+            </button>
+          ))}
+          <button
+            onClick={() => setSelected(new Set())}
+            className="ml-1 text-white/60 hover:text-white transition-colors"
+          >
+            <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          </button>
+        </div>
+      )}
+
       <div className="bg-white rounded-md border overflow-hidden" style={{ borderColor: "rgba(13,10,11,0.07)" }}>
         <table className="w-full">
           <thead>
             <tr className="border-b border-noir/7 bg-ivory">
+              <th className="px-4 py-3 w-8">
+                <input
+                  type="checkbox"
+                  checked={allSelected}
+                  onChange={toggleAll}
+                  className="accent-moss w-4 h-4 cursor-pointer"
+                />
+              </th>
               <th className="text-left px-4 py-3 text-xs font-body font-medium text-smoke uppercase tracking-wide">Nome</th>
               <th className="text-left px-4 py-3 text-xs font-body font-medium text-smoke uppercase tracking-wide hidden md:table-cell">Grupo</th>
               <th className="text-left px-4 py-3 text-xs font-body font-medium text-smoke uppercase tracking-wide hidden lg:table-cell">Mesa</th>
@@ -95,8 +160,20 @@ export function GuestsList({ guests, slug }: { guests: Guest[]; slug: string }) 
           <tbody>
             {guests.map((guest, i) => {
               const status = statusMap[guest.rsvp_status as keyof typeof statusMap] ?? statusMap.pending;
+              const isSelected = selected.has(guest.id);
               return (
-                <tr key={guest.id} className={`border-b border-noir/5 hover:bg-ivory/60 transition-colors ${i === guests.length - 1 ? "border-0" : ""}`}>
+                <tr
+                  key={guest.id}
+                  className={`border-b border-noir/5 transition-colors ${i === guests.length - 1 ? "border-0" : ""} ${isSelected ? "bg-moss/5" : "hover:bg-ivory/60"}`}
+                >
+                  <td className="px-4 py-3 w-8">
+                    <input
+                      type="checkbox"
+                      checked={isSelected}
+                      onChange={() => toggleOne(guest.id)}
+                      className="accent-moss w-4 h-4 cursor-pointer"
+                    />
+                  </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
                       <p className="font-body text-sm font-medium text-noir">{guest.name}</p>
