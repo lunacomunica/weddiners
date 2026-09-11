@@ -75,6 +75,8 @@ export default async function ConvidadosPage({ searchParams }: { searchParams: {
               guest_type: g.guest_type ?? "adulto",
               child_age: g.child_age ?? null,
               group_id: g.group_id ?? null,
+              adults: g.adults ?? 1,
+              children: g.children ?? 0,
             }))}
             slug={couple.slug}
           />

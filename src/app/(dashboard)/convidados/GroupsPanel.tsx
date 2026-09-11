@@ -9,6 +9,8 @@ interface Guest {
   guest_type: "adulto" | "crianca" | null;
   child_age: number | null;
   group_id: string | null;
+  adults: number;
+  children: number;
 }
 
 interface Group {
@@ -102,64 +104,35 @@ export function GroupsPanel({ groups: initialGroups, guests: initialGuests, slug
 
   const ungrouped = guests.filter(g => !g.group_id);
   const grouped = guests.filter(g => g.group_id);
-  const totalPessoas = guests.length;
-  const totalAdultos = guests.filter(g => g.guest_type !== "crianca").length;
-  const totalCriancas = guests.filter(g => g.guest_type === "crianca").length;
+  const totalAdultos = guests.reduce((sum, g) => sum + (g.adults ?? 1), 0);
+  const totalCriancas = guests.reduce((sum, g) => sum + (g.children ?? 0), 0);
+  const totalPessoas = totalAdultos + totalCriancas;
 
   return (
     <div className="space-y-4">
 
       {/* Resumo */}
       {groups.length > 0 && (
-        <div className="flex flex-wrap gap-3">
-          <div className="bg-white border border-neutral-200 rounded-xl px-4 py-3 flex items-center gap-2.5">
-            <span className="text-lg">👥</span>
-            <div>
-              <p className="text-xs text-neutral-400 font-body leading-none mb-0.5">Total de grupos</p>
-              <p className="text-sm font-semibold text-neutral-800">{groups.length}</p>
-            </div>
-          </div>
-          <div className="bg-white border border-neutral-200 rounded-xl px-4 py-3 flex items-center gap-2.5">
-            <span className="text-lg">🧑</span>
-            <div>
-              <p className="text-xs text-neutral-400 font-body leading-none mb-0.5">Total de pessoas</p>
-              <p className="text-sm font-semibold text-neutral-800">{totalPessoas}</p>
-            </div>
-          </div>
-          <div className="bg-white border border-neutral-200 rounded-xl px-4 py-3 flex items-center gap-2.5">
-            <span className="text-lg">✅</span>
-            <div>
-              <p className="text-xs text-neutral-400 font-body leading-none mb-0.5">Em grupos</p>
-              <p className="text-sm font-semibold text-neutral-800">{grouped.length}</p>
-            </div>
-          </div>
-          {totalAdultos > 0 && (
-            <div className="bg-white border border-neutral-200 rounded-xl px-4 py-3 flex items-center gap-2.5">
-              <span className="text-lg">🧔</span>
-              <div>
-                <p className="text-xs text-neutral-400 font-body leading-none mb-0.5">Adultos</p>
-                <p className="text-sm font-semibold text-neutral-800">{totalAdultos}</p>
+        <div className="bg-white border border-neutral-200 rounded-2xl p-5">
+          <p className="text-xs font-medium text-neutral-400 uppercase tracking-wide mb-4 font-body">Resumo</p>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+            {[
+              { label: "Grupos", value: groups.length, icon: "👥", color: "text-neutral-800" },
+              { label: "Total de pessoas", value: totalPessoas, icon: "🎉", color: "text-neutral-800" },
+              { label: "Adultos", value: totalAdultos, icon: "🧑", color: "text-neutral-800" },
+              { label: "Crianças", value: totalCriancas, icon: "👶", color: "text-neutral-800" },
+              { label: "Sem grupo", value: ungrouped.length, icon: "⚠️", color: ungrouped.length > 0 ? "text-amber-600" : "text-neutral-800", highlight: ungrouped.length > 0 },
+            ].map(({ label, value, icon, color, highlight }) => (
+              <div
+                key={label}
+                className={`rounded-xl px-4 py-3 flex flex-col gap-1 ${highlight ? "bg-amber-50 border border-amber-100" : "bg-neutral-50 border border-neutral-100"}`}
+              >
+                <span className="text-base leading-none">{icon}</span>
+                <p className={`text-xl font-bold leading-none mt-1 ${color}`}>{value}</p>
+                <p className="text-xs text-neutral-400 font-body leading-snug">{label}</p>
               </div>
-            </div>
-          )}
-          {totalCriancas > 0 && (
-            <div className="bg-white border border-neutral-200 rounded-xl px-4 py-3 flex items-center gap-2.5">
-              <span className="text-lg">👶</span>
-              <div>
-                <p className="text-xs text-neutral-400 font-body leading-none mb-0.5">Crianças</p>
-                <p className="text-sm font-semibold text-neutral-800">{totalCriancas}</p>
-              </div>
-            </div>
-          )}
-          {ungrouped.length > 0 && (
-            <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 flex items-center gap-2.5">
-              <span className="text-lg">⚠️</span>
-              <div>
-                <p className="text-xs text-amber-600 font-body leading-none mb-0.5">Sem grupo</p>
-                <p className="text-sm font-semibold text-amber-800">{ungrouped.length}</p>
-              </div>
-            </div>
-          )}
+            ))}
+          </div>
         </div>
       )}
 
