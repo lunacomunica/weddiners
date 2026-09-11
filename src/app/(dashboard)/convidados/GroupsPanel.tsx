@@ -143,6 +143,15 @@ export function GroupsPanel({ groups: initialGroups, guests: initialGuests, slug
               </div>
             </div>
           )}
+          {ungrouped.length > 0 && (
+            <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 flex items-center gap-2.5">
+              <span className="text-lg">⚠️</span>
+              <div>
+                <p className="text-xs text-amber-600 font-body leading-none mb-0.5">Sem grupo</p>
+                <p className="text-sm font-semibold text-amber-800">{ungrouped.length}</p>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
