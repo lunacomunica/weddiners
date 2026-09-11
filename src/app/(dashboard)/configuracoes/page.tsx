@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { Header } from "@/components/dashboard/Header";
 import { ConfigSection } from "./ConfigSection";
+import { InvitePartnerSection } from "./InvitePartnerSection";
 
 export default async function ConfiguracoesPage() {
   const supabase = createClient();
@@ -18,8 +19,9 @@ export default async function ConfiguracoesPage() {
   return (
     <>
       <Header title="Configurações" subtitle="Gerencie os dados da sua conta e do casamento" />
-      <div className="p-4 md:p-8 max-w-2xl">
+      <div className="p-4 md:p-8 max-w-2xl space-y-6">
         <ConfigSection couple={couple} email={user.email ?? ""} avatarUrl={couple?.avatar_url ?? null} />
+        <InvitePartnerSection />
       </div>
     </>
   );
