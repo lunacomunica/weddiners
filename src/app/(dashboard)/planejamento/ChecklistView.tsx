@@ -436,11 +436,9 @@ export function ChecklistView({ initialItems }: { initialItems: DBItem[] }) {
             </div>
 
             <div className="px-6 py-4 border-t border-neutral-100 flex gap-3">
-              {!selectedItem.is_default && (
-                <button onClick={handleDeleteFromDetail} className="px-4 py-2.5 text-sm text-red-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all border border-transparent hover:border-red-100">
-                  Excluir
-                </button>
-              )}
+              <button onClick={handleDeleteFromDetail} className="px-4 py-2.5 text-sm text-red-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all border border-transparent hover:border-red-100">
+                Excluir
+              </button>
               <button onClick={handleSaveDetail} disabled={savingDetail} className="flex-1 btn-primary disabled:opacity-50">
                 {savingDetail ? "Salvando..." : "Salvar"}
               </button>
