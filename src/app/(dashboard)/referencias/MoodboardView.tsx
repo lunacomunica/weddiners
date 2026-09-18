@@ -39,7 +39,7 @@ export function MoodboardView({ initialReferences }: Props) {
   // Custom categories (new ones created by user)
   const [customCats, setCustomCats] = useState<ReferenceCategory[]>(() => ls("weddiners_ref_custom_cats", []));
   // Overrides for fixed categories: { [id]: { label?: string } }
-  const [catOverrides, setCatOverrides] = useState<Record<string, { label: string }>>(() => ls("weddiners_ref_cat_overrides", {}));
+  const [catOverrides, setCatOverrides] = useState<Record<string, { label: string; emoji?: string }>>(() => ls("weddiners_ref_cat_overrides", {}));
   // Hidden fixed category ids
   const [hiddenCats, setHiddenCats] = useState<string[]>(() => ls("weddiners_ref_hidden_cats", []));
 
@@ -47,14 +47,15 @@ export function MoodboardView({ initialReferences }: Props) {
   const [newCatLabel, setNewCatLabel] = useState("");
   const [newCatColor, setNewCatColor] = useState(0);
   const [newCatEmoji, setNewCatEmoji] = useState(0);
-  const [renamingId, setRenamingId] = useState<string | null>(null);
-  const [renameLabel, setRenameLabel] = useState("");
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editLabel, setEditLabel] = useState("");
+  const [editEmoji, setEditEmoji] = useState(0);
 
-  // Compute allCategories: fixed (not hidden, with label overrides) + custom
+  // Compute allCategories: fixed (not hidden, with label/emoji overrides) + custom
   const allCategories: ReferenceCategory[] = [
     ...REFERENCE_CATEGORIES
       .filter(c => !hiddenCats.includes(c.id))
-      .map(c => catOverrides[c.id] ? { ...c, label: catOverrides[c.id].label } : c),
+      .map(c => catOverrides[c.id] ? { ...c, ...catOverrides[c.id] } : c),
     ...customCats,
   ];
 
@@ -72,22 +73,24 @@ export function MoodboardView({ initialReferences }: Props) {
     setCreatingCat(false);
   }
 
-  function handleRenameStart(cat: ReferenceCategory) {
-    setRenamingId(cat.id);
-    setRenameLabel(cat.label);
+  function handleEditStart(cat: ReferenceCategory) {
+    setEditingId(cat.id);
+    setEditLabel(cat.label);
+    const emojiIdx = CAT_EMOJIS.indexOf(cat.emoji);
+    setEditEmoji(emojiIdx >= 0 ? emojiIdx : 0);
   }
 
-  function handleRenameSave() {
-    if (!renamingId || !renameLabel.trim()) { setRenamingId(null); return; }
-    const isFixed = REFERENCE_CATEGORIES.some(c => c.id === renamingId);
+  function handleEditSave() {
+    if (!editingId || !editLabel.trim()) { setEditingId(null); return; }
+    const isFixed = REFERENCE_CATEGORIES.some(c => c.id === editingId);
     if (isFixed) {
-      const overrides = { ...catOverrides, [renamingId]: { label: renameLabel.trim() } };
+      const overrides = { ...catOverrides, [editingId]: { label: editLabel.trim(), emoji: CAT_EMOJIS[editEmoji] } };
       setCatOverrides(overrides);
       localStorage.setItem("weddiners_ref_cat_overrides", JSON.stringify(overrides));
     } else {
-      persistCustomCats(customCats.map(c => c.id === renamingId ? { ...c, label: renameLabel.trim() } : c));
+      persistCustomCats(customCats.map(c => c.id === editingId ? { ...c, label: editLabel.trim(), emoji: CAT_EMOJIS[editEmoji] } : c));
     }
-    setRenamingId(null);
+    setEditingId(null);
   }
 
   function handleDeleteCat(id: string) {
@@ -173,39 +176,52 @@ export function MoodboardView({ initialReferences }: Props) {
         </button>
 
         {categoriesWithCount.map(cat => {
-          const isRenaming = renamingId === cat.id;
+          const isEditing = editingId === cat.id;
           const isActive = activeCategory === cat.id;
 
           return (
             <div key={cat.id} className="relative group/cat flex items-center">
-              {isRenaming ? (
-                <div className="flex items-center gap-1 border border-sage rounded-full overflow-hidden pl-3 pr-1 py-1">
-                  <input autoFocus value={renameLabel} onChange={e => setRenameLabel(e.target.value)}
-                    onKeyDown={e => { if (e.key === "Enter") handleRenameSave(); if (e.key === "Escape") setRenamingId(null); }}
-                    className="text-xs w-24 outline-none bg-transparent" />
-                  <button onClick={handleRenameSave} className="text-sage hover:text-sage/80 p-1">
-                    <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                  </button>
-                </div>
-              ) : (
-                <button onClick={() => setActiveCategory(cat.id)}
-                  className={["px-4 py-2 rounded-full text-sm font-medium border transition-all", isActive ? "border-transparent" : "bg-white border-neutral-200 hover:border-neutral-300"].join(" ")}
-                  style={isActive ? { background: cat.color, color: "white" } : { color: cat.color }}>
-                  {cat.emoji} {cat.label} <span className="ml-1 opacity-60">({cat.count})</span>
-                </button>
-              )}
+              <button onClick={() => setActiveCategory(cat.id)}
+                className={["px-4 py-2 rounded-full text-sm font-medium border transition-all", isActive ? "border-transparent" : "bg-white border-neutral-200 hover:border-neutral-300"].join(" ")}
+                style={isActive ? { background: cat.color, color: "white" } : { color: cat.color }}>
+                {cat.emoji} {cat.label} <span className="ml-1 opacity-60">({cat.count})</span>
+              </button>
 
-              {!isRenaming && (
-                <div className="absolute -top-1 -right-1 hidden group-hover/cat:flex gap-0.5">
-                  <button onClick={() => handleRenameStart(cat)}
-                    className="w-5 h-5 rounded-full bg-white border border-neutral-200 flex items-center justify-center shadow-sm hover:border-sage hover:text-sage transition-colors text-neutral-400">
-                    <svg width="9" height="9" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" strokeLinecap="round" strokeLinejoin="round"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                  </button>
-                  <button onClick={() => handleDeleteCat(cat.id)}
-                    className="w-5 h-5 rounded-full bg-white border border-neutral-200 flex items-center justify-center shadow-sm hover:border-red-300 hover:text-red-400 transition-colors text-neutral-400">
-                    <svg width="9" height="9" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                  </button>
-                </div>
+              <div className="absolute -top-1 -right-1 hidden group-hover/cat:flex gap-0.5">
+                <button onClick={() => handleEditStart(cat)}
+                  className="w-5 h-5 rounded-full bg-white border border-neutral-200 flex items-center justify-center shadow-sm hover:border-sage hover:text-sage transition-colors text-neutral-400">
+                  <svg width="9" height="9" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" strokeLinecap="round" strokeLinejoin="round"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                </button>
+                <button onClick={() => handleDeleteCat(cat.id)}
+                  className="w-5 h-5 rounded-full bg-white border border-neutral-200 flex items-center justify-center shadow-sm hover:border-red-300 hover:text-red-400 transition-colors text-neutral-400">
+                  <svg width="9" height="9" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                </button>
+              </div>
+
+              {/* Edit popover */}
+              {isEditing && (
+                <>
+                  <div className="fixed inset-0 z-10" onClick={() => setEditingId(null)} />
+                  <div className="absolute left-0 top-10 bg-white border border-neutral-200 rounded-2xl p-4 shadow-lg z-20 w-64">
+                    <p className="text-xs font-semibold text-neutral-700 mb-3">Editar categoria</p>
+                    <input autoFocus value={editLabel} onChange={e => setEditLabel(e.target.value)}
+                      onKeyDown={e => { if (e.key === "Enter") handleEditSave(); if (e.key === "Escape") setEditingId(null); }}
+                      placeholder="Nome..." className="w-full text-sm border border-neutral-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-sage/30 focus:border-sage mb-3" />
+                    <p className="text-xs text-neutral-400 mb-1.5">Emoji</p>
+                    <div className="flex gap-1.5 flex-wrap mb-3">
+                      {CAT_EMOJIS.map((em, i) => (
+                        <button key={i} onClick={() => setEditEmoji(i)}
+                          className={["w-7 h-7 rounded-lg text-sm transition-all flex items-center justify-center", editEmoji === i ? "bg-sage/10 ring-2 ring-sage" : "hover:bg-neutral-100"].join(" ")}>
+                          {em}
+                        </button>
+                      ))}
+                    </div>
+                    <div className="flex gap-2">
+                      <button onClick={handleEditSave} className="btn-primary text-xs py-1.5">Salvar</button>
+                      <button onClick={() => setEditingId(null)} className="text-neutral-400 text-xs hover:text-neutral-600">Cancelar</button>
+                    </div>
+                  </div>
+                </>
               )}
             </div>
           );
