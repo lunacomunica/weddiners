@@ -1,17 +1,18 @@
 "use client";
 
 import { useState } from "react";
-import { REFERENCE_CATEGORIES, type Reference } from "./referencesData";
+import { type Reference, type ReferenceCategory } from "./referencesData";
 import { addReference } from "./actions";
 
 type Props = {
+  allCategories: ReferenceCategory[];
   onAdd: (ref: Reference) => void;
   onClose: () => void;
 };
 
 type Tab = "link" | "upload";
 
-export function AddReferenceModal({ onAdd, onClose }: Props) {
+export function AddReferenceModal({ allCategories, onAdd, onClose }: Props) {
   const [tab, setTab] = useState<Tab>("link");
   const [url, setUrl] = useState("");
   const [note, setNote] = useState("");
@@ -195,7 +196,7 @@ export function AddReferenceModal({ onAdd, onClose }: Props) {
           <div>
             <label className="block text-xs font-medium text-neutral-600 mb-1.5">Categoria</label>
             <div className="flex flex-wrap gap-2">
-              {REFERENCE_CATEGORIES.map(cat => (
+              {allCategories.map(cat => (
                 <button
                   key={cat.id}
                   onClick={() => setCategory(cat.id)}
