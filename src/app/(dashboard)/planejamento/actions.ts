@@ -65,6 +65,23 @@ export async function createChecklistItem(
   return { success: true };
 }
 
+export async function updateChecklistItem(
+  id: string,
+  fields: { title?: string; category?: string; months_before?: number; notes?: string }
+) {
+  const { supabase, coupleId } = await getCoupleId();
+
+  const { error } = await supabase
+    .from("checklist_items")
+    .update({ ...fields, updated_at: new Date().toISOString() })
+    .eq("id", id)
+    .eq("couple_id", coupleId);
+
+  if (error) return { error: error.message };
+  revalidatePath("/planejamento");
+  return { success: true };
+}
+
 export async function deleteChecklistItem(id: string) {
   const { supabase, coupleId } = await getCoupleId();
 

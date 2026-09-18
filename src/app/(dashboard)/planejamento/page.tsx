@@ -21,7 +21,7 @@ export default async function PlanejamentoPage() {
 
   const { data: items } = await supabase
     .from("checklist_items")
-    .select("id, title, category, months_before, done, tip, is_default")
+    .select("id, title, category, months_before, done, tip, notes, is_default")
     .eq("couple_id", couple.id)
     .order("months_before", { ascending: false });
 
