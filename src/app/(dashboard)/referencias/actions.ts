@@ -82,6 +82,23 @@ export async function addReference(data: {
   return { reference };
 }
 
+export async function updateReference(
+  id: string,
+  fields: { note?: string; category?: string }
+): Promise<{ error?: string }> {
+  const { supabase, coupleId } = await getCoupleId();
+
+  const { error } = await supabase
+    .from("references")
+    .update({ note: fields.note ?? null, category: fields.category })
+    .eq("id", id)
+    .eq("couple_id", coupleId);
+
+  if (error) return { error: error.message };
+  revalidatePath("/referencias");
+  return {};
+}
+
 export async function deleteReference(id: string): Promise<{ error?: string }> {
   const { supabase, coupleId } = await getCoupleId();
 

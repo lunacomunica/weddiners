@@ -309,10 +309,12 @@ export function MoodboardView({ initialReferences }: Props) {
           ref_={filtered[lightboxIndex]}
           total={filtered.length}
           index={lightboxIndex}
+          allCategories={allCategories}
           onClose={() => setLightboxIndex(null)}
           onPrev={() => setLightboxIndex(i => i !== null ? (i - 1 + filtered.length) % filtered.length : 0)}
           onNext={() => setLightboxIndex(i => i !== null ? (i + 1) % filtered.length : 0)}
           onDelete={id => { handleDelete(id); setLightboxIndex(null); }}
+          onUpdate={(id, fields) => setReferences(prev => prev.map(r => r.id === id ? { ...r, ...fields } : r))}
         />
       )}
     </div>
