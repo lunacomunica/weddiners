@@ -7,9 +7,7 @@ import { AddReferenceModal } from "./AddReferenceModal";
 import { ReferenceCard } from "./ReferenceCard";
 import { ImageLightbox } from "./ImageLightbox";
 
-type Props = {
-  initialReferences: Reference[];
-};
+type Props = { initialReferences: Reference[] };
 
 const CAT_COLORS = [
   { color: "#7A8C6A", bg: "#F0F4ED" },
@@ -26,13 +24,9 @@ const CAT_COLORS = [
 
 const CAT_EMOJIS = ["📁", "🎨", "💡", "⭐", "🌿", "🎀", "🕊️", "🪷", "🎭", "✨"];
 
-function loadCustomCats(): ReferenceCategory[] {
-  if (typeof window === "undefined") return [];
-  try { return JSON.parse(localStorage.getItem("weddiners_ref_custom_cats") ?? "[]"); } catch { return []; }
-}
-
-function saveCustomCats(cats: ReferenceCategory[]) {
-  localStorage.setItem("weddiners_ref_custom_cats", JSON.stringify(cats));
+function ls<T>(key: string, fallback: T): T {
+  if (typeof window === "undefined") return fallback;
+  try { return JSON.parse(localStorage.getItem(key) ?? "null") ?? fallback; } catch { return fallback; }
 }
 
 export function MoodboardView({ initialReferences }: Props) {
@@ -42,29 +36,38 @@ export function MoodboardView({ initialReferences }: Props) {
   const [viewMode, setViewMode] = useState<"grid" | "masonry">("masonry");
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
-  // Custom categories
-  const [customCats, setCustomCats] = useState<ReferenceCategory[]>(loadCustomCats);
+  // Custom categories (new ones created by user)
+  const [customCats, setCustomCats] = useState<ReferenceCategory[]>(() => ls("weddiners_ref_custom_cats", []));
+  // Overrides for fixed categories: { [id]: { label?: string } }
+  const [catOverrides, setCatOverrides] = useState<Record<string, { label: string }>>(() => ls("weddiners_ref_cat_overrides", {}));
+  // Hidden fixed category ids
+  const [hiddenCats, setHiddenCats] = useState<string[]>(() => ls("weddiners_ref_hidden_cats", []));
+
   const [creatingCat, setCreatingCat] = useState(false);
   const [newCatLabel, setNewCatLabel] = useState("");
   const [newCatColor, setNewCatColor] = useState(0);
   const [newCatEmoji, setNewCatEmoji] = useState(0);
-  // Rename
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [renameLabel, setRenameLabel] = useState("");
 
-  const allCategories = [...REFERENCE_CATEGORIES, ...customCats];
+  // Compute allCategories: fixed (not hidden, with label overrides) + custom
+  const allCategories: ReferenceCategory[] = [
+    ...REFERENCE_CATEGORIES
+      .filter(c => !hiddenCats.includes(c.id))
+      .map(c => catOverrides[c.id] ? { ...c, label: catOverrides[c.id].label } : c),
+    ...customCats,
+  ];
 
   function persistCustomCats(cats: ReferenceCategory[]) {
     setCustomCats(cats);
-    saveCustomCats(cats);
+    localStorage.setItem("weddiners_ref_custom_cats", JSON.stringify(cats));
   }
 
   function handleCreateCat() {
     if (!newCatLabel.trim()) return;
     const { color, bg } = CAT_COLORS[newCatColor];
-    const emoji = CAT_EMOJIS[newCatEmoji];
     const id = newCatLabel.toLowerCase().replace(/\s+/g, "_").replace(/[^a-z0-9_]/g, "") + "_" + Date.now();
-    persistCustomCats([...customCats, { id, label: newCatLabel.trim(), emoji, color, bg }]);
+    persistCustomCats([...customCats, { id, label: newCatLabel.trim(), emoji: CAT_EMOJIS[newCatEmoji], color, bg }]);
     setNewCatLabel("");
     setCreatingCat(false);
   }
@@ -76,13 +79,27 @@ export function MoodboardView({ initialReferences }: Props) {
 
   function handleRenameSave() {
     if (!renamingId || !renameLabel.trim()) { setRenamingId(null); return; }
-    persistCustomCats(customCats.map(c => c.id === renamingId ? { ...c, label: renameLabel.trim() } : c));
+    const isFixed = REFERENCE_CATEGORIES.some(c => c.id === renamingId);
+    if (isFixed) {
+      const overrides = { ...catOverrides, [renamingId]: { label: renameLabel.trim() } };
+      setCatOverrides(overrides);
+      localStorage.setItem("weddiners_ref_cat_overrides", JSON.stringify(overrides));
+    } else {
+      persistCustomCats(customCats.map(c => c.id === renamingId ? { ...c, label: renameLabel.trim() } : c));
+    }
     setRenamingId(null);
   }
 
   function handleDeleteCat(id: string) {
-    if (!confirm("Excluir esta categoria? As referências dela ficam em 'Outros'.")) return;
-    persistCustomCats(customCats.filter(c => c.id !== id));
+    if (!confirm("Excluir esta categoria? As referências dela ficam sem categoria.")) return;
+    const isFixed = REFERENCE_CATEGORIES.some(c => c.id === id);
+    if (isFixed) {
+      const hidden = [...hiddenCats, id];
+      setHiddenCats(hidden);
+      localStorage.setItem("weddiners_ref_hidden_cats", JSON.stringify(hidden));
+    } else {
+      persistCustomCats(customCats.filter(c => c.id !== id));
+    }
     if (activeCategory === id) setActiveCategory("todos");
   }
 
@@ -156,7 +173,6 @@ export function MoodboardView({ initialReferences }: Props) {
         </button>
 
         {categoriesWithCount.map(cat => {
-          const isCustom = customCats.some(c => c.id === cat.id);
           const isRenaming = renamingId === cat.id;
           const isActive = activeCategory === cat.id;
 
@@ -173,13 +189,13 @@ export function MoodboardView({ initialReferences }: Props) {
                 </div>
               ) : (
                 <button onClick={() => setActiveCategory(cat.id)}
-                  className={["px-4 py-2 rounded-full text-sm font-medium border transition-all pr-3", isActive ? "border-transparent" : "bg-white border-neutral-200 hover:border-neutral-300"].join(" ")}
-                  style={isActive ? { background: cat.color, color: "white", borderColor: cat.color } : { color: cat.color }}>
+                  className={["px-4 py-2 rounded-full text-sm font-medium border transition-all", isActive ? "border-transparent" : "bg-white border-neutral-200 hover:border-neutral-300"].join(" ")}
+                  style={isActive ? { background: cat.color, color: "white" } : { color: cat.color }}>
                   {cat.emoji} {cat.label} <span className="ml-1 opacity-60">({cat.count})</span>
                 </button>
               )}
 
-              {isCustom && !isRenaming && (
+              {!isRenaming && (
                 <div className="absolute -top-1 -right-1 hidden group-hover/cat:flex gap-0.5">
                   <button onClick={() => handleRenameStart(cat)}
                     className="w-5 h-5 rounded-full bg-white border border-neutral-200 flex items-center justify-center shadow-sm hover:border-sage hover:text-sage transition-colors text-neutral-400">
@@ -196,40 +212,6 @@ export function MoodboardView({ initialReferences }: Props) {
         })}
 
         {/* Nova categoria */}
-        {creatingCat ? (
-          <div className="bg-white border border-neutral-200 rounded-2xl p-4 shadow-lg absolute mt-12 z-20 w-72">
-            <p className="text-xs font-semibold text-neutral-700 mb-3">Nova categoria</p>
-            <input autoFocus value={newCatLabel} onChange={e => setNewCatLabel(e.target.value)}
-              onKeyDown={e => { if (e.key === "Enter") handleCreateCat(); if (e.key === "Escape") setCreatingCat(false); }}
-              placeholder="Nome..." className="w-full text-sm border border-neutral-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-sage/30 focus:border-sage mb-3" />
-            <div className="mb-2">
-              <p className="text-xs text-neutral-400 mb-1.5">Emoji</p>
-              <div className="flex gap-1.5 flex-wrap">
-                {CAT_EMOJIS.map((em, i) => (
-                  <button key={i} onClick={() => setNewCatEmoji(i)}
-                    className={["w-7 h-7 rounded-lg text-sm transition-all flex items-center justify-center", newCatEmoji === i ? "bg-sage/10 ring-2 ring-sage" : "hover:bg-neutral-100"].join(" ")}>
-                    {em}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div className="mb-3">
-              <p className="text-xs text-neutral-400 mb-1.5">Cor</p>
-              <div className="flex gap-1.5 flex-wrap">
-                {CAT_COLORS.map((c, i) => (
-                  <button key={i} onClick={() => setNewCatColor(i)}
-                    className={["w-6 h-6 rounded-full border-2 transition-all", newCatColor === i ? "border-neutral-800 scale-110" : "border-transparent"].join(" ")}
-                    style={{ background: c.color }} />
-                ))}
-              </div>
-            </div>
-            <div className="flex gap-2">
-              <button onClick={handleCreateCat} className="btn-primary text-xs py-1.5">Criar</button>
-              <button onClick={() => setCreatingCat(false)} className="text-neutral-400 text-xs hover:text-neutral-600">Cancelar</button>
-            </div>
-          </div>
-        ) : null}
-
         <div className="relative">
           <button onClick={() => setCreatingCat(v => !v)}
             className="w-8 h-8 rounded-full border-2 border-dashed border-neutral-300 text-neutral-400 hover:border-sage hover:text-sage transition-colors flex items-center justify-center"
@@ -275,7 +257,6 @@ export function MoodboardView({ initialReferences }: Props) {
         </div>
       </div>
 
-      {/* Empty state */}
       {filtered.length === 0 && (
         <div className="text-center py-24 bg-white rounded-2xl border border-neutral-200">
           <div className="text-5xl mb-4">📌</div>
@@ -296,7 +277,7 @@ export function MoodboardView({ initialReferences }: Props) {
       )}
 
       {filtered.length > 0 && viewMode === "grid" && (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:columns-4 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
           {filtered.map((ref, idx) => (
             <ReferenceCard key={ref.id} ref_={ref} onDelete={handleDelete} onClick={() => setLightboxIndex(idx)} />
           ))}
