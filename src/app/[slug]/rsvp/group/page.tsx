@@ -44,7 +44,7 @@ function GroupRsvpForm({ slug }: { slug: string }) {
   useEffect(() => {
     if (!token) { setLoading(false); return; }
     async function load() {
-      const res = await fetch(`/api/rsvp/group?slug=${encodeURIComponent(slug)}&token=${encodeURIComponent(token)}`);
+      const res = await fetch(`/api/rsvp/group?slug=${encodeURIComponent(slug)}&token=${encodeURIComponent(token!)}`);
       if (!res.ok) { setLoading(false); return; }
       const data = await res.json();
 
