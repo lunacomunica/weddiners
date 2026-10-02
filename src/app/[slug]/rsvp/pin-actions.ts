@@ -1,6 +1,13 @@
 "use server";
 
-import { createClient } from "@/lib/supabase/server";
+import { createClient as createServiceClient } from "@supabase/supabase-js";
+
+function getPublicClient() {
+  return createServiceClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+}
 
 export type LookupResult =
   | { type: "guest"; guestId: string; name: string }
@@ -9,7 +16,7 @@ export type LookupResult =
   | { error: string };
 
 export async function lookupByName(slug: string, search: string): Promise<LookupResult> {
-  const supabase = createClient();
+  const supabase = getPublicClient();
 
   const { data: couple } = await supabase.from("couples").select("id").eq("slug", slug).single();
   if (!couple) return { error: "not_found" };
