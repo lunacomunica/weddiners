@@ -2,7 +2,6 @@
 
 import { useParams, useSearchParams } from "next/navigation";
 import { useState, useEffect, Suspense } from "react";
-import { createClient } from "@/lib/supabase/client";
 import { submitGroupRsvp } from "../actions";
 
 interface GuestItem {
@@ -45,34 +44,23 @@ function GroupRsvpForm({ slug }: { slug: string }) {
   useEffect(() => {
     if (!token) { setLoading(false); return; }
     async function load() {
-      const supabase = createClient();
+      const res = await fetch(`/api/rsvp/group?slug=${encodeURIComponent(slug)}&token=${encodeURIComponent(token)}`);
+      if (!res.ok) { setLoading(false); return; }
+      const data = await res.json();
 
-      const [{ data: coupleData }, { data: groupData }] = await Promise.all([
-        supabase.from("couples").select("partner1_name, partner2_name, wedding_date, wedding_location").eq("slug", slug).single(),
-        supabase.from("guest_groups").select("id, name, token").eq("token", token).single(),
-      ]);
-
-      if (coupleData) setCouple(coupleData);
-      if (groupData) {
-        setGroup(groupData);
-        const { data: guestData } = await supabase
-          .from("guests")
-          .select("id, name, guest_type, child_age, dietary_restrictions, rsvp_status")
-          .eq("group_id", groupData.id)
-          .order("name");
-
-        if (guestData) {
-          setGuests(guestData);
-          // Pre-check já confirmados
-          const initChecked: Record<string, boolean> = {};
-          const initDietaries: Record<string, string> = {};
-          guestData.forEach(g => {
-            initChecked[g.id] = g.rsvp_status === "confirmed";
-            initDietaries[g.id] = g.dietary_restrictions ?? "";
-          });
-          setChecked(initChecked);
-          setDietaries(initDietaries);
-        }
+      if (data.couple) setCouple(data.couple);
+      if (data.group) {
+        setGroup(data.group);
+        const guestData: GuestItem[] = data.guests ?? [];
+        setGuests(guestData);
+        const initChecked: Record<string, boolean> = {};
+        const initDietaries: Record<string, string> = {};
+        guestData.forEach(g => {
+          initChecked[g.id] = g.rsvp_status === "confirmed";
+          initDietaries[g.id] = g.dietary_restrictions ?? "";
+        });
+        setChecked(initChecked);
+        setDietaries(initDietaries);
       }
       setLoading(false);
     }
