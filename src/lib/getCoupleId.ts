@@ -32,18 +32,22 @@ export async function getCoupleId() {
   const managingId = cookieStore.get("cerim_managing")?.value;
 
   if (managingId) {
-    const serviceClient = createServiceClient();
-    const { data: link } = await serviceClient
-      .from("couple_cerimonialistas")
-      .select("couple_id, couples(id, plan)")
-      .eq("cerimonialista_id", user.id)
-      .eq("couple_id", managingId)
-      .eq("status", "active")
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
       .single();
 
-    if (link && link.couples) {
-      const couple = link.couples as unknown as { id: string; plan: string | null };
-      return { supabase: serviceClient, coupleId: couple.id, plan: (couple.plan ?? "free") as string, userId: user.id };
+    if (profile?.role === "cerimonialista") {
+      const serviceClient = createServiceClient();
+      const { data: managedCouple } = await serviceClient
+        .from("couples")
+        .select("id, plan")
+        .eq("id", managingId)
+        .single();
+      if (managedCouple) {
+        return { supabase: serviceClient, coupleId: managedCouple.id, plan: (managedCouple.plan ?? "free") as string, userId: user.id };
+      }
     }
   }
 

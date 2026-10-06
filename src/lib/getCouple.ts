@@ -37,17 +37,17 @@ export async function getCouple() {
   const managingId = cookieStore.get("cerim_managing")?.value;
 
   if (managingId) {
-    // Usa service client para evitar bloqueio de RLS nas tabelas auxiliares
-    const serviceClient = createServiceClient();
-    const { data: link } = await serviceClient
-      .from("couple_cerimonialistas")
-      .select("id")
-      .eq("cerimonialista_id", user.id)
-      .eq("couple_id", managingId)
-      .eq("status", "active")
+    // Verifica que o usuário tem role cerimonialista (profiles usa JWT do usuário, sem RLS complexa)
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
       .single();
 
-    if (link) {
+    if (profile?.role === "cerimonialista") {
+      // Cookie foi setado pelo /gerenciar/[coupleId]/route.ts que já verificou o acesso.
+      // Usa service client para buscar os dados do casal sem RLS blocking.
+      const serviceClient = createServiceClient();
       const { data: managedCouple } = await serviceClient
         .from("couples")
         .select("*")
