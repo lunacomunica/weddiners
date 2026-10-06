@@ -26,8 +26,8 @@ export default async function ConfiguracoesPage() {
   const links = (cerimLinks ?? []).map(l => ({
     id: l.id,
     status: l.status as "pending" | "active",
-    cerimonialista_name: (l.profiles as { display_name: string | null; email: string | null } | null)?.display_name ?? null,
-    cerimonialista_email: (l.profiles as { display_name: string | null; email: string | null } | null)?.email ?? null,
+    cerimonialista_name: (l.profiles as unknown as { display_name: string | null; email: string | null } | null)?.display_name ?? null,
+    cerimonialista_email: (l.profiles as unknown as { display_name: string | null; email: string | null } | null)?.email ?? null,
   }));
 
   return (
