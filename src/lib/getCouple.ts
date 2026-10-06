@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
@@ -46,12 +46,13 @@ export async function getCouple() {
       .single();
 
     if (link) {
-      const { data: managedCouple } = await supabase
+      const serviceClient = createServiceClient();
+      const { data: managedCouple } = await serviceClient
         .from("couples")
         .select("*")
         .eq("id", managingId)
         .single();
-      if (managedCouple) return { supabase, user, couple: managedCouple };
+      if (managedCouple) return { supabase: serviceClient, user, couple: managedCouple };
     }
   }
 

@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { cookies } from "next/headers";
 
 export async function getCoupleId() {
@@ -42,7 +42,8 @@ export async function getCoupleId() {
 
     if (link && link.couples) {
       const couple = link.couples as unknown as { id: string; plan: string | null };
-      return { supabase, coupleId: couple.id, plan: (couple.plan ?? "free") as string, userId: user.id };
+      const serviceClient = createServiceClient();
+      return { supabase: serviceClient, coupleId: couple.id, plan: (couple.plan ?? "free") as string, userId: user.id };
     }
   }
 
