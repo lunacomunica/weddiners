@@ -1,19 +1,9 @@
-import { createClient } from "@/lib/supabase/server";
-import { redirect } from "next/navigation";
+import { getCouple } from "@/lib/getCouple";
 import { Header } from "@/components/dashboard/Header";
 import { PagamentosView } from "./PagamentosView";
 
 export default async function PagamentosPage() {
-  const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
-
-  const { data: couple } = await supabase
-    .from("couples")
-    .select("id, total_budget")
-    .eq("user_id", user.id)
-    .single();
-  if (!couple) redirect("/login");
+  const { supabase, user, couple } = await getCouple();
 
   const [{ data: vendors }, { data: payments }] = await Promise.all([
     supabase

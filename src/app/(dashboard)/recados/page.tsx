@@ -1,19 +1,9 @@
-import { createClient } from "@/lib/supabase/server";
-import { redirect } from "next/navigation";
+import { getCouple } from "@/lib/getCouple";
 import { Header } from "@/components/dashboard/Header";
 import { MessagesList } from "./MessagesList";
 
 export default async function RecadosPage() {
-  const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
-
-  const { data: couple } = await supabase
-    .from("couples")
-    .select("id, slug")
-    .eq("user_id", user.id)
-    .single();
-  if (!couple) redirect("/login");
+  const { supabase, user, couple } = await getCouple();
 
   const { data: messages } = await supabase
     .from("messages")

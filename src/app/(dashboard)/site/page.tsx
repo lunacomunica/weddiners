@@ -1,18 +1,8 @@
-import { createClient } from "@/lib/supabase/server";
-import { redirect } from "next/navigation";
+import { getCouple } from "@/lib/getCouple";
 import { SiteEditor } from "./SiteEditor";
 
 export default async function SitePage() {
-  const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
-
-  const { data: couple } = await supabase
-    .from("couples")
-    .select("id, slug, bride_name, groom_name, partner1_name, partner2_name, wedding_date, wedding_location, plan, site_password_enabled, site_password, translations_enabled, translation_languages")
-    .eq("user_id", user.id)
-    .single();
-  if (!couple) redirect("/login");
+  const { supabase, user, couple } = await getCouple();
 
   const { data: config } = await supabase
     .from("site_configs")

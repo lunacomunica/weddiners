@@ -1,21 +1,11 @@
-import { createClient } from "@/lib/supabase/server";
-import { redirect } from "next/navigation";
+import { getCouple } from "@/lib/getCouple";
 import { Header } from "@/components/dashboard/Header";
 import { GuestsList } from "./GuestsList";
 import { GuestsToolbar } from "./GuestsToolbar";
 import { GroupsPanel } from "./GroupsPanel";
 
 export default async function ConvidadosPage({ searchParams }: { searchParams: { tab?: string } }) {
-  const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
-
-  const { data: couple } = await supabase
-    .from("couples")
-    .select("id, slug, plan")
-    .eq("user_id", user.id)
-    .single();
-  if (!couple) redirect("/login");
+  const { supabase, user, couple } = await getCouple();
 
   const [{ data: guests }, { data: groups }] = await Promise.all([
     supabase

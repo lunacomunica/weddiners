@@ -1,21 +1,10 @@
-import { createClient } from "@/lib/supabase/server";
-import { redirect } from "next/navigation";
+import { getCouple } from "@/lib/getCouple";
 import { Header } from "@/components/dashboard/Header";
 import { GiftsListWrapper } from "./GiftsListWrapper";
 import { PixSection } from "./PixSection";
 
 export default async function PresentesPage() {
-  const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
-
-  const { data: couple } = await supabase
-    .from("couples")
-    .select("id, pix_key, pix_key_type, pix_holder_name")
-    .eq("user_id", user.id)
-    .single();
-
-  if (!couple) redirect("/login");
+  const { supabase, user, couple } = await getCouple();
 
   const { data: gifts } = await supabase
     .from("gifts")

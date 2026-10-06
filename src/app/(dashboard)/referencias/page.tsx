@@ -1,20 +1,10 @@
-import { createClient } from "@/lib/supabase/server";
+import { getCouple } from "@/lib/getCouple";
 import { Header } from "@/components/dashboard/Header";
 import { MoodboardView } from "./MoodboardView";
 import type { Reference } from "./referencesData";
 
-async function getReferences(): Promise<Reference[]> {
-  const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return [];
-
-  const { data: couple } = await supabase
-    .from("couples")
-    .select("id")
-    .eq("user_id", user.id)
-    .single();
-
-  if (!couple) return [];
+export default async function ReferenciasPage() {
+  const { supabase, couple } = await getCouple();
 
   const { data } = await supabase
     .from("references")
@@ -22,9 +12,7 @@ async function getReferences(): Promise<Reference[]> {
     .eq("couple_id", couple.id)
     .order("created_at", { ascending: false });
 
-  if (!data) return [];
-
-  return data.map(row => ({
+  const initialReferences: Reference[] = (data ?? []).map(row => ({
     id: row.id,
     category: row.category,
     imageUrl: row.image_url,
@@ -33,10 +21,6 @@ async function getReferences(): Promise<Reference[]> {
     sourceType: row.source_type ?? undefined,
     createdAt: row.created_at,
   }));
-}
-
-export default async function ReferenciasPage() {
-  const initialReferences = await getReferences();
 
   return (
     <>

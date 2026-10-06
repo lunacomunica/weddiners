@@ -1,20 +1,10 @@
-import { createClient } from "@/lib/supabase/server";
-import { redirect } from "next/navigation";
+import { getCouple } from "@/lib/getCouple";
 import { Header } from "@/components/dashboard/Header";
 import { ChecklistView } from "./ChecklistView";
 import { ensureDefaultItems } from "./actions";
 
 export default async function PlanejamentoPage() {
-  const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
-
-  const { data: couple } = await supabase
-    .from("couples")
-    .select("id")
-    .eq("user_id", user.id)
-    .single();
-  if (!couple) redirect("/login");
+  const { supabase, user, couple } = await getCouple();
 
   // Seed default items on first visit
   await ensureDefaultItems(couple.id);

@@ -1,20 +1,10 @@
-import { createClient } from "@/lib/supabase/server";
-import { redirect } from "next/navigation";
+import { getCouple } from "@/lib/getCouple";
 import { Header } from "@/components/dashboard/Header";
 import { FornecedoresView } from "./FornecedoresView";
 import { BudgetWidget } from "./BudgetWidget";
 
 export default async function FornecedoresPage() {
-  const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
-
-  const { data: couple } = await supabase
-    .from("couples")
-    .select("id, total_budget")
-    .eq("user_id", user.id)
-    .single();
-  if (!couple) redirect("/login");
+  const { supabase, user, couple } = await getCouple();
 
   const [{ data: vendors }, { data: quotes }, { data: payments }] = await Promise.all([
     supabase
