@@ -5,7 +5,7 @@ import { GuestsToolbar } from "./GuestsToolbar";
 import { GroupsPanel } from "./GroupsPanel";
 
 export default async function ConvidadosPage({ searchParams }: { searchParams: { tab?: string } }) {
-  const { supabase, user, couple } = await getCouple();
+  const { supabase, couple } = await getCouple();
 
   const [{ data: guests }, { data: groups }] = await Promise.all([
     supabase

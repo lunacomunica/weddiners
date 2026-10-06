@@ -3,7 +3,7 @@ import { Header } from "@/components/dashboard/Header";
 import { PagamentosView } from "./PagamentosView";
 
 export default async function PagamentosPage() {
-  const { supabase, user, couple } = await getCouple();
+  const { supabase, couple } = await getCouple();
 
   const [{ data: vendors }, { data: payments }] = await Promise.all([
     supabase

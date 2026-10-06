@@ -4,7 +4,7 @@ import { FornecedoresView } from "./FornecedoresView";
 import { BudgetWidget } from "./BudgetWidget";
 
 export default async function FornecedoresPage() {
-  const { supabase, user, couple } = await getCouple();
+  const { supabase, couple } = await getCouple();
 
   const [{ data: vendors }, { data: quotes }, { data: payments }] = await Promise.all([
     supabase

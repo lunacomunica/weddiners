@@ -3,7 +3,7 @@ import { Header } from "@/components/dashboard/Header";
 import { MessagesList } from "./MessagesList";
 
 export default async function RecadosPage() {
-  const { supabase, user, couple } = await getCouple();
+  const { supabase, couple } = await getCouple();
 
   const { data: messages } = await supabase
     .from("messages")

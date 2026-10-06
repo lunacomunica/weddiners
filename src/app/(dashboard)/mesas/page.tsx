@@ -3,7 +3,7 @@ import { Header } from "@/components/dashboard/Header";
 import { TablesManager } from "./TablesManager";
 
 export default async function MesasPage() {
-  const { supabase, user, couple } = await getCouple();
+  const { supabase, couple } = await getCouple();
 
   const [{ data: tables }, { data: guests }] = await Promise.all([
     supabase

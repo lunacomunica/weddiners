@@ -3,7 +3,7 @@ import { Header } from "@/components/dashboard/Header";
 import { PlansClient } from "./PlansClient";
 
 export default async function PlanosPage() {
-  const { supabase, user, couple } = await getCouple();
+  const { couple } = await getCouple();
 
   return (
     <>

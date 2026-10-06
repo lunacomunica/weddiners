@@ -4,7 +4,7 @@ import { GiftsListWrapper } from "./GiftsListWrapper";
 import { PixSection } from "./PixSection";
 
 export default async function PresentesPage() {
-  const { supabase, user, couple } = await getCouple();
+  const { supabase, couple } = await getCouple();
 
   const { data: gifts } = await supabase
     .from("gifts")

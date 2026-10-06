@@ -4,7 +4,7 @@ import { ChecklistView } from "./ChecklistView";
 import { ensureDefaultItems } from "./actions";
 
 export default async function PlanejamentoPage() {
-  const { supabase, user, couple } = await getCouple();
+  const { supabase, couple } = await getCouple();
 
   // Seed default items on first visit
   await ensureDefaultItems(couple.id);
