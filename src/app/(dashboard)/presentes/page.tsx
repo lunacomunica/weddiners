@@ -1,10 +1,13 @@
+import { requireNotCerim } from "@/lib/requireNotCerim";
 import { getCouple } from "@/lib/getCouple";
 import { Header } from "@/components/dashboard/Header";
 import { GiftsListWrapper } from "./GiftsListWrapper";
 import { PixSection } from "./PixSection";
 
 export default async function PresentesPage() {
+  requireNotCerim();
   const { supabase, couple } = await getCouple();
+
 
   const { data: gifts } = await supabase
     .from("gifts")

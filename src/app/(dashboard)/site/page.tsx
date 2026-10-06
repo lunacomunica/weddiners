@@ -1,8 +1,11 @@
+import { requireNotCerim } from "@/lib/requireNotCerim";
 import { getCouple } from "@/lib/getCouple";
 import { SiteEditor } from "./SiteEditor";
 
 export default async function SitePage() {
+  requireNotCerim();
   const { supabase, couple } = await getCouple();
+
 
   const { data: config } = await supabase
     .from("site_configs")

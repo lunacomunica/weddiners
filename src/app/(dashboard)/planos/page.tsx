@@ -1,9 +1,12 @@
+import { requireNotCerim } from "@/lib/requireNotCerim";
 import { getCouple } from "@/lib/getCouple";
 import { Header } from "@/components/dashboard/Header";
 import { PlansClient } from "./PlansClient";
 
 export default async function PlanosPage() {
+  requireNotCerim();
   const { couple } = await getCouple();
+
 
   return (
     <>

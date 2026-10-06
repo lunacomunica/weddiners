@@ -1,9 +1,12 @@
+import { requireNotCerim } from "@/lib/requireNotCerim";
 import { getCouple } from "@/lib/getCouple";
 import { Header } from "@/components/dashboard/Header";
 import { MessagesList } from "./MessagesList";
 
 export default async function RecadosPage() {
+  requireNotCerim();
   const { supabase, couple } = await getCouple();
+
 
   const { data: messages } = await supabase
     .from("messages")

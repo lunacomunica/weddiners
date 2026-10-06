@@ -119,9 +119,12 @@ const navItems = [
   },
 ];
 
-export function Sidebar({ avatarUrl, displayName }: { avatarUrl?: string | null; displayName?: string }) {
+const CERIM_HREFS = ["/dashboard", "/convidados", "/mesas", "/fornecedores", "/planejamento", "/referencias"];
+
+export function Sidebar({ avatarUrl, displayName, cerimMode }: { avatarUrl?: string | null; displayName?: string; cerimMode?: boolean }) {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
+  const visibleItems = cerimMode ? navItems.filter(i => CERIM_HREFS.includes(i.href)) : navItems;
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const initials = (displayName ?? "").split(" ").map(n => n[0]).slice(0, 2).join("").toUpperCase() || "W";
@@ -175,7 +178,7 @@ export function Sidebar({ avatarUrl, displayName }: { avatarUrl?: string | null;
           >
             <nav className="flex-1 py-4 px-2">
               <ul className="space-y-0.5">
-                {navItems.map((item) => {
+                {visibleItems.map((item) => {
                   const active = pathname === item.href || pathname.startsWith(item.href + "/");
                   return (
                     <li key={item.href}>
@@ -225,7 +228,7 @@ export function Sidebar({ avatarUrl, displayName }: { avatarUrl?: string | null;
         {/* Nav */}
         <nav className="flex-1 py-6 px-2 overflow-y-auto">
           <ul className="space-y-1">
-            {navItems.map((item) => {
+            {visibleItems.map((item) => {
               const active = pathname === item.href || pathname.startsWith(item.href + "/");
               return (
                 <li key={item.href}>

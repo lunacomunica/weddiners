@@ -1,9 +1,12 @@
+import { requireNotCerim } from "@/lib/requireNotCerim";
 import { getCouple } from "@/lib/getCouple";
 import { Header } from "@/components/dashboard/Header";
 import { PagamentosView } from "./PagamentosView";
 
 export default async function PagamentosPage() {
+  requireNotCerim();
   const { supabase, couple } = await getCouple();
+
 
   const [{ data: vendors }, { data: payments }] = await Promise.all([
     supabase

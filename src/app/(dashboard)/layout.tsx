@@ -74,7 +74,7 @@ export default async function DashboardLayout({
         </div>
       )}
       <div className={["min-h-screen bg-ivory flex", cerimBanner ? "pt-8" : ""].join(" ")}>
-        <Sidebar avatarUrl={avatarUrl} displayName={displayName} />
+        <Sidebar avatarUrl={avatarUrl} displayName={displayName} cerimMode={!!cerimBanner} />
         <main className="flex-1 min-w-0 pt-14 md:pt-0">{children}</main>
       </div>
     </div>
