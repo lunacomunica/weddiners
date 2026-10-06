@@ -13,7 +13,7 @@ export async function getCoupleId() {
     .eq("user_id", user.id)
     .single();
 
-  if (owned) return { supabase, coupleId: owned.id, plan: (owned.plan ?? "free") as string };
+  if (owned) return { supabase, coupleId: owned.id, plan: (owned.plan ?? "free") as string, userId: user.id };
 
   // Tenta como membro convidado
   const { data: member } = await supabase
@@ -24,7 +24,7 @@ export async function getCoupleId() {
 
   if (member && member.couples) {
     const couple = member.couples as unknown as { id: string; plan: string | null };
-    return { supabase, coupleId: couple.id, plan: (couple.plan ?? "free") as string };
+    return { supabase, coupleId: couple.id, plan: (couple.plan ?? "free") as string, userId: user.id };
   }
 
   // Tenta como cerimonialista gerenciando um casal
@@ -42,7 +42,7 @@ export async function getCoupleId() {
 
     if (link && link.couples) {
       const couple = link.couples as unknown as { id: string; plan: string | null };
-      return { supabase, coupleId: couple.id, plan: (couple.plan ?? "free") as string };
+      return { supabase, coupleId: couple.id, plan: (couple.plan ?? "free") as string, userId: user.id };
     }
   }
 

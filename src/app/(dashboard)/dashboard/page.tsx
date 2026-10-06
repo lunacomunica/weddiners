@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Header } from "@/components/dashboard/Header";
 import { fmtNum } from "@/lib/format";
 import { getCouple } from "@/lib/getCouple";
+import { ActivityFeed } from "./ActivityFeed";
 
 export default async function DashboardPage() {
   const { supabase, couple } = await getCouple();
@@ -15,12 +16,14 @@ export default async function DashboardPage() {
     { data: checklist },
     { data: vendors },
     { data: payments },
+    { data: activities },
   ] = await Promise.all([
     supabase.from("gifts").select("amount, is_received").eq("couple_id", couple.id),
     supabase.from("guests").select("rsvp_status").eq("couple_id", couple.id),
     supabase.from("checklist_items").select("done").eq("couple_id", couple.id),
     supabase.from("vendors").select("contracted_value").eq("couple_id", couple.id).eq("status", "contratado"),
     supabase.from("vendor_payments").select("id, amount, due_date, paid, vendor_id").eq("couple_id", couple.id).order("due_date"),
+    supabase.from("couple_activities").select("id, actor_name, action, description, created_at").eq("couple_id", couple.id).order("created_at", { ascending: false }).limit(15),
   ]);
 
   // Countdown
@@ -285,6 +288,13 @@ export default async function DashboardPage() {
             )}
           </div>
         </div>
+
+        {/* Feed de atividades */}
+        {activities && activities.length > 0 && (
+          <div className="mt-4">
+            <ActivityFeed activities={activities} />
+          </div>
+        )}
 
       </div>
     </>

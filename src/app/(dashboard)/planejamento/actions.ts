@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { getCoupleId } from "@/lib/getCoupleId";
+import { logActivity } from "@/lib/logActivity";
 import { revalidatePath } from "next/cache";
 import { DEFAULT_ITEMS } from "./checklistData";
 
@@ -29,7 +30,14 @@ export async function ensureDefaultItems(coupleId: string) {
 }
 
 export async function toggleChecklistItem(id: string, done: boolean) {
-  const { supabase, coupleId } = await getCoupleId();
+  const { supabase, coupleId, userId } = await getCoupleId();
+
+  // Busca o título para o log
+  const { data: item } = await supabase
+    .from("checklist_items")
+    .select("title")
+    .eq("id", id)
+    .single();
 
   const { error } = await supabase
     .from("checklist_items")
@@ -38,6 +46,15 @@ export async function toggleChecklistItem(id: string, done: boolean) {
     .eq("couple_id", coupleId);
 
   if (error) return { error: error.message };
+
+  if (item?.title) {
+    await logActivity(
+      supabase, coupleId, userId,
+      done ? `Marcou "${item.title}" como concluída` : `Desmarcou "${item.title}"`,
+      done ? "task_done" : "task_undone"
+    );
+  }
+
   revalidatePath("/planejamento");
   return { success: true };
 }
@@ -48,7 +65,7 @@ export async function createChecklistItem(
   monthsBefore: number,
   tip?: string
 ) {
-  const { supabase, coupleId } = await getCoupleId();
+  const { supabase, coupleId, userId } = await getCoupleId();
 
   const { error } = await supabase.from("checklist_items").insert({
     couple_id: coupleId,
@@ -61,6 +78,9 @@ export async function createChecklistItem(
   });
 
   if (error) return { error: error.message };
+
+  await logActivity(supabase, coupleId, userId, `Adicionou tarefa "${title}"`, "task_added");
+
   revalidatePath("/planejamento");
   return { success: true };
 }
@@ -69,7 +89,7 @@ export async function updateChecklistItem(
   id: string,
   fields: { title?: string; category?: string; months_before?: number; notes?: string }
 ) {
-  const { supabase, coupleId } = await getCoupleId();
+  const { supabase, coupleId, userId } = await getCoupleId();
 
   const { error } = await supabase
     .from("checklist_items")
@@ -78,12 +98,22 @@ export async function updateChecklistItem(
     .eq("couple_id", coupleId);
 
   if (error) return { error: error.message };
+
+  const label = fields.title ? `"${fields.title}"` : "uma tarefa";
+  await logActivity(supabase, coupleId, userId, `Editou ${label}`, "task_updated");
+
   revalidatePath("/planejamento");
   return { success: true };
 }
 
 export async function deleteChecklistItem(id: string) {
-  const { supabase, coupleId } = await getCoupleId();
+  const { supabase, coupleId, userId } = await getCoupleId();
+
+  const { data: item } = await supabase
+    .from("checklist_items")
+    .select("title")
+    .eq("id", id)
+    .single();
 
   const { error } = await supabase
     .from("checklist_items")
@@ -92,6 +122,11 @@ export async function deleteChecklistItem(id: string) {
     .eq("couple_id", coupleId);
 
   if (error) return { error: error.message };
+
+  if (item?.title) {
+    await logActivity(supabase, coupleId, userId, `Excluiu tarefa "${item.title}"`, "task_deleted");
+  }
+
   revalidatePath("/planejamento");
   return { success: true };
 }

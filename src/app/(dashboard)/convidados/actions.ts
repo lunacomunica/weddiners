@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { getCoupleId } from "@/lib/getCoupleId";
+import { logActivity } from "@/lib/logActivity";
 import { revalidatePath } from "next/cache";
 
 // SQL to run in Supabase:
@@ -23,7 +24,7 @@ async function generateUniquePinForCouple(
 }
 
 export async function createGuest(formData: FormData) {
-  const { supabase, coupleId, plan } = await getCoupleId();
+  const { supabase, coupleId, plan, userId } = await getCoupleId();
 
   if (plan === "free") {
     const { count } = await supabase
@@ -54,6 +55,10 @@ export async function createGuest(formData: FormData) {
   });
 
   if (error) return { error: error.message };
+
+  const name = formData.get("name") as string;
+  await logActivity(supabase, coupleId, userId, `Adicionou convidado "${name}"`, "guest_added");
+
   revalidatePath("/convidados");
 }
 
@@ -85,8 +90,13 @@ export async function updateGuest(id: string, formData: FormData) {
 }
 
 export async function deleteGuest(id: string) {
-  const { supabase, coupleId } = await getCoupleId();
+  const { supabase, coupleId, userId } = await getCoupleId();
+
+  const { data: guest } = await supabase.from("guests").select("name").eq("id", id).single();
   await supabase.from("guests").delete().eq("id", id).eq("couple_id", coupleId);
+  if (guest?.name) {
+    await logActivity(supabase, coupleId, userId, `Removeu convidado "${guest.name}"`, "guest_deleted");
+  }
   revalidatePath("/convidados");
 }
 
@@ -101,7 +111,7 @@ export async function updateSaveTheDateStatus(id: string, status: "nao_enviado" 
 }
 
 export async function importGuestsFromCSV(rows: { name: string; email?: string; phone?: string; group_name?: string }[]) {
-  const { supabase, coupleId } = await getCoupleId();
+  const { supabase, coupleId, userId } = await getCoupleId();
 
   const inserts = rows.map(row => ({
     couple_id: coupleId,
@@ -113,6 +123,9 @@ export async function importGuestsFromCSV(rows: { name: string; email?: string; 
 
   const { error } = await supabase.from("guests").insert(inserts);
   if (error) return { error: error.message };
+
+  await logActivity(supabase, coupleId, userId, `Importou ${inserts.length} convidado${inserts.length > 1 ? "s" : ""} via CSV`, "guests_imported");
+
   revalidatePath("/convidados");
   return { count: inserts.length };
 }
