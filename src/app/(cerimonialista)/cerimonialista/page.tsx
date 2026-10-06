@@ -200,9 +200,15 @@ export default async function CerimonialistaPage() {
                     )}
 
                     <div className="mt-4 pt-4 border-t border-neutral-100">
-                      <div className="text-xs text-smoke/60 font-body text-center py-1">
-                        Gerenciamento completo — em breve
-                      </div>
+                      <a
+                        href={`/gerenciar/${couple.id}`}
+                        className="flex items-center justify-center gap-2 w-full btn-primary py-2.5 text-sm"
+                      >
+                        Gerenciar casamento
+                        <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                          <path d="M5 12h14M12 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                      </a>
                     </div>
                   </div>
                 </div>

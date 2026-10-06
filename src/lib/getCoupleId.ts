@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { cookies } from "next/headers";
 
 export async function getCoupleId() {
   const supabase = createClient();
@@ -24,6 +25,25 @@ export async function getCoupleId() {
   if (member && member.couples) {
     const couple = member.couples as unknown as { id: string; plan: string | null };
     return { supabase, coupleId: couple.id, plan: (couple.plan ?? "free") as string };
+  }
+
+  // Tenta como cerimonialista gerenciando um casal
+  const cookieStore = cookies();
+  const managingId = cookieStore.get("cerim_managing")?.value;
+
+  if (managingId) {
+    const { data: link } = await supabase
+      .from("couple_cerimonialistas")
+      .select("couple_id, couples(id, plan)")
+      .eq("cerimonialista_id", user.id)
+      .eq("couple_id", managingId)
+      .eq("status", "active")
+      .single();
+
+    if (link && link.couples) {
+      const couple = link.couples as unknown as { id: string; plan: string | null };
+      return { supabase, coupleId: couple.id, plan: (couple.plan ?? "free") as string };
+    }
   }
 
   throw new Error("Casal não encontrado");
