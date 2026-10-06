@@ -37,7 +37,9 @@ export async function getCouple() {
   const managingId = cookieStore.get("cerim_managing")?.value;
 
   if (managingId) {
-    const { data: link } = await supabase
+    // Usa service client para evitar bloqueio de RLS nas tabelas auxiliares
+    const serviceClient = createServiceClient();
+    const { data: link } = await serviceClient
       .from("couple_cerimonialistas")
       .select("id")
       .eq("cerimonialista_id", user.id)
@@ -46,7 +48,6 @@ export async function getCouple() {
       .single();
 
     if (link) {
-      const serviceClient = createServiceClient();
       const { data: managedCouple } = await serviceClient
         .from("couples")
         .select("*")
