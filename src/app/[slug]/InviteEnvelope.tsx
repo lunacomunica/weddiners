@@ -123,6 +123,58 @@ export function InviteEnvelope({ envelopeColor, sealColor, monogramUrl, name1, n
             style={{ background: envelopeColor, zIndex: 1 }}
           />
 
+          {/* ── Paper/linen texture overlay ── */}
+          <svg className="absolute inset-0 rounded-sm pointer-events-none" style={{ zIndex: 7, width: "100%", height: "100%", opacity: 0.18 }} xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <filter id="linen" x="0%" y="0%" width="100%" height="100%">
+                <feTurbulence type="fractalNoise" baseFrequency="0.65 0.9" numOctaves="4" seed="3" stitchTiles="stitch" result="noise" />
+                <feColorMatrix type="saturate" values="0" in="noise" result="gray" />
+                <feBlend in="SourceGraphic" in2="gray" mode="multiply" />
+              </filter>
+            </defs>
+            <rect width="100%" height="100%" filter="url(#linen)" fill="white" />
+          </svg>
+
+          {/* ── Botanical corner decorations ── */}
+          <svg className="absolute inset-0 pointer-events-none" style={{ zIndex: 8, width: "100%", height: "100%", opacity: 0.22 }} viewBox="0 0 520 364" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+            {/* Top-left botanical */}
+            <g fill="none" stroke="white" strokeWidth="0.8" strokeLinecap="round" strokeLinejoin="round" transform="translate(18, 18)">
+              <path d="M0,0 Q8,20 0,40" /><path d="M0,0 Q-8,20 0,40" />
+              <path d="M0,8 Q12,14 20,8" /><path d="M0,8 Q-12,14 -20,8" />
+              <path d="M0,18 Q14,22 22,16" /><path d="M0,18 Q-14,22 -22,16" />
+              <path d="M0,28 Q10,32 16,26" /><path d="M0,28 Q-10,32 -16,26" />
+              <circle cx="0" cy="40" r="1.5" fill="white" />
+              <path d="M-5,-6 Q0,-14 5,-6" />
+            </g>
+            {/* Top-right botanical */}
+            <g fill="none" stroke="white" strokeWidth="0.8" strokeLinecap="round" strokeLinejoin="round" transform="translate(502, 18) scale(-1,1)">
+              <path d="M0,0 Q8,20 0,40" /><path d="M0,0 Q-8,20 0,40" />
+              <path d="M0,8 Q12,14 20,8" /><path d="M0,8 Q-12,14 -20,8" />
+              <path d="M0,18 Q14,22 22,16" /><path d="M0,18 Q-14,22 -22,16" />
+              <path d="M0,28 Q10,32 16,26" /><path d="M0,28 Q-10,32 -16,26" />
+              <circle cx="0" cy="40" r="1.5" fill="white" />
+              <path d="M-5,-6 Q0,-14 5,-6" />
+            </g>
+            {/* Bottom-left botanical */}
+            <g fill="none" stroke="white" strokeWidth="0.8" strokeLinecap="round" strokeLinejoin="round" transform="translate(18, 346) scale(1,-1)">
+              <path d="M0,0 Q8,20 0,40" /><path d="M0,0 Q-8,20 0,40" />
+              <path d="M0,8 Q12,14 20,8" /><path d="M0,8 Q-12,14 -20,8" />
+              <path d="M0,18 Q14,22 22,16" /><path d="M0,18 Q-14,22 -22,16" />
+              <path d="M0,28 Q10,32 16,26" /><path d="M0,28 Q-10,32 -16,26" />
+              <circle cx="0" cy="40" r="1.5" fill="white" />
+            </g>
+            {/* Bottom-right botanical */}
+            <g fill="none" stroke="white" strokeWidth="0.8" strokeLinecap="round" strokeLinejoin="round" transform="translate(502, 346) scale(-1,-1)">
+              <path d="M0,0 Q8,20 0,40" /><path d="M0,0 Q-8,20 0,40" />
+              <path d="M0,8 Q12,14 20,8" /><path d="M0,8 Q-12,14 -20,8" />
+              <path d="M0,18 Q14,22 22,16" /><path d="M0,18 Q-14,22 -22,16" />
+              <path d="M0,28 Q10,32 16,26" /><path d="M0,28 Q-10,32 -16,26" />
+              <circle cx="0" cy="40" r="1.5" fill="white" />
+            </g>
+            {/* Thin border inside envelope */}
+            <rect x="10" y="10" width="500" height="344" rx="1" fill="none" stroke="white" strokeWidth="0.5" opacity="0.5" />
+          </svg>
+
           {/* ── Bottom flap (triangle pointing up from bottom) ── */}
           <div
             className={`absolute bottom-0 left-0 right-0 ${isOpening ? "bottom-drop" : ""}`}
