@@ -1145,9 +1145,6 @@ export function SiteEditor({ config, couple, plan = "free" }: { config: SiteConf
                       ref={sealPreviewRef}
                       className="relative rounded-3xl border-2 overflow-hidden shrink-0 select-none"
                       style={{ width: 180, height: 320, background: envColor, borderColor: "rgba(255,255,255,0.15)", cursor: isDraggingSeal ? "grabbing" : "default", touchAction: "none" }}
-                      onPointerMove={handleSealDragMove}
-                      onPointerUp={() => setIsDraggingSeal(false)}
-                      onPointerLeave={() => setIsDraggingSeal(false)}
                     >
                       {envelopeImageUrl ? (
                         <img src={envelopeImageUrl} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} alt="" />
@@ -1172,11 +1169,21 @@ export function SiteEditor({ config, couple, plan = "free" }: { config: SiteConf
                           left: `${sealX}%`, top: `${sealY}%`,
                           transform: "translate(-50%, -50%)",
                           width: Math.round(52 * sealScale), height: Math.round(52 * sealScale),
-                          cursor: "grab", zIndex: 10,
+                          cursor: isDraggingSeal ? "grabbing" : "grab", zIndex: 10,
                           filter: "drop-shadow(0 3px 6px rgba(0,0,0,0.4))",
                           touchAction: "none",
                         }}
                         onPointerDown={e => { e.currentTarget.setPointerCapture(e.pointerId); setIsDraggingSeal(true); }}
+                        onPointerMove={e => {
+                          if (!isDraggingSeal || !sealPreviewRef.current) return;
+                          const rect = sealPreviewRef.current.getBoundingClientRect();
+                          const x = Math.max(5, Math.min(95, ((e.clientX - rect.left) / rect.width) * 100));
+                          const y = Math.max(5, Math.min(95, ((e.clientY - rect.top) / rect.height) * 100));
+                          setSealX(Math.round(x * 10) / 10);
+                          setSealY(Math.round(y * 10) / 10);
+                        }}
+                        onPointerUp={() => setIsDraggingSeal(false)}
+                        onPointerCancel={() => setIsDraggingSeal(false)}
                       >
                         {monogramUrl ? (
                           <img src={monogramUrl} style={{ width: "100%", height: "100%", objectFit: "contain" }} alt="" />
