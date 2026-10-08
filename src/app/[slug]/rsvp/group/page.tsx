@@ -267,7 +267,7 @@ function GroupRsvpForm({ slug }: { slug: string }) {
 
           {!allDecided && guests.length > 0 && (
             <p className="text-xs text-center text-smoke font-body -mb-2">
-              Selecione "Vai" ou "Não vai" para cada pessoa antes de enviar.
+              Selecione &quot;Vai&quot; ou &quot;Não vai&quot; para cada pessoa antes de enviar.
             </p>
           )}
           <button
