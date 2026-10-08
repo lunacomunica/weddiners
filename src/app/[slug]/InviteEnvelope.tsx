@@ -57,26 +57,26 @@ export function InviteEnvelope({
           60%  { transform: translate(-50%,-50%) rotate(-2deg) scale(1.03); opacity: 0.7; }
           100% { transform: translate(-50%,-50%) rotate(0deg)  scale(1.15); opacity: 0; }
         }
-        /* ── Flap opens ── */
+        /* ── Flap opens — perspective no keyframe p/ iOS Safari ── */
         @keyframes topFlapOpen {
-          0%   { transform: rotateX(0deg); }
-          80%  { transform: rotateX(-185deg); }
-          100% { transform: rotateX(-178deg); }
+          0%   { transform: perspective(900px) rotateX(0deg); }
+          80%  { transform: perspective(900px) rotateX(-185deg); }
+          100% { transform: perspective(900px) rotateX(-178deg); }
         }
         @keyframes bottomFlapOpen {
-          0%   { transform: rotateX(0deg); }
-          80%  { transform: rotateX(185deg); }
-          100% { transform: rotateX(178deg); }
+          0%   { transform: perspective(900px) rotateX(0deg); }
+          80%  { transform: perspective(900px) rotateX(185deg); }
+          100% { transform: perspective(900px) rotateX(178deg); }
         }
         @keyframes leftFlapOpen {
-          0%   { transform: rotateY(0deg); }
-          80%  { transform: rotateY(-185deg); }
-          100% { transform: rotateY(-178deg); }
+          0%   { transform: perspective(900px) rotateY(0deg); }
+          80%  { transform: perspective(900px) rotateY(-185deg); }
+          100% { transform: perspective(900px) rotateY(-178deg); }
         }
         @keyframes rightFlapOpen {
-          0%   { transform: rotateY(0deg); }
-          80%  { transform: rotateY(185deg); }
-          100% { transform: rotateY(178deg); }
+          0%   { transform: perspective(900px) rotateY(0deg); }
+          80%  { transform: perspective(900px) rotateY(185deg); }
+          100% { transform: perspective(900px) rotateY(178deg); }
         }
         /* ── Letter card emerge ── */
         @keyframes letterEmerge {
@@ -104,9 +104,9 @@ export function InviteEnvelope({
         .flap-left   { transform-origin: left center;   animation: leftFlapOpen   0.76s cubic-bezier(0.25,0.46,0.45,0.94) 0.18s forwards; }
         .flap-right  { transform-origin: right center;  animation: rightFlapOpen  0.76s cubic-bezier(0.25,0.46,0.45,0.94) 0.14s forwards; }
         /* ── Seal classes ── */
-        .seal-idle       { cursor: pointer; }
+        .seal-idle       { cursor: pointer; touch-action: manipulation; }
         .seal-idle:hover { filter: brightness(1.1); }
-        .seal-breaking   { animation: sealBreakOut 0.55s ease-in-out forwards; }
+        .seal-breaking   { animation: sealBreakOut 0.55s ease-in-out forwards; touch-action: manipulation; }
         /* ── Arrow ── */
         .arrow-bounce { animation: arrowBounce 2s ease-in-out infinite; }
         .tap-pulse    { animation: tapPulse 2.2s ease-in-out infinite; }
@@ -180,23 +180,19 @@ export function InviteEnvelope({
         {/* ── Envelope flaps ── */}
         {!envelopeImageUrl && (
           <>
-            <div className={`absolute inset-0${isOpening ? " flap-top" : ""}`}
-              style={{ zIndex: 3, transformStyle: "preserve-3d", perspective: "900px" }}>
+            <div className={`absolute inset-0${isOpening ? " flap-top" : ""}`} style={{ zIndex: 3 }}>
               <div style={{ position: "absolute", inset: 0, background: envelopeColor,
                 clipPath: "polygon(0% 0%, 100% 0%, 50% 52%)", filter: "brightness(0.92)" }} />
             </div>
-            <div className={`absolute inset-0${isOpening ? " flap-bottom" : ""}`}
-              style={{ zIndex: 3, transformStyle: "preserve-3d", perspective: "900px" }}>
+            <div className={`absolute inset-0${isOpening ? " flap-bottom" : ""}`} style={{ zIndex: 3 }}>
               <div style={{ position: "absolute", inset: 0, background: envelopeColor,
                 clipPath: "polygon(0% 100%, 100% 100%, 50% 52%)", filter: "brightness(0.82)" }} />
             </div>
-            <div className={`absolute inset-0${isOpening ? " flap-left" : ""}`}
-              style={{ zIndex: 3, transformStyle: "preserve-3d", perspective: "900px" }}>
+            <div className={`absolute inset-0${isOpening ? " flap-left" : ""}`} style={{ zIndex: 3 }}>
               <div style={{ position: "absolute", inset: 0, background: envelopeColor,
                 clipPath: "polygon(0% 0%, 52% 50%, 0% 100%)", filter: "brightness(0.86)" }} />
             </div>
-            <div className={`absolute inset-0${isOpening ? " flap-right" : ""}`}
-              style={{ zIndex: 3, transformStyle: "preserve-3d", perspective: "900px" }}>
+            <div className={`absolute inset-0${isOpening ? " flap-right" : ""}`} style={{ zIndex: 3 }}>
               <div style={{ position: "absolute", inset: 0, background: envelopeColor,
                 clipPath: "polygon(100% 0%, 48% 50%, 100% 100%)", filter: "brightness(0.86)" }} />
             </div>
