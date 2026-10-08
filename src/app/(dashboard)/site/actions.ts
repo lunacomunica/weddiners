@@ -245,6 +245,41 @@ export async function updateSiteSettings(data: {
   return { success: true };
 }
 
+export async function updateEnvelope(data: {
+  enabled: boolean;
+  envelopeColor: string;
+  sealColor: string;
+  monogramUrl: string | null;
+}) {
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: "Não autorizado" };
+
+  const { data: couple } = await supabase
+    .from("couples")
+    .select("id, slug")
+    .eq("user_id", user.id)
+    .single();
+  if (!couple) return { error: "Casal não encontrado" };
+
+  const { error } = await supabase
+    .from("site_configs")
+    .update({
+      envelope_enabled: data.enabled,
+      envelope_color: data.envelopeColor,
+      seal_color: data.sealColor,
+      seal_monogram_url: data.monogramUrl,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("couple_id", couple.id);
+
+  if (error) return { error: error.message };
+
+  revalidatePath("/site");
+  revalidatePath(`/${couple.slug}`);
+  return { success: true };
+}
+
 export async function updateCoupleInfo(formData: FormData) {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();

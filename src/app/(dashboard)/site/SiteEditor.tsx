@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/Button";
 import { Textarea } from "@/components/ui/Textarea";
 import { PhotoUpload } from "./PhotoUpload";
 import { TYPOGRAPHY_PAIRINGS } from "@/app/[slug]/templates/typography";
-import { updateSiteConfig, updateCoupleInfo, updateAppearance, updateSiteSettings, updateSections } from "./actions";
+import { updateSiteConfig, updateCoupleInfo, updateAppearance, updateSiteSettings, updateSections, updateEnvelope } from "./actions";
 
 type SectionId = "about" | "rsvp" | "gifts" | "dresscode" | "schedule" | "directions" | "messages";
 
@@ -55,6 +55,10 @@ interface SiteConfig {
   schedule_title: string | null;
   directions_title: string | null;
   messages_title: string | null;
+  envelope_enabled?: boolean | null;
+  envelope_color?: string | null;
+  seal_color?: string | null;
+  seal_monogram_url?: string | null;
 }
 
 interface Couple {
@@ -443,6 +447,44 @@ export function SiteEditor({ config, couple, plan = "free" }: { config: SiteConf
     if (result?.error) setError(result.error);
     else { setSaved(true); setTimeout(() => setSaved(false), 2000); refreshPreview(); }
     setSaving(false);
+  }
+
+  // Envelope state
+  const [envEnabled, setEnvEnabled] = useState(!!config.envelope_enabled);
+  const [envColor, setEnvColor] = useState(config.envelope_color ?? "#4A5E3A");
+  const [sealColor, setSealColor] = useState(config.seal_color ?? "#D4C5A0");
+  const [monogramUrl, setMonogramUrl] = useState<string>(config.seal_monogram_url ?? "");
+  const [savingEnv, setSavingEnv] = useState(false);
+  const [envSaved, setEnvSaved] = useState(false);
+  const [uploadingMonogram, setUploadingMonogram] = useState(false);
+
+  async function handleUploadMonogram(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingMonogram(true);
+    const fd = new FormData();
+    fd.set("file", file);
+    // Reuse existing upload action (slot "cover" goes to site-photos bucket)
+    const { uploadSitePhoto } = await import("./actions");
+    const result = await uploadSitePhoto(fd);
+    if (result?.url) setMonogramUrl(result.url);
+    setUploadingMonogram(false);
+  }
+
+  async function handleSaveEnvelope(enabledOverride?: boolean) {
+    setSavingEnv(true);
+    const result = await updateEnvelope({
+      enabled: enabledOverride ?? envEnabled,
+      envelopeColor: envColor,
+      sealColor: sealColor,
+      monogramUrl: monogramUrl || null,
+    });
+    if (!result?.error) {
+      setEnvSaved(true);
+      setTimeout(() => setEnvSaved(false), 2000);
+      refreshPreview();
+    }
+    setSavingEnv(false);
   }
 
   // Settings state
@@ -1015,6 +1057,171 @@ export function SiteEditor({ config, couple, plan = "free" }: { config: SiteConf
         {/* Configurações */}
         {tab === "configuracoes" && (
           <div className="space-y-4">
+
+            {/* Convite Digital */}
+            <div className="bg-white rounded-2xl border border-neutral-200 p-6">
+              <div className="flex items-start justify-between gap-4 mb-4">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-lg bg-neutral-100 flex items-center justify-center shrink-0">
+                    <svg width="15" height="15" fill="none" stroke="#5A6A52" strokeWidth={1.8} viewBox="0 0 24 24">
+                      <path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-neutral-800 text-sm">Convite Digital</h3>
+                    <p className="text-xs text-neutral-500 mt-0.5">Animação de envelope que abre ao acessar o site</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => { const next = !envEnabled; setEnvEnabled(next); if (!next) handleSaveEnvelope(false); }}
+                  className={["relative inline-flex h-6 w-11 shrink-0 rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none", envEnabled ? "bg-sage" : "bg-neutral-200"].join(" ")}
+                >
+                  <span className={["pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow transform ring-0 transition duration-200 ease-in-out", envEnabled ? "translate-x-5" : "translate-x-0"].join(" ")} />
+                </button>
+              </div>
+
+              {envEnabled && (
+                <div className="space-y-4">
+                  {/* Preview mini do envelope */}
+                  <div className="rounded-xl overflow-hidden flex items-center justify-center" style={{ background: "#1a1a1a", height: 120 }}>
+                    <div className="relative" style={{ width: 160, height: 112 }}>
+                      {/* Envelope back */}
+                      <div className="absolute inset-0 rounded-sm" style={{ background: envColor }} />
+                      {/* Top flap */}
+                      <div className="absolute top-0 left-0 right-0" style={{ height: "55%", overflow: "hidden" }}>
+                        <div style={{ width: "100%", height: "100%", background: envColor, clipPath: "polygon(0% 0%, 100% 0%, 50% 100%)", filter: "brightness(0.93)" }} />
+                      </div>
+                      {/* Left flap */}
+                      <div className="absolute top-0 left-0 bottom-0" style={{ width: "52%", overflow: "hidden" }}>
+                        <div style={{ width: "100%", height: "100%", background: envColor, clipPath: "polygon(0% 0%, 100% 50%, 0% 100%)", filter: "brightness(0.82)" }} />
+                      </div>
+                      {/* Right flap */}
+                      <div className="absolute top-0 right-0 bottom-0" style={{ width: "52%", overflow: "hidden" }}>
+                        <div style={{ width: "100%", height: "100%", background: envColor, clipPath: "polygon(100% 0%, 0% 50%, 100% 100%)", filter: "brightness(0.82)" }} />
+                      </div>
+                      {/* Seal */}
+                      <div className="absolute" style={{ left: "50%", top: "50%", transform: "translate(-50%,-50%)", width: 36, height: 36 }}>
+                        <svg viewBox="0 0 100 100" style={{ width: "100%", height: "100%" }}>
+                          <circle cx="50" cy="50" r="47" fill={sealColor} />
+                          <circle cx="50" cy="50" r="38" fill={sealColor} style={{ filter: "brightness(0.92)" }} />
+                        </svg>
+                        {!monogramUrl && (
+                          <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                            <span style={{ fontFamily: "Georgia, serif", fontSize: 10, color: sealColor, filter: "brightness(0.55)", fontStyle: "italic" }}>
+                              {(config.cover_photo_url ? "" : "AB")}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Cor do envelope */}
+                  <div>
+                    <label className="block text-xs font-medium text-neutral-600 mb-2">Cor do envelope</label>
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="color"
+                        value={envColor}
+                        onChange={e => setEnvColor(e.target.value)}
+                        className="w-10 h-10 rounded-lg border cursor-pointer p-0.5"
+                        style={{ borderColor: "rgba(13,10,11,0.15)" }}
+                      />
+                      <input
+                        type="text"
+                        value={envColor}
+                        onChange={e => { if (/^#[0-9A-Fa-f]{0,6}$/.test(e.target.value)) setEnvColor(e.target.value); }}
+                        maxLength={7}
+                        placeholder="#4A5E3A"
+                        className="flex-1 px-3 py-2 rounded-md border font-mono text-sm outline-none focus:border-sage transition-colors"
+                        style={{ borderColor: "rgba(13,10,11,0.12)" }}
+                      />
+                    </div>
+                    <div className="flex gap-2 mt-2 flex-wrap">
+                      {["#4A5E3A","#2D3A2E","#6B4E3D","#1B2A4A","#3D2B4A","#4A3728","#1A1A1A"].map(c => (
+                        <button key={c} type="button" onClick={() => setEnvColor(c)}
+                          className="w-6 h-6 rounded-full border-2 transition-all"
+                          style={{ background: c, borderColor: envColor === c ? "#fff" : "transparent", boxShadow: envColor === c ? "0 0 0 2px " + c : "none" }}
+                        />
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Cor do lacre */}
+                  <div>
+                    <label className="block text-xs font-medium text-neutral-600 mb-2">Cor do lacre</label>
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="color"
+                        value={sealColor}
+                        onChange={e => setSealColor(e.target.value)}
+                        className="w-10 h-10 rounded-lg border cursor-pointer p-0.5"
+                        style={{ borderColor: "rgba(13,10,11,0.15)" }}
+                      />
+                      <input
+                        type="text"
+                        value={sealColor}
+                        onChange={e => { if (/^#[0-9A-Fa-f]{0,6}$/.test(e.target.value)) setSealColor(e.target.value); }}
+                        maxLength={7}
+                        placeholder="#D4C5A0"
+                        className="flex-1 px-3 py-2 rounded-md border font-mono text-sm outline-none focus:border-sage transition-colors"
+                        style={{ borderColor: "rgba(13,10,11,0.12)" }}
+                      />
+                    </div>
+                    <div className="flex gap-2 mt-2 flex-wrap">
+                      {["#D4C5A0","#C9A96E","#E8DCC8","#B5A090","#C4B08A","#A89070","#FFFBF0"].map(c => (
+                        <button key={c} type="button" onClick={() => setSealColor(c)}
+                          className="w-6 h-6 rounded-full border-2 transition-all"
+                          style={{ background: c, borderColor: sealColor === c ? "#333" : "rgba(0,0,0,0.15)", boxShadow: sealColor === c ? "0 0 0 2px " + c : "none" }}
+                        />
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Monograma */}
+                  <div>
+                    <label className="block text-xs font-medium text-neutral-600 mb-1">Monograma do lacre (PNG)</label>
+                    <p className="text-xs text-neutral-400 mb-2">Suba um PNG transparente com as iniciais do casal. Se não enviado, usamos as iniciais dos nomes.</p>
+                    {monogramUrl ? (
+                      <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 rounded-lg border flex items-center justify-center overflow-hidden" style={{ background: "#f5f5f5", borderColor: "rgba(0,0,0,0.1)" }}>
+                          <img src={monogramUrl} alt="monograma" className="w-10 h-10 object-contain" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs text-neutral-600 truncate">Monograma enviado</p>
+                          <button type="button" onClick={() => setMonogramUrl("")} className="text-xs text-rose-500 hover:underline mt-0.5">
+                            Remover
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <label className="flex items-center gap-2 px-3 py-2.5 rounded-lg border border-dashed cursor-pointer hover:border-sage transition-colors" style={{ borderColor: "rgba(13,10,11,0.2)" }}>
+                        <input type="file" accept="image/png,image/svg+xml" className="hidden" onChange={handleUploadMonogram} disabled={uploadingMonogram} />
+                        <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24" className="text-neutral-400 shrink-0">
+                          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                        <span className="text-xs text-neutral-500">{uploadingMonogram ? "Enviando..." : "Enviar PNG do monograma"}</span>
+                      </label>
+                    )}
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => handleSaveEnvelope()}
+                    disabled={savingEnv}
+                    className="w-full btn-primary py-2.5 text-sm disabled:opacity-40"
+                  >
+                    {savingEnv ? "Salvando..." : envSaved ? "✓ Salvo!" : "Salvar convite digital"}
+                  </button>
+                </div>
+              )}
+
+              {!envEnabled && envSaved && (
+                <p className="text-xs text-neutral-400 text-center py-1">✓ Desativado e salvo</p>
+              )}
+            </div>
+
             {/* Senha de acesso */}
             <div className="bg-white rounded-2xl border border-neutral-200 p-6">
               <div className="flex items-start justify-between gap-4 mb-4">
