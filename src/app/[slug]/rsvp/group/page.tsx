@@ -33,7 +33,7 @@ function GroupRsvpForm({ slug }: { slug: string }) {
   const [group, setGroup] = useState<Group | null>(null);
   const [guests, setGuests] = useState<GuestItem[]>([]);
   const [couple, setCouple] = useState<Couple | null>(null);
-  const [checked, setChecked] = useState<Record<string, boolean>>({});
+  const [checked, setChecked] = useState<Record<string, boolean | null>>({});
   const [dietaries, setDietaries] = useState<Record<string, string>>({});
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(true);
@@ -56,7 +56,7 @@ function GroupRsvpForm({ slug }: { slug: string }) {
         const initChecked: Record<string, boolean> = {};
         const initDietaries: Record<string, string> = {};
         guestData.forEach(g => {
-          initChecked[g.id] = g.rsvp_status === "confirmed";
+          initChecked[g.id] = g.rsvp_status === "confirmed" ? true : g.rsvp_status === "declined" ? false : null;
           initDietaries[g.id] = g.dietary_restrictions ?? "";
         });
         setChecked(initChecked);
@@ -73,8 +73,8 @@ function GroupRsvpForm({ slug }: { slug: string }) {
     setSubmitting(true);
     setError("");
 
-    const confirmados = Object.entries(checked).filter(([, v]) => v).map(([id]) => id);
-    const declinados = guests.map(g => g.id).filter(id => !checked[id]);
+    const confirmados = Object.entries(checked).filter(([, v]) => v === true).map(([id]) => id);
+    const declinados = Object.entries(checked).filter(([, v]) => v === false).map(([id]) => id);
 
     const result = await submitGroupRsvp({
       groupToken: group.token,
@@ -130,7 +130,8 @@ function GroupRsvpForm({ slug }: { slug: string }) {
     </div>
   );
 
-  const confirmedCount = Object.values(checked).filter(Boolean).length;
+  const confirmedCount = Object.values(checked).filter(v => v === true).length;
+  const allDecided = guests.length > 0 && guests.every(g => checked[g.id] !== null && checked[g.id] !== undefined);
 
   return (
     <div className="min-h-screen bg-ivory flex items-center justify-center px-4 py-12">
@@ -157,45 +158,90 @@ function GroupRsvpForm({ slug }: { slug: string }) {
             <p className="text-xs text-smoke font-body mb-4">Marque as pessoas que vão estar presentes.</p>
 
             <div className="space-y-3">
-              {guests.map(g => (
-                <div
-                  key={g.id}
-                  onClick={() => setChecked(prev => ({ ...prev, [g.id]: !prev[g.id] }))}
-                  className={["rounded-xl border p-4 transition-all cursor-pointer select-none", checked[g.id] ? "border-emerald-400 bg-emerald-50/60" : "border-neutral-200 hover:border-neutral-300"].join(" ")}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className={["w-7 h-7 rounded-full flex items-center justify-center shrink-0 transition-all", checked[g.id] ? "bg-emerald-500" : "border-2 border-neutral-300"].join(" ")}>
-                      {checked[g.id] && (
-                        <svg width="14" height="14" fill="none" stroke="white" strokeWidth={2.5} viewBox="0 0 24 24">
-                          <path d="M20 6L9 17l-5-5" strokeLinecap="round" strokeLinejoin="round"/>
-                        </svg>
-                      )}
+              {guests.map(g => {
+                const val = checked[g.id];
+                return (
+                  <div
+                    key={g.id}
+                    className={[
+                      "rounded-xl border p-4 transition-all",
+                      val === true  ? "border-emerald-400 bg-emerald-50/60" :
+                      val === false ? "border-neutral-300 bg-neutral-50"    :
+                                      "border-neutral-200"
+                    ].join(" ")}
+                  >
+                    {/* Nome + tipo */}
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className={[
+                        "w-7 h-7 rounded-full flex items-center justify-center shrink-0 transition-all",
+                        val === true  ? "bg-emerald-500" :
+                        val === false ? "bg-neutral-300" :
+                                        "border-2 border-neutral-300"
+                      ].join(" ")}>
+                        {val === true && (
+                          <svg width="14" height="14" fill="none" stroke="white" strokeWidth={2.5} viewBox="0 0 24 24">
+                            <path d="M20 6L9 17l-5-5" strokeLinecap="round" strokeLinejoin="round"/>
+                          </svg>
+                        )}
+                        {val === false && (
+                          <svg width="12" height="12" fill="none" stroke="white" strokeWidth={2.5} viewBox="0 0 24 24">
+                            <path d="M18 6L6 18M6 6l12 12" strokeLinecap="round"/>
+                          </svg>
+                        )}
+                      </div>
+                      <div className="flex-1">
+                        <p className={["font-body font-medium text-sm", val === true ? "text-emerald-800" : val === false ? "text-smoke" : "text-noir"].join(" ")}>
+                          {g.name}
+                        </p>
+                        <p className="text-xs text-smoke font-body">
+                          {g.guest_type === "crianca" ? `👶 Criança${g.child_age != null ? ` · ${g.child_age} anos` : ""}` : "🧑 Adulto"}
+                        </p>
+                      </div>
                     </div>
-                    <div className="flex-1">
-                      <p className={["font-body font-medium text-sm transition-colors", checked[g.id] ? "text-emerald-800" : "text-noir"].join(" ")}>{g.name}</p>
-                      <p className="text-xs text-smoke font-body">
-                        {g.guest_type === "crianca" ? `👶 Criança${g.child_age != null ? ` · ${g.child_age} anos` : ""}` : "🧑 Adulto"}
-                      </p>
+
+                    {/* Botões Vai / Não vai */}
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setChecked(prev => ({ ...prev, [g.id]: true }))}
+                        className={[
+                          "py-2 rounded-lg text-xs font-semibold font-body transition-all border",
+                          val === true
+                            ? "bg-emerald-500 border-emerald-500 text-white"
+                            : "border-neutral-200 text-smoke hover:border-emerald-300 hover:text-emerald-700"
+                        ].join(" ")}
+                      >
+                        ✓ Vai
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setChecked(prev => ({ ...prev, [g.id]: false }))}
+                        className={[
+                          "py-2 rounded-lg text-xs font-semibold font-body transition-all border",
+                          val === false
+                            ? "bg-neutral-400 border-neutral-400 text-white"
+                            : "border-neutral-200 text-smoke hover:border-neutral-400 hover:text-neutral-700"
+                        ].join(" ")}
+                      >
+                        ✗ Não vai
+                      </button>
                     </div>
-                    {checked[g.id] && (
-                      <span className="text-xs font-semibold text-emerald-600 bg-emerald-100 px-2 py-0.5 rounded-full">Vai! 🎉</span>
+
+                    {/* Restrição alimentar — só quando vai */}
+                    {val === true && (
+                      <div className="mt-3">
+                        <input
+                          type="text"
+                          placeholder="Restrição alimentar (opcional)"
+                          value={dietaries[g.id] ?? ""}
+                          onChange={e => setDietaries(prev => ({ ...prev, [g.id]: e.target.value }))}
+                          className="w-full text-xs border border-emerald-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-200 focus:border-emerald-400 font-body bg-white"
+                        />
+                      </div>
                     )}
                   </div>
-
-                  {/* Campo de restrição alimentar por pessoa, visível quando confirmado */}
-                  {checked[g.id] && (
-                    <div className="mt-3 pl-10" onClick={e => e.stopPropagation()}>
-                      <input
-                        type="text"
-                        placeholder="Restrição alimentar (opcional)"
-                        value={dietaries[g.id] ?? ""}
-                        onChange={e => setDietaries(prev => ({ ...prev, [g.id]: e.target.value }))}
-                        className="w-full text-xs border border-emerald-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-200 focus:border-emerald-400 font-body bg-white"
-                      />
-                    </div>
-                  )}
-                </div>
-              ))}
+                );
+              })}
             </div>
 
             {confirmedCount > 0 && (
@@ -219,9 +265,14 @@ function GroupRsvpForm({ slug }: { slug: string }) {
 
           {error && <p className="text-red-500 text-sm font-body">{error}</p>}
 
+          {!allDecided && guests.length > 0 && (
+            <p className="text-xs text-center text-smoke font-body -mb-2">
+              Selecione "Vai" ou "Não vai" para cada pessoa antes de enviar.
+            </p>
+          )}
           <button
             type="submit"
-            disabled={submitting || guests.length === 0}
+            disabled={submitting || !allDecided}
             className="btn-primary w-full py-4 text-base disabled:opacity-50"
           >
             {submitting ? "Confirmando..." : confirmedCount === 0 ? "Confirmar que não vamos ir" : `Confirmar ${confirmedCount} presença${confirmedCount > 1 ? "s" : ""}`}
