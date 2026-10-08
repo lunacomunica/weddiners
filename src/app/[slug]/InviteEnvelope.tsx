@@ -323,17 +323,17 @@ export function InviteEnvelope({ envelopeColor, sealColor, monogramUrl, name1, n
                 transform="rotate(-20 38 34)"/>
             </svg>
 
-            {/* Monogram or initials — layered on top of SVG */}
-            {monogramUrl ? (
-              <img src={monogramUrl} alt="" style={{
+            {/* Se subiu PNG do lacre: substitui o SVG inteiro */}
+            {monogramUrl && (
+              <img src={monogramUrl} alt="lacre" style={{
                 position: "absolute",
-                inset: "24%", width: "52%", height: "52%",
+                inset: 0, width: "100%", height: "100%",
                 objectFit: "contain",
-                mixBlendMode: "multiply",
-                opacity: 0.6,
-                filter: "brightness(0.7)",
               }} />
-            ) : (
+            )}
+
+            {/* Sem imagem: iniciais sobre o SVG */}
+            {!monogramUrl && (
               <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <span style={{
                   fontFamily: "Georgia, 'Times New Roman', serif",

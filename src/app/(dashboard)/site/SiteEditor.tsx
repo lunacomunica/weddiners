@@ -1224,29 +1224,29 @@ export function SiteEditor({ config, couple, plan = "free" }: { config: SiteConf
                     )}
                   </div>
 
-                  {/* Monograma */}
+                  {/* Imagem do lacre */}
                   <div>
-                    <label className="block text-xs font-medium text-neutral-600 mb-1">Monograma do lacre (PNG)</label>
-                    <p className="text-xs text-neutral-400 mb-2">Suba um PNG transparente com as iniciais do casal. Se não enviado, usamos as iniciais dos nomes.</p>
+                    <label className="block text-xs font-medium text-neutral-600 mb-1">Imagem do lacre (PNG)</label>
+                    <p className="text-xs text-neutral-400 mb-2">Suba um PNG com fundo transparente do lacre. Substitui o lacre gerado automaticamente. Dica: gere na IA (ex: Canva, Midjourney) e suba aqui.</p>
                     {monogramUrl ? (
                       <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 rounded-lg border flex items-center justify-center overflow-hidden" style={{ background: "#f5f5f5", borderColor: "rgba(0,0,0,0.1)" }}>
-                          <img src={monogramUrl} alt="monograma" className="w-10 h-10 object-contain" />
+                        <div className="w-14 h-14 rounded-lg border flex items-center justify-center overflow-hidden" style={{ background: "repeating-conic-gradient(#eee 0% 25%, white 0% 50%) 0 0 / 10px 10px", borderColor: "rgba(0,0,0,0.1)" }}>
+                          <img src={monogramUrl} alt="lacre" className="w-full h-full object-contain" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-xs text-neutral-600 truncate">Monograma enviado</p>
+                          <p className="text-xs text-neutral-600">Imagem do lacre enviada</p>
                           <button type="button" onClick={() => setMonogramUrl("")} className="text-xs text-rose-500 hover:underline mt-0.5">
-                            Remover
+                            Remover (usar lacre automático)
                           </button>
                         </div>
                       </div>
                     ) : (
                       <label className="flex items-center gap-2 px-3 py-2.5 rounded-lg border border-dashed cursor-pointer hover:border-sage transition-colors" style={{ borderColor: "rgba(13,10,11,0.2)" }}>
-                        <input type="file" accept="image/png,image/svg+xml" className="hidden" onChange={handleUploadMonogram} disabled={uploadingMonogram} />
+                        <input type="file" accept="image/png,image/webp,image/svg+xml" className="hidden" onChange={handleUploadMonogram} disabled={uploadingMonogram} />
                         <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24" className="text-neutral-400 shrink-0">
                           <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12" strokeLinecap="round" strokeLinejoin="round"/>
                         </svg>
-                        <span className="text-xs text-neutral-500">{uploadingMonogram ? "Enviando..." : "Enviar PNG do monograma"}</span>
+                        <span className="text-xs text-neutral-500">{uploadingMonogram ? "Enviando..." : "Subir PNG do lacre"}</span>
                       </label>
                     )}
                   </div>
