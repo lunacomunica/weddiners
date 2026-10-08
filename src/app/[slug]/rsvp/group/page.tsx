@@ -33,7 +33,7 @@ function GroupRsvpForm({ slug }: { slug: string }) {
   const [group, setGroup] = useState<Group | null>(null);
   const [guests, setGuests] = useState<GuestItem[]>([]);
   const [couple, setCouple] = useState<Couple | null>(null);
-  const [checked, setChecked] = useState<Record<string, boolean | null>>({});
+  const [checked, setChecked] = useState<Record<string, boolean | null | undefined>>({});
   const [dietaries, setDietaries] = useState<Record<string, string>>({});
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(true);
@@ -53,7 +53,7 @@ function GroupRsvpForm({ slug }: { slug: string }) {
         setGroup(data.group);
         const guestData: GuestItem[] = data.guests ?? [];
         setGuests(guestData);
-        const initChecked: Record<string, boolean> = {};
+        const initChecked: Record<string, boolean | null | undefined> = {};
         const initDietaries: Record<string, string> = {};
         guestData.forEach(g => {
           initChecked[g.id] = g.rsvp_status === "confirmed" ? true : g.rsvp_status === "declined" ? false : null;
