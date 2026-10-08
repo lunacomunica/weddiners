@@ -28,9 +28,9 @@ export function InviteEnvelope({
   function handleSealClick() {
     if (phase !== "idle") return;
     setPhase("breaking");
-    setTimeout(() => setPhase("opening"),   600);
-    setTimeout(() => setPhase("revealing"), 2500);
-    setTimeout(() => setPhase("done"),      3300);
+    setTimeout(() => setPhase("opening"),   280);
+    setTimeout(() => setPhase("revealing"), 1300);
+    setTimeout(() => setPhase("done"),      2000);
   }
 
   if (!mounted || phase === "done") return null;
@@ -49,44 +49,42 @@ export function InviteEnvelope({
           0%,100% { transform: translate(-50%,-50%) scale(1);    opacity: 0.9; }
           50%      { transform: translate(-50%,-50%) scale(1.07); opacity: 1;   }
         }
-        /* ── Seal shake + fade out ── */
+        /* ── Seal fades rápido ── */
         @keyframes sealBreakOut {
-          0%   { transform: translate(-50%,-50%) rotate(0deg)  scale(1);    opacity: 1; }
-          20%  { transform: translate(-50%,-50%) rotate(-4deg) scale(1.06); opacity: 1; }
-          40%  { transform: translate(-50%,-50%) rotate(4deg)  scale(0.97); opacity: 0.9; }
-          60%  { transform: translate(-50%,-50%) rotate(-2deg) scale(1.03); opacity: 0.7; }
-          100% { transform: translate(-50%,-50%) rotate(0deg)  scale(1.15); opacity: 0; }
+          0%   { transform: translate(-50%,-50%) scale(1);    opacity: 1; }
+          40%  { transform: translate(-50%,-50%) scale(1.12); opacity: 0.5; }
+          100% { transform: translate(-50%,-50%) scale(1.2);  opacity: 0; }
         }
-        /* ── Flap opens — perspective no keyframe p/ iOS Safari ── */
+        /* ── Flaps rápidos ── */
         @keyframes topFlapOpen {
           0%   { transform: perspective(900px) rotateX(0deg); }
-          80%  { transform: perspective(900px) rotateX(-185deg); }
           100% { transform: perspective(900px) rotateX(-178deg); }
         }
         @keyframes bottomFlapOpen {
           0%   { transform: perspective(900px) rotateX(0deg); }
-          80%  { transform: perspective(900px) rotateX(185deg); }
           100% { transform: perspective(900px) rotateX(178deg); }
         }
         @keyframes leftFlapOpen {
           0%   { transform: perspective(900px) rotateY(0deg); }
-          80%  { transform: perspective(900px) rotateY(-185deg); }
           100% { transform: perspective(900px) rotateY(-178deg); }
         }
         @keyframes rightFlapOpen {
           0%   { transform: perspective(900px) rotateY(0deg); }
-          80%  { transform: perspective(900px) rotateY(185deg); }
           100% { transform: perspective(900px) rotateY(178deg); }
         }
-        /* ── Letter card emerge ── */
+        /* ── Zoom no envelope image ao abrir ── */
+        @keyframes envZoom {
+          0%   { transform: scale(1); }
+          100% { transform: scale(1.08); }
+        }
+        /* ── Carta emerge rápido ── */
         @keyframes letterEmerge {
-          0%   { transform: translateX(-50%) translateY(40px) scale(0.94); opacity: 0; }
-          60%  { transform: translateX(-50%) translateY(-6px)  scale(1.01); opacity: 1; }
-          100% { transform: translateX(-50%) translateY(0px)   scale(1);    opacity: 1; }
+          0%   { transform: translateX(-50%) translateY(50px) scale(0.92); opacity: 0; }
+          100% { transform: translateX(-50%) translateY(0px)  scale(1);    opacity: 1; }
         }
         @keyframes letterFade {
           0%   { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
-          100% { opacity: 0; transform: translateX(-50%) translateY(-20px) scale(0.96); }
+          100% { opacity: 0; transform: translateX(-50%) translateY(-16px) scale(0.96); }
         }
         /* ── Overlay fades ── */
         @keyframes overlayFade {
@@ -99,14 +97,14 @@ export function InviteEnvelope({
           50%      { opacity: 0.9;  transform: translateX(-50%) translateY(8px); }
         }
         /* ── Flap classes ── */
-        .flap-top    { transform-origin: top center;    animation: topFlapOpen    0.82s cubic-bezier(0.25,0.46,0.45,0.94) forwards; }
-        .flap-bottom { transform-origin: bottom center; animation: bottomFlapOpen 0.78s cubic-bezier(0.25,0.46,0.45,0.94) 0.28s forwards; }
-        .flap-left   { transform-origin: left center;   animation: leftFlapOpen   0.76s cubic-bezier(0.25,0.46,0.45,0.94) 0.18s forwards; }
-        .flap-right  { transform-origin: right center;  animation: rightFlapOpen  0.76s cubic-bezier(0.25,0.46,0.45,0.94) 0.14s forwards; }
+        .flap-top    { transform-origin: top center;    animation: topFlapOpen    0.36s cubic-bezier(0.4,0,0.6,1) forwards; }
+        .flap-bottom { transform-origin: bottom center; animation: bottomFlapOpen 0.34s cubic-bezier(0.4,0,0.6,1) 0.1s  forwards; }
+        .flap-left   { transform-origin: left center;   animation: leftFlapOpen   0.32s cubic-bezier(0.4,0,0.6,1) 0.06s forwards; }
+        .flap-right  { transform-origin: right center;  animation: rightFlapOpen  0.32s cubic-bezier(0.4,0,0.6,1) 0.04s forwards; }
         /* ── Seal classes ── */
         .seal-idle       { cursor: pointer; touch-action: manipulation; }
         .seal-idle:hover { filter: brightness(1.1); }
-        .seal-breaking   { animation: sealBreakOut 0.55s ease-in-out forwards; touch-action: manipulation; }
+        .seal-breaking   { animation: sealBreakOut 0.25s ease-out forwards; touch-action: manipulation; }
         /* ── Arrow ── */
         .arrow-bounce { animation: arrowBounce 2s ease-in-out infinite; }
         .tap-pulse    { animation: tapPulse 2.2s ease-in-out infinite; }
@@ -126,6 +124,7 @@ export function InviteEnvelope({
           <img src={envelopeImageUrl} alt="" style={{
             position: "absolute", inset: 0, width: "100%", height: "100%",
             objectFit: "cover", zIndex: 9,
+            animation: isOpening ? "envZoom 0.7s ease-out forwards" : undefined,
           }} />
         )}
 
@@ -217,8 +216,8 @@ export function InviteEnvelope({
             width: "min(72%, 320px)",
             zIndex: 5,
             animation: isRevealing
-              ? "letterFade 0.7s ease-in-out forwards"
-              : "letterEmerge 0.65s cubic-bezier(0.25,0.46,0.45,0.94) 0.55s both",
+              ? "letterFade 0.5s ease-in forwards"
+              : "letterEmerge 0.32s cubic-bezier(0.2,0,0.2,1) 0.18s both",
           }}>
             <div style={{
               background: "rgba(255,255,255,0.92)",
