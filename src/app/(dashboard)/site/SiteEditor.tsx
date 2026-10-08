@@ -1099,37 +1099,41 @@ export function SiteEditor({ config, couple, plan = "free" }: { config: SiteConf
 
               {envEnabled && (
                 <div className="space-y-4">
-                  {/* Preview mini do envelope */}
-                  <div className="rounded-xl overflow-hidden flex items-center justify-center" style={{ background: "#1a1a1a", height: 120 }}>
-                    <div className="relative" style={{ width: 160, height: 112 }}>
-                      {/* Envelope back */}
-                      <div className="absolute inset-0 rounded-sm" style={{ background: envColor }} />
+                  {/* Preview mini do envelope — formato retrato como no celular */}
+                  <div className="rounded-xl overflow-hidden flex items-center justify-center gap-3 px-4" style={{ background: "#1a1a1a", height: 160 }}>
+                    {/* Phone frame */}
+                    <div className="relative rounded-2xl border-2 border-white/20 overflow-hidden shrink-0" style={{ width: 72, height: 128, background: envColor }}>
                       {/* Top flap */}
-                      <div className="absolute top-0 left-0 right-0" style={{ height: "55%", overflow: "hidden" }}>
-                        <div style={{ width: "100%", height: "100%", background: envColor, clipPath: "polygon(0% 0%, 100% 0%, 50% 100%)", filter: "brightness(0.93)" }} />
-                      </div>
+                      <div className="absolute inset-0" style={{ clipPath: "polygon(0% 0%, 100% 0%, 50% 52%)", background: envColor, filter: "brightness(0.9)" }} />
+                      {/* Bottom flap */}
+                      <div className="absolute inset-0" style={{ clipPath: "polygon(0% 100%, 100% 100%, 50% 52%)", background: envColor, filter: "brightness(0.84)" }} />
                       {/* Left flap */}
-                      <div className="absolute top-0 left-0 bottom-0" style={{ width: "52%", overflow: "hidden" }}>
-                        <div style={{ width: "100%", height: "100%", background: envColor, clipPath: "polygon(0% 0%, 100% 50%, 0% 100%)", filter: "brightness(0.82)" }} />
-                      </div>
+                      <div className="absolute inset-0" style={{ clipPath: "polygon(0% 0%, 52% 50%, 0% 100%)", background: envColor, filter: "brightness(0.87)" }} />
                       {/* Right flap */}
-                      <div className="absolute top-0 right-0 bottom-0" style={{ width: "52%", overflow: "hidden" }}>
-                        <div style={{ width: "100%", height: "100%", background: envColor, clipPath: "polygon(100% 0%, 0% 50%, 100% 100%)", filter: "brightness(0.82)" }} />
-                      </div>
+                      <div className="absolute inset-0" style={{ clipPath: "polygon(100% 0%, 48% 50%, 100% 100%)", background: envColor, filter: "brightness(0.87)" }} />
+                      {/* Seam lines */}
+                      <svg className="absolute inset-0 w-full h-full" style={{ opacity: 0.2 }} viewBox="0 0 72 128">
+                        <line x1="0" y1="0" x2="36" y2="66" stroke="white" strokeWidth="0.5"/>
+                        <line x1="72" y1="0" x2="36" y2="66" stroke="white" strokeWidth="0.5"/>
+                        <line x1="0" y1="128" x2="36" y2="66" stroke="white" strokeWidth="0.5"/>
+                        <line x1="72" y1="128" x2="36" y2="66" stroke="white" strokeWidth="0.5"/>
+                      </svg>
                       {/* Seal */}
-                      <div className="absolute" style={{ left: "50%", top: "50%", transform: "translate(-50%,-50%)", width: 36, height: 36 }}>
-                        <svg viewBox="0 0 100 100" style={{ width: "100%", height: "100%" }}>
-                          <circle cx="50" cy="50" r="47" fill={sealColor} />
-                          <circle cx="50" cy="50" r="38" fill={sealColor} style={{ filter: "brightness(0.92)" }} />
+                      <div className="absolute" style={{ left: "50%", top: "50%", transform: "translate(-50%,-50%)", width: 28, height: 28 }}>
+                        <svg viewBox="0 0 100 100" style={{ width: "100%", height: "100%", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.3))" }}>
+                          <circle cx="50" cy="50" r="48" fill={sealColor} />
+                          <circle cx="50" cy="50" r="38" fill={sealColor} style={{ filter: "brightness(0.9)" }} />
                         </svg>
-                        {!monogramUrl && (
-                          <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                            <span style={{ fontFamily: "Georgia, serif", fontSize: 10, color: sealColor, filter: "brightness(0.55)", fontStyle: "italic" }}>
-                              {(config.cover_photo_url ? "" : "AB")}
-                            </span>
-                          </div>
-                        )}
+                        <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                          <span style={{ fontFamily: "Georgia, serif", fontSize: 9, color: sealColor, filter: "brightness(0.5)", fontStyle: "italic" }}>
+                            {`${coupleFields.partner1_name?.[0] ?? ""}${coupleFields.partner2_name?.[0] ?? ""}`.toUpperCase() || "AB"}
+                          </span>
+                        </div>
                       </div>
+                    </div>
+                    <div style={{ color: "rgba(255,255,255,0.5)", fontSize: 11, fontFamily: "system-ui", lineHeight: 1.5, maxWidth: 140 }}>
+                      <p style={{ color: "rgba(255,255,255,0.9)", fontWeight: 600, marginBottom: 4 }}>Convite Digital</p>
+                      <p>O envelope abre em tela cheia quando o convidado acessa o site</p>
                     </div>
                   </div>
 
