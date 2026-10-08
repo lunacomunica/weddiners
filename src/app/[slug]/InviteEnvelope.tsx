@@ -228,7 +228,7 @@ export function InviteEnvelope({ envelopeColor, sealColor, monogramUrl, name1, n
           </svg>
         )}
 
-        {/* Wax seal */}
+        {/* Wax seal — realistic */}
         {!isOpening && (
           <div
             className={`absolute ${
@@ -237,43 +237,112 @@ export function InviteEnvelope({ envelopeColor, sealColor, monogramUrl, name1, n
             }`}
             style={{
               left: "50%", top: "50%",
-              width: "clamp(80px, 22vw, 130px)",
-              height: "clamp(80px, 22vw, 130px)",
+              width: "clamp(90px, 24vw, 148px)",
+              height: "clamp(90px, 24vw, 148px)",
               zIndex: 10,
             }}
             onClick={handleSealClick}
           >
-            <svg viewBox="0 0 100 100" style={{ width: "100%", height: "100%", filter: "drop-shadow(0 6px 18px rgba(0,0,0,0.35))" }}>
-              {/* Outer ring */}
-              <circle cx="50" cy="50" r="48" fill={sealColor} />
-              {/* Decorative dots ring */}
-              {Array.from({ length: 32 }).map((_, i) => {
-                const a = (i / 32) * 2 * Math.PI;
-                return <circle key={i} cx={50 + 44 * Math.cos(a)} cy={50 + 44 * Math.sin(a)} r="1" fill={sealColor} style={{ filter: "brightness(0.65)" }} />;
-              })}
-              {/* Inner circles */}
-              <circle cx="50" cy="50" r="40" fill={sealColor} style={{ filter: "brightness(0.94)" }} />
-              <circle cx="50" cy="50" r="36" fill={sealColor} style={{ filter: "brightness(0.88)" }} />
-              {/* Wax texture radial lines */}
-              {Array.from({ length: 8 }).map((_, i) => {
-                const a = (i / 8) * 2 * Math.PI;
-                return <line key={i} x1={50 + 18 * Math.cos(a)} y1={50 + 18 * Math.sin(a)} x2={50 + 34 * Math.cos(a)} y2={50 + 34 * Math.sin(a)} stroke={sealColor} strokeWidth="0.7" style={{ filter: "brightness(0.7)" }} />;
-              })}
+            <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"
+              style={{ width: "100%", height: "100%", overflow: "visible" }}>
+              <defs>
+                {/* Organic edge displacement */}
+                <filter id="wax-edge" x="-18%" y="-18%" width="136%" height="136%">
+                  <feTurbulence type="turbulence" baseFrequency="0.038" numOctaves="4" seed="9" result="noise"/>
+                  <feDisplacementMap in="SourceGraphic" in2="noise" scale="6" xChannelSelector="R" yChannelSelector="G"/>
+                </filter>
+                {/* Depth shadow */}
+                <filter id="wax-shadow" x="-25%" y="-15%" width="150%" height="155%">
+                  <feDropShadow dx="0" dy="6" stdDeviation="7" floodColor="rgba(0,0,0,0.5)"/>
+                </filter>
+                {/* 3D radial gradient — bright top-left, dark bottom-right */}
+                <radialGradient id="wax-3d" cx="36%" cy="30%" r="72%" fx="28%" fy="22%">
+                  <stop offset="0%"   stopColor="white" stopOpacity="0.55"/>
+                  <stop offset="25%"  stopColor="white" stopOpacity="0.15"/>
+                  <stop offset="55%"  stopColor="black" stopOpacity="0"/>
+                  <stop offset="100%" stopColor="black" stopOpacity="0.42"/>
+                </radialGradient>
+                {/* Inner disc gradient */}
+                <radialGradient id="wax-inner" cx="40%" cy="34%" r="68%">
+                  <stop offset="0%"   stopColor="white" stopOpacity="0.22"/>
+                  <stop offset="100%" stopColor="black" stopOpacity="0.28"/>
+                </radialGradient>
+                {/* Groove ring gradient */}
+                <radialGradient id="groove-grad" cx="50%" cy="50%" r="50%">
+                  <stop offset="0%"   stopColor="black" stopOpacity="0.18"/>
+                  <stop offset="100%" stopColor="white" stopOpacity="0.08"/>
+                </radialGradient>
+                {/* Specular highlight */}
+                <radialGradient id="specular" cx="30%" cy="22%" r="45%">
+                  <stop offset="0%"   stopColor="white" stopOpacity="0.7"/>
+                  <stop offset="50%"  stopColor="white" stopOpacity="0.2"/>
+                  <stop offset="100%" stopColor="white" stopOpacity="0"/>
+                </radialGradient>
+                {/* Wax surface noise */}
+                <filter id="wax-texture" x="0%" y="0%" width="100%" height="100%">
+                  <feTurbulence type="fractalNoise" baseFrequency="0.25" numOctaves="3" seed="4" result="noise"/>
+                  <feColorMatrix type="saturate" values="0" in="noise" result="gray"/>
+                  <feBlend in="SourceGraphic" in2="gray" mode="soft-light" result="blend"/>
+                  <feComposite in="blend" in2="SourceGraphic" operator="in"/>
+                </filter>
+                <clipPath id="seal-clip">
+                  <circle cx="60" cy="60" r="54"/>
+                </clipPath>
+              </defs>
+
+              {/* Outer bumpy wax body */}
+              <g filter="url(#wax-shadow)">
+                <circle cx="60" cy="60" r="54" fill={sealColor} filter="url(#wax-edge)"/>
+              </g>
+
+              {/* Surface wax texture */}
+              <circle cx="60" cy="60" r="54" fill={sealColor} filter="url(#wax-texture)" clipPath="url(#seal-clip)"/>
+
+              {/* 3D light/shadow overlay */}
+              <circle cx="60" cy="60" r="54" fill="url(#wax-3d)"/>
+
+              {/* Outer groove ring */}
+              <circle cx="60" cy="60" r="46" fill="none" stroke="black" strokeWidth="2.5" strokeOpacity="0.18"/>
+              <circle cx="60" cy="60" r="46" fill="none" stroke="white" strokeWidth="1"   strokeOpacity="0.12"/>
+
+              {/* Inner raised disc */}
+              <circle cx="60" cy="60" r="40" fill={sealColor}/>
+              <circle cx="60" cy="60" r="40" fill="url(#wax-inner)"/>
+
+              {/* Inner groove */}
+              <circle cx="60" cy="60" r="40" fill="none" stroke="black" strokeWidth="1.5" strokeOpacity="0.12"/>
+
+              {/* Specular highlight — glossy top-left */}
+              <ellipse cx="44" cy="38" rx="17" ry="11"
+                fill="url(#specular)"
+                transform="rotate(-25 44 38)"/>
+
+              {/* Small secondary highlight */}
+              <ellipse cx="38" cy="34" rx="6" ry="4"
+                fill="white" fillOpacity="0.35"
+                transform="rotate(-20 38 34)"/>
             </svg>
 
-            {/* Monogram or initials */}
+            {/* Monogram or initials — layered on top of SVG */}
             {monogramUrl ? (
               <img src={monogramUrl} alt="" style={{
-                position: "absolute", inset: "22%", width: "56%", height: "56%",
-                objectFit: "contain", mixBlendMode: "multiply", opacity: 0.65,
+                position: "absolute",
+                inset: "24%", width: "52%", height: "52%",
+                objectFit: "contain",
+                mixBlendMode: "multiply",
+                opacity: 0.6,
+                filter: "brightness(0.7)",
               }} />
             ) : (
               <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <span style={{
                   fontFamily: "Georgia, 'Times New Roman', serif",
-                  fontSize: "clamp(18px, 6vw, 36px)",
-                  color: sealColor, filter: "brightness(0.5)",
-                  fontStyle: "italic", letterSpacing: "0.04em",
+                  fontSize: "clamp(20px, 6.5vw, 40px)",
+                  color: sealColor,
+                  filter: "brightness(0.42) contrast(1.2)",
+                  fontStyle: "italic",
+                  letterSpacing: "0.04em",
+                  textShadow: "0 1px 2px rgba(0,0,0,0.15)",
                 }}>{initials}</span>
               </div>
             )}
