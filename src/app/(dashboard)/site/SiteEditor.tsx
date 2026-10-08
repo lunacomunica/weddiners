@@ -61,6 +61,9 @@ interface SiteConfig {
   seal_monogram_url?: string | null;
   invite_image_url?: string | null;
   envelope_image_url?: string | null;
+  seal_x?: number | null;
+  seal_y?: number | null;
+  seal_scale?: number | null;
 }
 
 interface Couple {
@@ -458,8 +461,13 @@ export function SiteEditor({ config, couple, plan = "free" }: { config: SiteConf
   const [monogramUrl, setMonogramUrl] = useState<string>(config.seal_monogram_url ?? "");
   const [inviteImageUrl, setInviteImageUrl] = useState<string>(config.invite_image_url ?? "");
   const [envelopeImageUrl, setEnvelopeImageUrl] = useState<string>(config.envelope_image_url ?? "");
+  const [sealX, setSealX] = useState<number>(config.seal_x ?? 50);
+  const [sealY, setSealY] = useState<number>(config.seal_y ?? 50);
+  const [sealScale, setSealScale] = useState<number>(config.seal_scale ?? 1);
   const [uploadingInviteImage, setUploadingInviteImage] = useState(false);
   const [uploadingEnvelopeImage, setUploadingEnvelopeImage] = useState(false);
+  const [isDraggingSeal, setIsDraggingSeal] = useState(false);
+  const sealPreviewRef = useRef<HTMLDivElement>(null);
 
   async function handleUploadInviteImage(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -501,6 +509,15 @@ export function SiteEditor({ config, couple, plan = "free" }: { config: SiteConf
     setUploadingMonogram(false);
   }
 
+  function handleSealDragMove(e: React.PointerEvent) {
+    if (!isDraggingSeal || !sealPreviewRef.current) return;
+    const rect = sealPreviewRef.current.getBoundingClientRect();
+    const x = Math.max(5, Math.min(95, ((e.clientX - rect.left) / rect.width) * 100));
+    const y = Math.max(5, Math.min(95, ((e.clientY - rect.top) / rect.height) * 100));
+    setSealX(Math.round(x * 10) / 10);
+    setSealY(Math.round(y * 10) / 10);
+  }
+
   async function handleSaveEnvelope(enabledOverride?: boolean) {
     setSavingEnv(true);
     const result = await updateEnvelope({
@@ -510,6 +527,9 @@ export function SiteEditor({ config, couple, plan = "free" }: { config: SiteConf
       monogramUrl: monogramUrl || null,
       inviteImageUrl: inviteImageUrl || null,
       envelopeImageUrl: envelopeImageUrl || null,
+      sealX,
+      sealY,
+      sealScale,
     });
     if (!result?.error) {
       setEnvSaved(true);
@@ -1115,41 +1135,80 @@ export function SiteEditor({ config, couple, plan = "free" }: { config: SiteConf
 
               {envEnabled && (
                 <div className="space-y-4">
-                  {/* Preview mini do envelope — formato retrato como no celular */}
-                  <div className="rounded-xl overflow-hidden flex items-center justify-center gap-3 px-4" style={{ background: "#1a1a1a", height: 160 }}>
-                    {/* Phone frame */}
-                    <div className="relative rounded-2xl border-2 border-white/20 overflow-hidden shrink-0" style={{ width: 72, height: 128, background: envColor }}>
-                      {/* Top flap */}
-                      <div className="absolute inset-0" style={{ clipPath: "polygon(0% 0%, 100% 0%, 50% 52%)", background: envColor, filter: "brightness(0.9)" }} />
-                      {/* Bottom flap */}
-                      <div className="absolute inset-0" style={{ clipPath: "polygon(0% 100%, 100% 100%, 50% 52%)", background: envColor, filter: "brightness(0.84)" }} />
-                      {/* Left flap */}
-                      <div className="absolute inset-0" style={{ clipPath: "polygon(0% 0%, 52% 50%, 0% 100%)", background: envColor, filter: "brightness(0.87)" }} />
-                      {/* Right flap */}
-                      <div className="absolute inset-0" style={{ clipPath: "polygon(100% 0%, 48% 50%, 100% 100%)", background: envColor, filter: "brightness(0.87)" }} />
-                      {/* Seam lines */}
-                      <svg className="absolute inset-0 w-full h-full" style={{ opacity: 0.2 }} viewBox="0 0 72 128">
-                        <line x1="0" y1="0" x2="36" y2="66" stroke="white" strokeWidth="0.5"/>
-                        <line x1="72" y1="0" x2="36" y2="66" stroke="white" strokeWidth="0.5"/>
-                        <line x1="0" y1="128" x2="36" y2="66" stroke="white" strokeWidth="0.5"/>
-                        <line x1="72" y1="128" x2="36" y2="66" stroke="white" strokeWidth="0.5"/>
-                      </svg>
-                      {/* Seal */}
-                      <div className="absolute" style={{ left: "50%", top: "50%", transform: "translate(-50%,-50%)", width: 28, height: 28 }}>
-                        <svg viewBox="0 0 100 100" style={{ width: "100%", height: "100%", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.3))" }}>
-                          <circle cx="50" cy="50" r="48" fill={sealColor} />
-                          <circle cx="50" cy="50" r="38" fill={sealColor} style={{ filter: "brightness(0.9)" }} />
-                        </svg>
-                        <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                          <span style={{ fontFamily: "Georgia, serif", fontSize: 9, color: sealColor, filter: "brightness(0.5)", fontStyle: "italic" }}>
-                            {`${coupleFields.partner1_name?.[0] ?? ""}${coupleFields.partner2_name?.[0] ?? ""}`.toUpperCase() || "AB"}
-                          </span>
-                        </div>
+                  {/* Preview interativo — arrastar lacre */}
+                  <div className="rounded-xl overflow-hidden flex flex-col items-center gap-3 p-4" style={{ background: "#1a1a1a" }}>
+                    <p style={{ color: "rgba(255,255,255,0.5)", fontSize: 11, fontFamily: "system-ui", marginBottom: 2 }}>
+                      Arraste o lacre para posicionar
+                    </p>
+                    {/* Phone frame interativo */}
+                    <div
+                      ref={sealPreviewRef}
+                      className="relative rounded-3xl border-2 overflow-hidden shrink-0 select-none"
+                      style={{ width: 180, height: 320, background: envColor, borderColor: "rgba(255,255,255,0.15)", cursor: isDraggingSeal ? "grabbing" : "default", touchAction: "none" }}
+                      onPointerMove={handleSealDragMove}
+                      onPointerUp={() => setIsDraggingSeal(false)}
+                      onPointerLeave={() => setIsDraggingSeal(false)}
+                    >
+                      {envelopeImageUrl ? (
+                        <img src={envelopeImageUrl} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} alt="" />
+                      ) : (
+                        <>
+                          <div className="absolute inset-0" style={{ clipPath: "polygon(0% 0%, 100% 0%, 50% 52%)", background: envColor, filter: "brightness(0.9)" }} />
+                          <div className="absolute inset-0" style={{ clipPath: "polygon(0% 100%, 100% 100%, 50% 52%)", background: envColor, filter: "brightness(0.84)" }} />
+                          <div className="absolute inset-0" style={{ clipPath: "polygon(0% 0%, 52% 50%, 0% 100%)", background: envColor, filter: "brightness(0.87)" }} />
+                          <div className="absolute inset-0" style={{ clipPath: "polygon(100% 0%, 48% 50%, 100% 100%)", background: envColor, filter: "brightness(0.87)" }} />
+                          <svg className="absolute inset-0 w-full h-full" style={{ opacity: 0.2 }} viewBox="0 0 180 320">
+                            <line x1="0" y1="0" x2="90" y2="166" stroke="white" strokeWidth="0.8"/>
+                            <line x1="180" y1="0" x2="90" y2="166" stroke="white" strokeWidth="0.8"/>
+                            <line x1="0" y1="320" x2="90" y2="166" stroke="white" strokeWidth="0.8"/>
+                            <line x1="180" y1="320" x2="90" y2="166" stroke="white" strokeWidth="0.8"/>
+                          </svg>
+                        </>
+                      )}
+                      {/* Lacre arrastável */}
+                      <div
+                        className="absolute"
+                        style={{
+                          left: `${sealX}%`, top: `${sealY}%`,
+                          transform: "translate(-50%, -50%)",
+                          width: Math.round(52 * sealScale), height: Math.round(52 * sealScale),
+                          cursor: "grab", zIndex: 10,
+                          filter: "drop-shadow(0 3px 6px rgba(0,0,0,0.4))",
+                          touchAction: "none",
+                        }}
+                        onPointerDown={e => { e.currentTarget.setPointerCapture(e.pointerId); setIsDraggingSeal(true); }}
+                      >
+                        {monogramUrl ? (
+                          <img src={monogramUrl} style={{ width: "100%", height: "100%", objectFit: "contain" }} alt="" />
+                        ) : (
+                          <>
+                            <svg viewBox="0 0 100 100" style={{ width: "100%", height: "100%" }}>
+                              <circle cx="50" cy="50" r="48" fill={sealColor} />
+                              <circle cx="50" cy="50" r="40" fill={sealColor} style={{ filter: "brightness(0.92)" }} />
+                              <circle cx="50" cy="50" r="40" fill="none" stroke="rgba(0,0,0,0.15)" strokeWidth="2" />
+                            </svg>
+                            <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                              <span style={{ fontFamily: "Georgia, serif", fontSize: Math.round(14 * sealScale), color: sealColor, filter: "brightness(0.45)", fontStyle: "italic" }}>
+                                {`${coupleFields.partner1_name?.[0] ?? ""}${coupleFields.partner2_name?.[0] ?? ""}`.toUpperCase() || "VP"}
+                              </span>
+                            </div>
+                          </>
+                        )}
                       </div>
                     </div>
-                    <div style={{ color: "rgba(255,255,255,0.5)", fontSize: 11, fontFamily: "system-ui", lineHeight: 1.5, maxWidth: 140 }}>
-                      <p style={{ color: "rgba(255,255,255,0.9)", fontWeight: 600, marginBottom: 4 }}>Convite Digital</p>
-                      <p>O envelope abre em tela cheia quando o convidado acessa o site</p>
+
+                    {/* Slider de tamanho */}
+                    <div style={{ width: "100%", padding: "0 4px" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
+                        <span style={{ color: "rgba(255,255,255,0.5)", fontSize: 11, fontFamily: "system-ui" }}>Tamanho do lacre</span>
+                        <span style={{ color: "rgba(255,255,255,0.7)", fontSize: 11, fontFamily: "system-ui" }}>{Math.round(sealScale * 100)}%</span>
+                      </div>
+                      <input
+                        type="range" min={0.4} max={2.2} step={0.05}
+                        value={sealScale}
+                        onChange={e => setSealScale(parseFloat(e.target.value))}
+                        style={{ width: "100%", accentColor: "#7A8C6A" }}
+                      />
                     </div>
                   </div>
 

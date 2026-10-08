@@ -5,4 +5,7 @@ ALTER TABLE site_configs
   ADD COLUMN IF NOT EXISTS seal_color         text    DEFAULT '#D4C5A0',
   ADD COLUMN IF NOT EXISTS seal_monogram_url  text,
   ADD COLUMN IF NOT EXISTS invite_image_url   text,
-  ADD COLUMN IF NOT EXISTS envelope_image_url text;
+  ADD COLUMN IF NOT EXISTS envelope_image_url text,
+  ADD COLUMN IF NOT EXISTS seal_x             float   DEFAULT 50,
+  ADD COLUMN IF NOT EXISTS seal_y             float   DEFAULT 50,
+  ADD COLUMN IF NOT EXISTS seal_scale         float   DEFAULT 1;

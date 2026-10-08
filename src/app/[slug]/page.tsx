@@ -36,7 +36,7 @@ export default async function WeddingPage({ params }: { params: { slug: string }
   }
 
   const [{ data: config }, { data: messagesData }, { data: giftsData }] = await Promise.all([
-    supabase.from("site_configs").select("*, envelope_enabled, envelope_color, seal_color, seal_monogram_url, invite_image_url, envelope_image_url").eq("couple_id", couple.id).single(),
+    supabase.from("site_configs").select("*, envelope_enabled, envelope_color, seal_color, seal_monogram_url, invite_image_url, envelope_image_url, seal_x, seal_y, seal_scale").eq("couple_id", couple.id).single(),
     supabase.from("messages").select("id, guest_name, message, created_at").eq("couple_id", couple.id).eq("approved", true).order("created_at", { ascending: false }),
     supabase.from("gifts").select("id, title, description, amount, image_url, category").eq("couple_id", couple.id).neq("is_received", true).order("created_at", { ascending: true }).limit(6),
   ]);
@@ -111,6 +111,9 @@ export default async function WeddingPage({ params }: { params: { slug: string }
           sealColor={config.seal_color ?? "#D4C5A0"}
           monogramUrl={config.seal_monogram_url ?? null}
           envelopeImageUrl={config.envelope_image_url ?? null}
+          sealX={config.seal_x ?? 50}
+          sealY={config.seal_y ?? 50}
+          sealScale={config.seal_scale ?? 1}
           name1={name1 ?? ""}
           name2={name2 ?? ""}
         />

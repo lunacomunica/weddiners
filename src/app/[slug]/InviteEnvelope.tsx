@@ -7,13 +7,16 @@ interface Props {
   sealColor: string;
   monogramUrl: string | null;
   envelopeImageUrl: string | null;
+  sealX?: number;
+  sealY?: number;
+  sealScale?: number;
   name1: string;
   name2: string;
 }
 
 type Phase = "idle" | "breaking" | "opening" | "revealing" | "done";
 
-export function InviteEnvelope({ envelopeColor, sealColor, monogramUrl, envelopeImageUrl, name1, name2 }: Props) {
+export function InviteEnvelope({ envelopeColor, sealColor, monogramUrl, envelopeImageUrl, sealX = 50, sealY = 50, sealScale = 1, name1, name2 }: Props) {
   const [phase, setPhase] = useState<Phase>("idle");
   const [mounted, setMounted] = useState(false);
 
@@ -251,9 +254,9 @@ export function InviteEnvelope({ envelopeColor, sealColor, monogramUrl, envelope
               phase === "breaking" ? "seal-break" : "seal-gone"
             }`}
             style={{
-              left: "50%", top: "50%",
-              width: "clamp(90px, 24vw, 148px)",
-              height: "clamp(90px, 24vw, 148px)",
+              left: `${sealX}%`, top: `${sealY}%`,
+              width: `clamp(${Math.round(70 * sealScale)}px, ${Math.round(22 * sealScale)}vw, ${Math.round(140 * sealScale)}px)`,
+              height: `clamp(${Math.round(70 * sealScale)}px, ${Math.round(22 * sealScale)}vw, ${Math.round(140 * sealScale)}px)`,
               zIndex: 10,
             }}
             onClick={handleSealClick}

@@ -252,6 +252,9 @@ export async function updateEnvelope(data: {
   monogramUrl: string | null;
   inviteImageUrl: string | null;
   envelopeImageUrl: string | null;
+  sealX: number;
+  sealY: number;
+  sealScale: number;
 }) {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -273,6 +276,9 @@ export async function updateEnvelope(data: {
       seal_monogram_url: data.monogramUrl,
       invite_image_url: data.inviteImageUrl,
       envelope_image_url: data.envelopeImageUrl,
+      seal_x: data.sealX,
+      seal_y: data.sealY,
+      seal_scale: data.sealScale,
       updated_at: new Date().toISOString(),
     })
     .eq("couple_id", couple.id);
