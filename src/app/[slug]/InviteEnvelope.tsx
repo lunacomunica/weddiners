@@ -14,18 +14,7 @@ interface Props {
   name2: string;
 }
 
-type Phase = "idle" | "breaking" | "split" | "opening" | "revealing" | "done";
-
-const PARTICLES = [
-  { dx: -90, dy: -90, size: 10 },
-  { dx: 0,   dy: -110, size: 8  },
-  { dx: 90,  dy: -90,  size: 12 },
-  { dx: -115, dy: -10, size: 7  },
-  { dx: 115,  dy: -10, size: 9  },
-  { dx: -80,  dy: 80,  size: 8  },
-  { dx: 10,   dy: 100, size: 11 },
-  { dx: 85,   dy: 75,  size: 7  },
-];
+type Phase = "idle" | "breaking" | "opening" | "revealing" | "done";
 
 export function InviteEnvelope({
   envelopeColor, sealColor, monogramUrl, envelopeImageUrl,
@@ -39,17 +28,15 @@ export function InviteEnvelope({
   function handleSealClick() {
     if (phase !== "idle") return;
     setPhase("breaking");
-    setTimeout(() => setPhase("split"),     420);
-    setTimeout(() => setPhase("opening"),   820);
-    setTimeout(() => setPhase("revealing"), 2700);
-    setTimeout(() => setPhase("done"),      3500);
+    setTimeout(() => setPhase("opening"),   600);
+    setTimeout(() => setPhase("revealing"), 2500);
+    setTimeout(() => setPhase("done"),      3300);
   }
 
   if (!mounted || phase === "done") return null;
 
   const initials = `${name1[0] ?? ""}${name2[0] ?? ""}`.toUpperCase();
-  const showSeal    = phase === "idle" || phase === "breaking";
-  const showSplit   = phase === "split";
+  const showSeal  = phase === "idle" || phase === "breaking";
   const isOpening   = phase === "opening" || phase === "revealing";
   const isRevealing = phase === "revealing";
   const sealW = `clamp(${Math.round(70 * sealScale)}px, ${Math.round(22 * sealScale)}vw, ${Math.round(140 * sealScale)}px)`;
@@ -62,28 +49,13 @@ export function InviteEnvelope({
           0%,100% { transform: translate(-50%,-50%) scale(1);    opacity: 0.9; }
           50%      { transform: translate(-50%,-50%) scale(1.07); opacity: 1;   }
         }
-        /* ── Seal shake ── */
-        @keyframes sealShake {
-          0%,100% { transform: translate(-50%,-50%) rotate(0deg)   scale(1); }
-          15%     { transform: translate(-50%,-50%) rotate(-6deg)  scale(1.07); }
-          30%     { transform: translate(-50%,-50%) rotate(6deg)   scale(0.95); }
-          45%     { transform: translate(-50%,-50%) rotate(-4deg)  scale(1.04); }
-          60%     { transform: translate(-50%,-50%) rotate(3deg)   scale(0.98); }
-          75%     { transform: translate(-50%,-50%) rotate(-2deg)  scale(1.02); }
-        }
-        /* ── Seal halves fly apart ── */
-        @keyframes sealHalfLeft {
-          0%   { transform: translate(-50%,-50%) translateX(0)    rotate(0deg); opacity: 1; }
-          100% { transform: translate(-50%,-50%) translateX(-65vw) rotate(-35deg); opacity: 0; }
-        }
-        @keyframes sealHalfRight {
-          0%   { transform: translate(-50%,-50%) translateX(0)    rotate(0deg); opacity: 1; }
-          100% { transform: translate(-50%,-50%) translateX(65vw)  rotate(35deg); opacity: 0; }
-        }
-        /* ── Wax particles ── */
-        @keyframes waxParticle {
-          0%   { transform: translate(-50%,-50%) translate(0px,0px) scale(1);   opacity: 0.9; }
-          100% { transform: translate(-50%,-50%) translate(var(--pdx),var(--pdy)) scale(0); opacity: 0; }
+        /* ── Seal shake + fade out ── */
+        @keyframes sealBreakOut {
+          0%   { transform: translate(-50%,-50%) rotate(0deg)  scale(1);    opacity: 1; }
+          20%  { transform: translate(-50%,-50%) rotate(-4deg) scale(1.06); opacity: 1; }
+          40%  { transform: translate(-50%,-50%) rotate(4deg)  scale(0.97); opacity: 0.9; }
+          60%  { transform: translate(-50%,-50%) rotate(-2deg) scale(1.03); opacity: 0.7; }
+          100% { transform: translate(-50%,-50%) rotate(0deg)  scale(1.15); opacity: 0; }
         }
         /* ── Flap opens ── */
         @keyframes topFlapOpen {
@@ -132,11 +104,9 @@ export function InviteEnvelope({
         .flap-left   { transform-origin: left center;   animation: leftFlapOpen   0.76s cubic-bezier(0.25,0.46,0.45,0.94) 0.18s forwards; }
         .flap-right  { transform-origin: right center;  animation: rightFlapOpen  0.76s cubic-bezier(0.25,0.46,0.45,0.94) 0.14s forwards; }
         /* ── Seal classes ── */
-        .seal-idle   { cursor: pointer; }
+        .seal-idle       { cursor: pointer; }
         .seal-idle:hover { filter: brightness(1.1); }
-        .seal-shake  { animation: sealShake 0.38s ease-in-out forwards; }
-        .seal-half-l { animation: sealHalfLeft  0.48s cubic-bezier(0.4,0,1,1) forwards; }
-        .seal-half-r { animation: sealHalfRight 0.48s cubic-bezier(0.4,0,1,1) forwards; }
+        .seal-breaking   { animation: sealBreakOut 0.55s ease-in-out forwards; }
         /* ── Arrow ── */
         .arrow-bounce { animation: arrowBounce 2s ease-in-out infinite; }
         .tap-pulse    { animation: tapPulse 2.2s ease-in-out infinite; }
@@ -302,49 +272,15 @@ export function InviteEnvelope({
           </div>
         )}
 
-        {/* ── Seal completo (idle + breaking) ── */}
+        {/* ── Seal (idle + sumindo) ── */}
         {showSeal && (
           <div
-            className={`absolute${phase === "idle" ? " seal-idle tap-pulse" : " seal-shake"}`}
+            className={`absolute${phase === "idle" ? " seal-idle tap-pulse" : " seal-breaking"}`}
             style={{ left: `${sealX}%`, top: `${sealY}%`, width: sealW, height: sealW, zIndex: 10 }}
             onClick={handleSealClick}
           >
             <SealSVG sealColor={sealColor} monogramUrl={monogramUrl} initials={initials} />
           </div>
-        )}
-
-        {/* ── Seal split: duas metades voando ── */}
-        {showSplit && (
-          <>
-            {/* Metade esquerda */}
-            <div className="seal-half-l absolute" style={{ left: `${sealX}%`, top: `${sealY}%`, width: sealW, height: sealW, zIndex: 10, clipPath: "inset(0 50% 0 0)" }}>
-              <SealSVG sealColor={sealColor} monogramUrl={monogramUrl} initials={initials} />
-            </div>
-            {/* Metade direita */}
-            <div className="seal-half-r absolute" style={{ left: `${sealX}%`, top: `${sealY}%`, width: sealW, height: sealW, zIndex: 10, clipPath: "inset(0 0 0 50%)" }}>
-              <SealSVG sealColor={sealColor} monogramUrl={monogramUrl} initials={initials} />
-            </div>
-            {/* Partículas de cera */}
-            {PARTICLES.map((p, i) => (
-              <div key={i} style={{
-                position: "absolute",
-                left: `${sealX}%`, top: `${sealY}%`,
-                width: p.size, height: p.size,
-                borderRadius: "50%",
-                background: sealColor,
-                filter: "brightness(0.85)",
-                zIndex: 10,
-                animationDelay: `${i * 0.025}s`,
-                animationDuration: `${0.5 + (i % 3) * 0.08}s`,
-                animationFillMode: "forwards",
-                animationTimingFunction: "cubic-bezier(0.2,0,0.8,1)",
-                animationName: "waxParticle",
-                ["--pdx" as string]: `${p.dx}px`,
-                ["--pdy" as string]: `${p.dy}px`,
-                transform: "translate(-50%, -50%)",
-              } as React.CSSProperties} />
-            ))}
-          </>
         )}
 
         {/* ── Tap hint ── */}
