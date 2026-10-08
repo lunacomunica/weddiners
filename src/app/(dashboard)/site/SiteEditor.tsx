@@ -509,15 +509,6 @@ export function SiteEditor({ config, couple, plan = "free" }: { config: SiteConf
     setUploadingMonogram(false);
   }
 
-  function handleSealDragMove(e: React.PointerEvent) {
-    if (!isDraggingSeal || !sealPreviewRef.current) return;
-    const rect = sealPreviewRef.current.getBoundingClientRect();
-    const x = Math.max(5, Math.min(95, ((e.clientX - rect.left) / rect.width) * 100));
-    const y = Math.max(5, Math.min(95, ((e.clientY - rect.top) / rect.height) * 100));
-    setSealX(Math.round(x * 10) / 10);
-    setSealY(Math.round(y * 10) / 10);
-  }
-
   async function handleSaveEnvelope(enabledOverride?: boolean) {
     setSavingEnv(true);
     const result = await updateEnvelope({
