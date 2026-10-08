@@ -60,6 +60,7 @@ interface SiteConfig {
   seal_color?: string | null;
   seal_monogram_url?: string | null;
   invite_image_url?: string | null;
+  envelope_image_url?: string | null;
 }
 
 interface Couple {
@@ -456,7 +457,9 @@ export function SiteEditor({ config, couple, plan = "free" }: { config: SiteConf
   const [sealColor, setSealColor] = useState(config.seal_color ?? "#D4C5A0");
   const [monogramUrl, setMonogramUrl] = useState<string>(config.seal_monogram_url ?? "");
   const [inviteImageUrl, setInviteImageUrl] = useState<string>(config.invite_image_url ?? "");
+  const [envelopeImageUrl, setEnvelopeImageUrl] = useState<string>(config.envelope_image_url ?? "");
   const [uploadingInviteImage, setUploadingInviteImage] = useState(false);
+  const [uploadingEnvelopeImage, setUploadingEnvelopeImage] = useState(false);
 
   async function handleUploadInviteImage(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -468,6 +471,18 @@ export function SiteEditor({ config, couple, plan = "free" }: { config: SiteConf
     const result = await uploadSitePhoto(fd);
     if (result?.url) setInviteImageUrl(result.url);
     setUploadingInviteImage(false);
+  }
+
+  async function handleUploadEnvelopeImage(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingEnvelopeImage(true);
+    const fd = new FormData();
+    fd.set("file", file);
+    const { uploadSitePhoto } = await import("./actions");
+    const result = await uploadSitePhoto(fd);
+    if (result?.url) setEnvelopeImageUrl(result.url);
+    setUploadingEnvelopeImage(false);
   }
   const [savingEnv, setSavingEnv] = useState(false);
   const [envSaved, setEnvSaved] = useState(false);
@@ -494,6 +509,7 @@ export function SiteEditor({ config, couple, plan = "free" }: { config: SiteConf
       sealColor: sealColor,
       monogramUrl: monogramUrl || null,
       inviteImageUrl: inviteImageUrl || null,
+      envelopeImageUrl: envelopeImageUrl || null,
     });
     if (!result?.error) {
       setEnvSaved(true);
@@ -1197,6 +1213,31 @@ export function SiteEditor({ config, couple, plan = "free" }: { config: SiteConf
                         />
                       ))}
                     </div>
+                  </div>
+
+                  {/* Imagem do envelope */}
+                  <div>
+                    <label className="block text-xs font-medium text-neutral-600 mb-1">Imagem do envelope (opcional)</label>
+                    <p className="text-xs text-neutral-400 mb-2">Substitui o envelope gerado. Suba uma ilustração ou foto do envelope físico. Recomendado: proporção retrato.</p>
+                    {envelopeImageUrl ? (
+                      <div className="flex items-center gap-3">
+                        <div className="w-12 h-20 rounded-lg border overflow-hidden shrink-0" style={{ borderColor: "rgba(0,0,0,0.1)" }}>
+                          <img src={envelopeImageUrl} alt="envelope" className="w-full h-full object-cover" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs text-neutral-600">Imagem enviada</p>
+                          <button type="button" onClick={() => setEnvelopeImageUrl("")} className="text-xs text-rose-500 hover:underline mt-0.5">Remover (usar envelope gerado)</button>
+                        </div>
+                      </div>
+                    ) : (
+                      <label className="flex items-center gap-2 px-3 py-2.5 rounded-lg border border-dashed cursor-pointer hover:border-sage transition-colors" style={{ borderColor: "rgba(13,10,11,0.2)" }}>
+                        <input type="file" accept="image/*" className="hidden" onChange={handleUploadEnvelopeImage} disabled={uploadingEnvelopeImage} />
+                        <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24" className="text-neutral-400 shrink-0">
+                          <rect x="3" y="3" width="18" height="18" rx="2" /><circle cx="8.5" cy="8.5" r="1.5" /><path d="M21 15l-5-5L5 21" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                        <span className="text-xs text-neutral-500">{uploadingEnvelopeImage ? "Enviando..." : "Subir imagem do envelope"}</span>
+                      </label>
+                    )}
                   </div>
 
                   {/* Imagem do convite físico */}

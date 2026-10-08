@@ -6,13 +6,14 @@ interface Props {
   envelopeColor: string;
   sealColor: string;
   monogramUrl: string | null;
+  envelopeImageUrl: string | null;
   name1: string;
   name2: string;
 }
 
 type Phase = "idle" | "breaking" | "opening" | "revealing" | "done";
 
-export function InviteEnvelope({ envelopeColor, sealColor, monogramUrl, name1, name2 }: Props) {
+export function InviteEnvelope({ envelopeColor, sealColor, monogramUrl, envelopeImageUrl, name1, name2 }: Props) {
   const [phase, setPhase] = useState<Phase>("idle");
   const [mounted, setMounted] = useState(false);
 
@@ -100,8 +101,22 @@ export function InviteEnvelope({ envelopeColor, sealColor, monogramUrl, name1, n
         className={`fixed inset-0 z-[9999] ${isRevealing ? "overlay-fade pointer-events-none" : ""}`}
         style={{ background: envelopeColor }}
       >
-        {/* Linen texture */}
-        <svg style={{ position: "absolute", inset: 0, width: "100%", height: "100%", opacity: 0.15, pointerEvents: "none", zIndex: 1 }}>
+        {/* Se tiver imagem do envelope: usa ela como fundo e oculta o CSS envelope */}
+        {envelopeImageUrl && (
+          <img
+            src={envelopeImageUrl}
+            alt=""
+            style={{
+              position: "absolute", inset: 0,
+              width: "100%", height: "100%",
+              objectFit: "cover", objectPosition: "center",
+              zIndex: 9,
+            }}
+          />
+        )}
+
+        {/* Linen texture — só aparece sem imagem */}
+        <svg style={{ position: "absolute", inset: 0, width: "100%", height: "100%", opacity: 0.15, pointerEvents: "none", zIndex: envelopeImageUrl ? -1 : 1 }}>
           <defs>
             <filter id="env-linen">
               <feTurbulence type="fractalNoise" baseFrequency="0.65 0.9" numOctaves="4" seed="7" stitchTiles="stitch" />
@@ -111,9 +126,9 @@ export function InviteEnvelope({ envelopeColor, sealColor, monogramUrl, name1, n
           <rect width="100%" height="100%" filter="url(#env-linen)" fill="white" />
         </svg>
 
-        {/* Botanical full-coverage pattern */}
+        {/* Botanical full-coverage pattern — só sem imagem */}
         <svg
-          style={{ position: "absolute", inset: 0, width: "100%", height: "100%", opacity: 0.18, pointerEvents: "none", zIndex: 2 }}
+          style={{ position: "absolute", inset: 0, width: "100%", height: "100%", opacity: 0.18, pointerEvents: "none", zIndex: 2, display: envelopeImageUrl ? "none" : undefined }}
           viewBox="0 0 390 844"
           preserveAspectRatio="xMidYMid slice"
           xmlns="http://www.w3.org/2000/svg"
@@ -181,8 +196,8 @@ export function InviteEnvelope({ envelopeColor, sealColor, monogramUrl, name1, n
           </g>
         </svg>
 
-        {/* Envelope flaps — 4 triangles meeting in center */}
-        <div className={`absolute inset-0 ${isOpening ? "flap-top" : ""}`} style={{ zIndex: 3, transformStyle: "preserve-3d", perspective: "800px" }}>
+        {/* Envelope flaps — só aparece sem imagem */}
+        <div className={`absolute inset-0 ${isOpening ? "flap-top" : ""}`} style={{ zIndex: 3, display: envelopeImageUrl ? "none" : undefined, transformStyle: "preserve-3d", perspective: "800px" }}>
           <div style={{
             position: "absolute", inset: 0,
             background: envelopeColor,
@@ -191,7 +206,7 @@ export function InviteEnvelope({ envelopeColor, sealColor, monogramUrl, name1, n
           }} />
         </div>
 
-        <div className={`absolute inset-0 ${isOpening ? "flap-bottom" : ""}`} style={{ zIndex: 3, transformStyle: "preserve-3d", perspective: "800px" }}>
+        <div className={`absolute inset-0 ${isOpening ? "flap-bottom" : ""}`} style={{ zIndex: 3, display: envelopeImageUrl ? "none" : undefined, transformStyle: "preserve-3d", perspective: "800px" }}>
           <div style={{
             position: "absolute", inset: 0,
             background: envelopeColor,
@@ -200,7 +215,7 @@ export function InviteEnvelope({ envelopeColor, sealColor, monogramUrl, name1, n
           }} />
         </div>
 
-        <div className={`absolute inset-0 ${isOpening ? "flap-left" : ""}`} style={{ zIndex: 3, transformStyle: "preserve-3d", perspective: "800px" }}>
+        <div className={`absolute inset-0 ${isOpening ? "flap-left" : ""}`} style={{ zIndex: 3, display: envelopeImageUrl ? "none" : undefined, transformStyle: "preserve-3d", perspective: "800px" }}>
           <div style={{
             position: "absolute", inset: 0,
             background: envelopeColor,
@@ -209,7 +224,7 @@ export function InviteEnvelope({ envelopeColor, sealColor, monogramUrl, name1, n
           }} />
         </div>
 
-        <div className={`absolute inset-0 ${isOpening ? "flap-right" : ""}`} style={{ zIndex: 3, transformStyle: "preserve-3d", perspective: "800px" }}>
+        <div className={`absolute inset-0 ${isOpening ? "flap-right" : ""}`} style={{ zIndex: 3, display: envelopeImageUrl ? "none" : undefined, transformStyle: "preserve-3d", perspective: "800px" }}>
           <div style={{
             position: "absolute", inset: 0,
             background: envelopeColor,
@@ -219,7 +234,7 @@ export function InviteEnvelope({ envelopeColor, sealColor, monogramUrl, name1, n
         </div>
 
         {/* Flap seam lines */}
-        {!isOpening && (
+        {!isOpening && !envelopeImageUrl && (
           <svg style={{ position: "absolute", inset: 0, width: "100%", height: "100%", zIndex: 4, pointerEvents: "none", opacity: 0.25 }}>
             <line x1="0" y1="0" x2="50%" y2="52%" stroke="white" strokeWidth="0.8" />
             <line x1="100%" y1="0" x2="50%" y2="52%" stroke="white" strokeWidth="0.8" />
