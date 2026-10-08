@@ -468,6 +468,7 @@ export function SiteEditor({ config, couple, plan = "free" }: { config: SiteConf
   const [uploadingEnvelopeImage, setUploadingEnvelopeImage] = useState(false);
   const [isDraggingSeal, setIsDraggingSeal] = useState(false);
   const sealPreviewRef = useRef<HTMLDivElement>(null);
+  const dragOffset = useRef({ x: 0, y: 0 });
 
   async function handleUploadInviteImage(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -1164,14 +1165,23 @@ export function SiteEditor({ config, couple, plan = "free" }: { config: SiteConf
                           filter: "drop-shadow(0 3px 6px rgba(0,0,0,0.4))",
                           touchAction: "none",
                         }}
-                        onPointerDown={e => { e.currentTarget.setPointerCapture(e.pointerId); setIsDraggingSeal(true); }}
+                        onPointerDown={e => {
+                          e.currentTarget.setPointerCapture(e.pointerId);
+                          setIsDraggingSeal(true);
+                          if (sealPreviewRef.current) {
+                            const rect = sealPreviewRef.current.getBoundingClientRect();
+                            const pxPct = ((e.clientX - rect.left) / rect.width) * 100;
+                            const pyPct = ((e.clientY - rect.top) / rect.height) * 100;
+                            dragOffset.current = { x: sealX - pxPct, y: sealY - pyPct };
+                          }
+                        }}
                         onPointerMove={e => {
                           if (!isDraggingSeal || !sealPreviewRef.current) return;
                           const rect = sealPreviewRef.current.getBoundingClientRect();
-                          const x = Math.max(5, Math.min(95, ((e.clientX - rect.left) / rect.width) * 100));
-                          const y = Math.max(5, Math.min(95, ((e.clientY - rect.top) / rect.height) * 100));
-                          setSealX(Math.round(x * 10) / 10);
-                          setSealY(Math.round(y * 10) / 10);
+                          const pxPct = ((e.clientX - rect.left) / rect.width) * 100;
+                          const pyPct = ((e.clientY - rect.top) / rect.height) * 100;
+                          setSealX(Math.round(Math.max(5, Math.min(95, pxPct + dragOffset.current.x)) * 10) / 10);
+                          setSealY(Math.round(Math.max(5, Math.min(95, pyPct + dragOffset.current.y)) * 10) / 10);
                         }}
                         onPointerUp={() => setIsDraggingSeal(false)}
                         onPointerCancel={() => setIsDraggingSeal(false)}
