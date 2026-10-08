@@ -9,6 +9,7 @@ import { PasswordGate } from "./PasswordGate";
 import { EditModeClient } from "./EditModeClient";
 import { FontInjector } from "./FontInjector";
 import { InviteEnvelope } from "./InviteEnvelope";
+import { InviteCoverSection } from "./InviteCoverSection";
 import type { TemplateConfig } from "./templates/types";
 
 // Cache de 5 minutos — o site público não precisa ser tempo real
@@ -112,6 +113,9 @@ export default async function WeddingPage({ params }: { params: { slug: string }
           name1={name1 ?? ""}
           name2={name2 ?? ""}
         />
+      )}
+      {config?.invite_image_url && (
+        <InviteCoverSection imageUrl={config.invite_image_url} />
       )}
       {templates[template] ?? templates.classico}
     </>

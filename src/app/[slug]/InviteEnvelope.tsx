@@ -22,15 +22,13 @@ export function InviteEnvelope({ envelopeColor, sealColor, monogramUrl, name1, n
     if (phase !== "idle") return;
     setPhase("breaking");
     setTimeout(() => setPhase("opening"), 600);
-    setTimeout(() => setPhase("revealing"), 1600);
-    setTimeout(() => setPhase("done"), 2400);
+    setTimeout(() => setPhase("revealing"), 1800);
+    setTimeout(() => setPhase("done"), 2600);
   }
 
   if (!mounted || phase === "done") return null;
 
   const initials = `${name1[0] ?? ""}${name2[0] ?? ""}`.toUpperCase();
-
-  // Lighten/darken envelope color for flap shading
   const isOpening = phase === "opening" || phase === "revealing";
   const isRevealing = phase === "revealing";
 
@@ -38,341 +36,268 @@ export function InviteEnvelope({ envelopeColor, sealColor, monogramUrl, name1, n
     <>
       <style>{`
         @keyframes sealShake {
-          0%,100% { transform: translate(-50%,-50%) rotate(0deg) scale(1); }
-          15%      { transform: translate(-50%,-50%) rotate(-4deg) scale(1.05); }
-          30%      { transform: translate(-50%,-50%) rotate(4deg) scale(0.97); }
-          45%      { transform: translate(-50%,-50%) rotate(-3deg) scale(1.03); }
-          60%      { transform: translate(-50%,-50%) rotate(2deg) scale(0.99); }
-          75%      { transform: translate(-50%,-50%) rotate(-1deg) scale(1.01); }
+          0%,100% { transform: translate(-50%,-50%) scale(1); }
+          20%      { transform: translate(-50%,-50%) rotate(-5deg) scale(1.06); }
+          40%      { transform: translate(-50%,-50%) rotate(5deg) scale(0.96); }
+          60%      { transform: translate(-50%,-50%) rotate(-3deg) scale(1.03); }
+          80%      { transform: translate(-50%,-50%) rotate(2deg) scale(0.99); }
         }
         @keyframes sealBreak {
           0%   { transform: translate(-50%,-50%) scale(1);   opacity:1; }
-          100% { transform: translate(-50%,-50%) scale(1.4); opacity:0; }
+          100% { transform: translate(-50%,-50%) scale(1.5); opacity:0; }
         }
         @keyframes topFlapOpen {
-          0%   { transform: rotateX(0deg);   }
-          100% { transform: rotateX(-170deg); }
+          0%   { transform: rotateX(0deg); }
+          100% { transform: rotateX(-175deg); }
         }
-        @keyframes sideLeftOpen {
-          0%   { transform: skewY(0deg) translateX(0);    opacity:1; }
-          100% { transform: skewY(0deg) translateX(-110%); opacity:0.4; }
+        @keyframes bottomFlapOpen {
+          0%   { transform: rotateX(0deg); }
+          100% { transform: rotateX(175deg); }
         }
-        @keyframes sideRightOpen {
-          0%   { transform: skewY(0deg) translateX(0);   opacity:1; }
-          100% { transform: skewY(0deg) translateX(110%); opacity:0.4; }
+        @keyframes leftFlapOpen {
+          0%   { transform: rotateY(0deg); }
+          100% { transform: rotateY(-175deg); }
         }
-        @keyframes bottomFlapDrop {
-          0%   { transform: rotateX(0deg);   }
-          100% { transform: rotateX(20deg); }
-        }
-        @keyframes cardRise {
-          0%   { transform: translateY(40px) scale(0.96); opacity:0; }
-          100% { transform: translateY(-60px) scale(1);   opacity:1; }
+        @keyframes rightFlapOpen {
+          0%   { transform: rotateY(0deg); }
+          100% { transform: rotateY(175deg); }
         }
         @keyframes envelopeFade {
-          0%   { opacity:1; transform: scale(1);   }
-          100% { opacity:0; transform: scale(0.9); }
+          0%   { opacity:1; transform: scale(1); }
+          100% { opacity:0; transform: scale(1.04); }
         }
         @keyframes overlayFade {
           0%   { opacity:1; }
           100% { opacity:0; }
         }
-        @keyframes tapHint {
-          0%,100% { transform: translate(-50%,-50%) scale(1);   opacity:0.7; }
-          50%      { transform: translate(-50%,-50%) scale(1.12); opacity:1; }
+        @keyframes tapPulse {
+          0%,100% { transform: translate(-50%,-50%) scale(1);    opacity:0.85; }
+          50%      { transform: translate(-50%,-50%) scale(1.08); opacity:1; }
+        }
+        @keyframes arrowBounce {
+          0%,100% { opacity: 0.45; transform: translateX(-50%) translateY(0); }
+          50%      { opacity: 0.9;  transform: translateX(-50%) translateY(8px); }
         }
 
-        .seal-idle     { transform: translate(-50%,-50%) scale(1); cursor:pointer; transition: transform 0.2s; }
-        .seal-idle:hover { transform: translate(-50%,-50%) scale(1.06); }
-        .seal-breaking { animation: sealShake 0.55s ease-in-out forwards; }
-        .seal-broken   { animation: sealBreak 0.35s ease-in forwards; }
+        .seal-idle    { cursor: pointer; }
+        .seal-idle:hover { filter: brightness(1.08); }
+        .seal-break   { animation: sealShake 0.55s ease-in-out forwards; }
+        .seal-gone    { animation: sealBreak 0.4s ease-in forwards; }
 
-        .top-flap-open  { transform-origin: top center; animation: topFlapOpen 0.9s cubic-bezier(0.4,0,0.2,1) forwards; }
-        .side-left-open { animation: sideLeftOpen 0.7s cubic-bezier(0.4,0,0.2,1) 0.3s forwards; }
-        .side-right-open{ animation: sideRightOpen 0.7s cubic-bezier(0.4,0,0.2,1) 0.3s forwards; }
-        .bottom-drop    { transform-origin: bottom center; animation: bottomFlapDrop 0.6s ease-in-out 0.2s forwards; }
+        .flap-top     { transform-origin: top center;    animation: topFlapOpen    1s cubic-bezier(0.4,0,0.2,1) forwards; }
+        .flap-bottom  { transform-origin: bottom center; animation: bottomFlapOpen 0.9s cubic-bezier(0.4,0,0.2,1) 0.15s forwards; }
+        .flap-left    { transform-origin: left center;   animation: leftFlapOpen   0.9s cubic-bezier(0.4,0,0.2,1) 0.1s forwards; }
+        .flap-right   { transform-origin: right center;  animation: rightFlapOpen  0.9s cubic-bezier(0.4,0,0.2,1) 0.1s forwards; }
 
-        .card-rise      { animation: cardRise 0.8s cubic-bezier(0.22,1,0.36,1) forwards; }
-        .envelope-fade  { animation: envelopeFade 0.7s ease-in-out forwards; }
-        .overlay-fade   { animation: overlayFade 0.7s ease-in-out 0.4s forwards; }
-
-        .tap-hint       { animation: tapHint 2s ease-in-out infinite; }
+        .env-fade     { animation: envelopeFade 0.8s ease-in-out forwards; }
+        .overlay-fade { animation: overlayFade  0.8s ease-in-out 0.3s forwards; }
+        .tap-pulse    { animation: tapPulse 2.2s ease-in-out infinite; }
+        .arrow-bounce { animation: arrowBounce 2s ease-in-out infinite; }
       `}</style>
 
+      {/* Full-screen overlay */}
       <div
-        className={`fixed inset-0 z-[9999] flex items-center justify-center ${isRevealing ? "overlay-fade pointer-events-none" : ""}`}
-        style={{ background: "#1a1a1a" }}
+        className={`fixed inset-0 z-[9999] ${isRevealing ? "overlay-fade pointer-events-none" : ""}`}
+        style={{ background: envelopeColor }}
       >
-        {/* Background texture — subtle noise */}
-        <div className="absolute inset-0 opacity-20" style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E")`,
-        }} />
+        {/* Linen texture */}
+        <svg style={{ position: "absolute", inset: 0, width: "100%", height: "100%", opacity: 0.15, pointerEvents: "none", zIndex: 1 }}>
+          <defs>
+            <filter id="env-linen">
+              <feTurbulence type="fractalNoise" baseFrequency="0.65 0.9" numOctaves="4" seed="7" stitchTiles="stitch" />
+              <feColorMatrix type="saturate" values="0" />
+            </filter>
+          </defs>
+          <rect width="100%" height="100%" filter="url(#env-linen)" fill="white" />
+        </svg>
 
-        {/* Envelope wrapper */}
-        <div
-          className={`relative ${isRevealing ? "envelope-fade" : ""}`}
-          style={{
-            width: "min(80vw, 520px)",
-            height: "min(56vw, 364px)",
-            perspective: "1200px",
-          }}
+        {/* Botanical full-coverage pattern */}
+        <svg
+          style={{ position: "absolute", inset: 0, width: "100%", height: "100%", opacity: 0.18, pointerEvents: "none", zIndex: 2 }}
+          viewBox="0 0 390 844"
+          preserveAspectRatio="xMidYMid slice"
+          xmlns="http://www.w3.org/2000/svg"
         >
-          {/* ── Envelope body (back) ── */}
-          <div
-            className="absolute inset-0 rounded-sm shadow-2xl"
-            style={{ background: envelopeColor, zIndex: 1 }}
-          />
+          {/* Top-left large botanical */}
+          <g fill="none" stroke="white" strokeWidth="1.1" strokeLinecap="round" strokeLinejoin="round">
+            {/* Large top-left stem */}
+            <path d="M-10,60 Q30,120 10,200 Q-5,270 20,340" />
+            <path d="M10,200 Q-30,190 -50,160" />
+            <path d="M10,200 Q50,210 70,180" />
+            <path d="M20,260 Q-10,250 -30,225" />
+            <path d="M20,260 Q55,265 70,240" />
+            {/* Flower top-left */}
+            <circle cx="10" cy="80" r="8" />
+            <path d="M10,68 Q18,60 26,65" /><path d="M10,68 Q2,60 -6,65" />
+            <path d="M22,75 Q28,67 24,58" /><path d="M-2,75 Q-8,67 -4,58" />
+            {/* Leaf sprays top-left */}
+            <path d="M-20,140 Q10,130 30,145 Q10,158 -20,150 Z" />
+            <path d="M30,160 Q60,148 80,162 Q60,175 30,168 Z" />
+            <path d="M-10,220 Q20,208 42,222 Q20,236 -10,228 Z" />
+            <path d="M25,300 Q55,290 72,305 Q55,318 25,310 Z" />
+            {/* Feather bottom-left */}
+            <path d="M-20,700 Q10,740 -5,800 Q-18,840 -5,880" />
+            <path d="M-5,720 Q-25,730 -35,720" /><path d="M-5,720 Q15,730 22,718" />
+            <path d="M-8,750 Q-28,758 -38,748" /><path d="M-8,750 Q12,758 18,747" />
+            <path d="M-6,780 Q-24,787 -32,778" /><path d="M-6,780 Q10,787 15,776" />
+            <path d="M-10,810 Q-26,816 -33,808" /><path d="M-10,810 Q6,816 10,806" />
+          </g>
 
-          {/* ── Paper/linen texture overlay ── */}
-          <svg className="absolute inset-0 rounded-sm pointer-events-none" style={{ zIndex: 7, width: "100%", height: "100%", opacity: 0.18 }} xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <filter id="linen" x="0%" y="0%" width="100%" height="100%">
-                <feTurbulence type="fractalNoise" baseFrequency="0.65 0.9" numOctaves="4" seed="3" stitchTiles="stitch" result="noise" />
-                <feColorMatrix type="saturate" values="0" in="noise" result="gray" />
-                <feBlend in="SourceGraphic" in2="gray" mode="multiply" />
-              </filter>
-            </defs>
-            <rect width="100%" height="100%" filter="url(#linen)" fill="white" />
-          </svg>
+          {/* Top-right botanical */}
+          <g fill="none" stroke="white" strokeWidth="1.1" strokeLinecap="round" strokeLinejoin="round" transform="translate(390,0) scale(-1,1)">
+            <path d="M-10,60 Q30,120 10,200 Q-5,270 20,340" />
+            <path d="M10,200 Q-30,190 -50,160" />
+            <path d="M10,200 Q50,210 70,180" />
+            <path d="M20,260 Q-10,250 -30,225" />
+            <path d="M20,260 Q55,265 70,240" />
+            <circle cx="10" cy="80" r="8" />
+            <path d="M10,68 Q18,60 26,65" /><path d="M10,68 Q2,60 -6,65" />
+            <path d="M22,75 Q28,67 24,58" /><path d="M-2,75 Q-8,67 -4,58" />
+            <path d="M-20,140 Q10,130 30,145 Q10,158 -20,150 Z" />
+            <path d="M30,160 Q60,148 80,162 Q60,175 30,168 Z" />
+            <path d="M-10,220 Q20,208 42,222 Q20,236 -10,228 Z" />
+            <path d="M25,300 Q55,290 72,305 Q55,318 25,310 Z" />
+            <path d="M-20,700 Q10,740 -5,800 Q-18,840 -5,880" />
+            <path d="M-5,720 Q-25,730 -35,720" /><path d="M-5,720 Q15,730 22,718" />
+            <path d="M-8,750 Q-28,758 -38,748" /><path d="M-8,750 Q12,758 18,747" />
+            <path d="M-6,780 Q-24,787 -32,778" /><path d="M-6,780 Q10,787 15,776" />
+            <path d="M-10,810 Q-26,816 -33,808" /><path d="M-10,810 Q6,816 10,806" />
+          </g>
 
-          {/* ── Botanical corner decorations ── */}
-          <svg className="absolute inset-0 pointer-events-none" style={{ zIndex: 8, width: "100%", height: "100%", opacity: 0.22 }} viewBox="0 0 520 364" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-            {/* Top-left botanical */}
-            <g fill="none" stroke="white" strokeWidth="0.8" strokeLinecap="round" strokeLinejoin="round" transform="translate(18, 18)">
-              <path d="M0,0 Q8,20 0,40" /><path d="M0,0 Q-8,20 0,40" />
-              <path d="M0,8 Q12,14 20,8" /><path d="M0,8 Q-12,14 -20,8" />
-              <path d="M0,18 Q14,22 22,16" /><path d="M0,18 Q-14,22 -22,16" />
-              <path d="M0,28 Q10,32 16,26" /><path d="M0,28 Q-10,32 -16,26" />
-              <circle cx="0" cy="40" r="1.5" fill="white" />
-              <path d="M-5,-6 Q0,-14 5,-6" />
-            </g>
-            {/* Top-right botanical */}
-            <g fill="none" stroke="white" strokeWidth="0.8" strokeLinecap="round" strokeLinejoin="round" transform="translate(502, 18) scale(-1,1)">
-              <path d="M0,0 Q8,20 0,40" /><path d="M0,0 Q-8,20 0,40" />
-              <path d="M0,8 Q12,14 20,8" /><path d="M0,8 Q-12,14 -20,8" />
-              <path d="M0,18 Q14,22 22,16" /><path d="M0,18 Q-14,22 -22,16" />
-              <path d="M0,28 Q10,32 16,26" /><path d="M0,28 Q-10,32 -16,26" />
-              <circle cx="0" cy="40" r="1.5" fill="white" />
-              <path d="M-5,-6 Q0,-14 5,-6" />
-            </g>
-            {/* Bottom-left botanical */}
-            <g fill="none" stroke="white" strokeWidth="0.8" strokeLinecap="round" strokeLinejoin="round" transform="translate(18, 346) scale(1,-1)">
-              <path d="M0,0 Q8,20 0,40" /><path d="M0,0 Q-8,20 0,40" />
-              <path d="M0,8 Q12,14 20,8" /><path d="M0,8 Q-12,14 -20,8" />
-              <path d="M0,18 Q14,22 22,16" /><path d="M0,18 Q-14,22 -22,16" />
-              <path d="M0,28 Q10,32 16,26" /><path d="M0,28 Q-10,32 -16,26" />
-              <circle cx="0" cy="40" r="1.5" fill="white" />
-            </g>
-            {/* Bottom-right botanical */}
-            <g fill="none" stroke="white" strokeWidth="0.8" strokeLinecap="round" strokeLinejoin="round" transform="translate(502, 346) scale(-1,-1)">
-              <path d="M0,0 Q8,20 0,40" /><path d="M0,0 Q-8,20 0,40" />
-              <path d="M0,8 Q12,14 20,8" /><path d="M0,8 Q-12,14 -20,8" />
-              <path d="M0,18 Q14,22 22,16" /><path d="M0,18 Q-14,22 -22,16" />
-              <path d="M0,28 Q10,32 16,26" /><path d="M0,28 Q-10,32 -16,26" />
-              <circle cx="0" cy="40" r="1.5" fill="white" />
-            </g>
-            {/* Thin border inside envelope */}
-            <rect x="10" y="10" width="500" height="344" rx="1" fill="none" stroke="white" strokeWidth="0.5" opacity="0.5" />
-          </svg>
+          {/* Bottom botanical sprays */}
+          <g fill="none" stroke="white" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M80,844 Q120,800 110,750 Q100,700 130,660" />
+            <path d="M110,750 Q80,745 60,725" /><path d="M110,750 Q140,742 158,722" />
+            <path d="M120,710 Q95,700 78,682" /><path d="M120,710 Q148,702 162,685" />
+            <path d="M310,844 Q270,800 280,750 Q290,700 260,660" />
+            <path d="M280,750 Q310,745 330,725" /><path d="M280,750 Q250,742 232,722" />
+            <path d="M270,710 Q295,700 312,682" /><path d="M270,710 Q242,702 228,685" />
+          </g>
 
-          {/* ── Bottom flap (triangle pointing up from bottom) ── */}
-          <div
-            className={`absolute bottom-0 left-0 right-0 ${isOpening ? "bottom-drop" : ""}`}
-            style={{
-              height: "55%",
-              zIndex: 2,
-              overflow: "hidden",
-            }}
-          >
-            <div style={{
-              width: "100%",
-              height: "100%",
-              background: envelopeColor,
-              clipPath: "polygon(0% 100%, 50% 0%, 100% 100%)",
-              filter: "brightness(0.88)",
-            }} />
-          </div>
+          {/* Crosshatch center-top area */}
+          <g stroke="white" strokeWidth="0.5" opacity="0.4">
+            <path d="M120,20 L240,20 M120,32 L240,32 M120,44 L240,44" />
+            <path d="M148,8 L148,56 M172,8 L172,56 M196,8 L196,56 M220,8 L220,56" />
+          </g>
+        </svg>
 
-          {/* ── Side flap left ── */}
-          <div
-            className={`absolute top-0 left-0 bottom-0 ${isOpening ? "side-left-open" : ""}`}
-            style={{ width: "52%", zIndex: 3, overflow: "hidden" }}
-          >
-            <div style={{
-              width: "100%",
-              height: "100%",
-              background: envelopeColor,
-              clipPath: "polygon(0% 0%, 100% 50%, 0% 100%)",
-              filter: "brightness(0.82)",
-            }} />
-          </div>
-
-          {/* ── Side flap right ── */}
-          <div
-            className={`absolute top-0 right-0 bottom-0 ${isOpening ? "side-right-open" : ""}`}
-            style={{ width: "52%", zIndex: 3, overflow: "hidden" }}
-          >
-            <div style={{
-              width: "100%",
-              height: "100%",
-              background: envelopeColor,
-              clipPath: "polygon(100% 0%, 0% 50%, 100% 100%)",
-              filter: "brightness(0.82)",
-            }} />
-          </div>
-
-          {/* ── Top flap ── */}
-          <div
-            className={`absolute top-0 left-0 right-0 ${isOpening ? "top-flap-open" : ""}`}
-            style={{
-              height: "55%",
-              zIndex: isOpening ? 5 : 4,
-              transformStyle: "preserve-3d",
-              overflow: "hidden",
-            }}
-          >
-            <div style={{
-              width: "100%",
-              height: "100%",
-              background: envelopeColor,
-              clipPath: "polygon(0% 0%, 100% 0%, 50% 100%)",
-              filter: "brightness(0.93)",
-            }} />
-          </div>
-
-          {/* ── Wax seal ── */}
-          {phase !== "opening" && phase !== "revealing" && (
-            <div
-              className={`absolute ${
-                phase === "idle" ? "seal-idle tap-hint" :
-                phase === "breaking" ? "seal-breaking" :
-                "seal-broken"
-              }`}
-              style={{
-                left: "50%",
-                top: "50%",
-                width: "min(16vw, 100px)",
-                height: "min(16vw, 100px)",
-                zIndex: 10,
-              }}
-              onClick={handleSealClick}
-            >
-              {/* Outer seal ring */}
-              <svg
-                viewBox="0 0 100 100"
-                style={{ position: "absolute", inset: 0, width: "100%", height: "100%", filter: "drop-shadow(0 4px 12px rgba(0,0,0,0.4))" }}
-              >
-                {/* Outer decorative ring */}
-                <circle cx="50" cy="50" r="47" fill={sealColor} />
-                <circle cx="50" cy="50" r="43" fill="none" stroke={sealColor} strokeWidth="1" style={{ filter: "brightness(0.85)" }} />
-                {/* Inner ring — slightly darker */}
-                <circle cx="50" cy="50" r="38" fill={sealColor} style={{ filter: "brightness(0.92)" }} />
-                {/* Decorative dots around ring */}
-                {Array.from({ length: 24 }).map((_, i) => {
-                  const angle = (i / 24) * 2 * Math.PI;
-                  const r = 44;
-                  const x = 50 + r * Math.cos(angle);
-                  const y = 50 + r * Math.sin(angle);
-                  return <circle key={i} cx={x} cy={y} r="1.2" fill={sealColor} style={{ filter: "brightness(0.7)" }} />;
-                })}
-                {/* Wax texture lines */}
-                <circle cx="50" cy="50" r="36" fill="none" stroke={sealColor} strokeWidth="0.5" style={{ filter: "brightness(0.78)" }} />
-              </svg>
-
-              {/* Monogram or initials */}
-              {monogramUrl ? (
-                <img
-                  src={monogramUrl}
-                  alt="monograma"
-                  style={{
-                    position: "absolute",
-                    inset: "20%",
-                    width: "60%",
-                    height: "60%",
-                    objectFit: "contain",
-                    mixBlendMode: "multiply",
-                    opacity: 0.7,
-                  }}
-                />
-              ) : (
-                <div style={{
-                  position: "absolute",
-                  inset: 0,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}>
-                  <span style={{
-                    fontFamily: "Georgia, 'Times New Roman', serif",
-                    fontSize: "min(5vw, 28px)",
-                    color: sealColor,
-                    filter: "brightness(0.55)",
-                    letterSpacing: "0.05em",
-                    fontStyle: "italic",
-                  }}>{initials}</span>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* ── Card rising from envelope ── */}
-          {isOpening && (
-            <div
-              className="card-rise absolute"
-              style={{
-                left: "10%",
-                right: "10%",
-                bottom: "15%",
-                zIndex: 6,
-                background: "#FAF7F2",
-                borderRadius: "2px",
-                padding: "min(4vw, 24px) min(5vw, 32px)",
-                boxShadow: "0 8px 40px rgba(0,0,0,0.3)",
-                textAlign: "center",
-              }}
-            >
-              <div style={{
-                fontFamily: "Georgia, 'Times New Roman', serif",
-                fontSize: "min(2vw, 11px)",
-                color: envelopeColor,
-                letterSpacing: "0.15em",
-                textTransform: "uppercase",
-                marginBottom: "0.5em",
-                opacity: 0.6,
-              }}>
-                Com a bênção de nossas famílias
-              </div>
-              <div style={{
-                fontFamily: "Georgia, 'Times New Roman', serif",
-                fontSize: "min(5.5vw, 32px)",
-                color: "#1a1a1a",
-                lineHeight: 1.1,
-              }}>
-                {name1}
-                <span style={{ display: "block", fontSize: "0.55em", margin: "0.2em 0", color: envelopeColor }}>&amp;</span>
-                {name2}
-              </div>
-            </div>
-          )}
+        {/* Envelope flaps — 4 triangles meeting in center */}
+        <div className={`absolute inset-0 ${isOpening ? "flap-top" : ""}`} style={{ zIndex: 3, transformStyle: "preserve-3d", perspective: "800px" }}>
+          <div style={{
+            position: "absolute", inset: 0,
+            background: envelopeColor,
+            clipPath: "polygon(0% 0%, 100% 0%, 50% 52%)",
+            filter: "brightness(0.9)",
+          }} />
         </div>
 
-        {/* Tap hint text */}
-        {phase === "idle" && (
+        <div className={`absolute inset-0 ${isOpening ? "flap-bottom" : ""}`} style={{ zIndex: 3, transformStyle: "preserve-3d", perspective: "800px" }}>
+          <div style={{
+            position: "absolute", inset: 0,
+            background: envelopeColor,
+            clipPath: "polygon(0% 100%, 100% 100%, 50% 52%)",
+            filter: "brightness(0.84)",
+          }} />
+        </div>
+
+        <div className={`absolute inset-0 ${isOpening ? "flap-left" : ""}`} style={{ zIndex: 3, transformStyle: "preserve-3d", perspective: "800px" }}>
+          <div style={{
+            position: "absolute", inset: 0,
+            background: envelopeColor,
+            clipPath: "polygon(0% 0%, 52% 50%, 0% 100%)",
+            filter: "brightness(0.87)",
+          }} />
+        </div>
+
+        <div className={`absolute inset-0 ${isOpening ? "flap-right" : ""}`} style={{ zIndex: 3, transformStyle: "preserve-3d", perspective: "800px" }}>
+          <div style={{
+            position: "absolute", inset: 0,
+            background: envelopeColor,
+            clipPath: "polygon(100% 0%, 48% 50%, 100% 100%)",
+            filter: "brightness(0.87)",
+          }} />
+        </div>
+
+        {/* Flap seam lines */}
+        {!isOpening && (
+          <svg style={{ position: "absolute", inset: 0, width: "100%", height: "100%", zIndex: 4, pointerEvents: "none", opacity: 0.25 }}>
+            <line x1="0" y1="0" x2="50%" y2="52%" stroke="white" strokeWidth="0.8" />
+            <line x1="100%" y1="0" x2="50%" y2="52%" stroke="white" strokeWidth="0.8" />
+            <line x1="0" y1="100%" x2="50%" y2="52%" stroke="white" strokeWidth="0.8" />
+            <line x1="100%" y1="100%" x2="50%" y2="52%" stroke="white" strokeWidth="0.8" />
+          </svg>
+        )}
+
+        {/* Wax seal */}
+        {!isOpening && (
           <div
-            className="absolute tap-hint"
+            className={`absolute ${
+              phase === "idle" ? "seal-idle tap-pulse" :
+              phase === "breaking" ? "seal-break" : "seal-gone"
+            }`}
             style={{
-              bottom: "10%",
-              left: "50%",
-              transform: "translateX(-50%)",
-              color: "rgba(255,255,255,0.5)",
+              left: "50%", top: "50%",
+              width: "clamp(80px, 22vw, 130px)",
+              height: "clamp(80px, 22vw, 130px)",
+              zIndex: 10,
+            }}
+            onClick={handleSealClick}
+          >
+            <svg viewBox="0 0 100 100" style={{ width: "100%", height: "100%", filter: "drop-shadow(0 6px 18px rgba(0,0,0,0.35))" }}>
+              {/* Outer ring */}
+              <circle cx="50" cy="50" r="48" fill={sealColor} />
+              {/* Decorative dots ring */}
+              {Array.from({ length: 32 }).map((_, i) => {
+                const a = (i / 32) * 2 * Math.PI;
+                return <circle key={i} cx={50 + 44 * Math.cos(a)} cy={50 + 44 * Math.sin(a)} r="1" fill={sealColor} style={{ filter: "brightness(0.65)" }} />;
+              })}
+              {/* Inner circles */}
+              <circle cx="50" cy="50" r="40" fill={sealColor} style={{ filter: "brightness(0.94)" }} />
+              <circle cx="50" cy="50" r="36" fill={sealColor} style={{ filter: "brightness(0.88)" }} />
+              {/* Wax texture radial lines */}
+              {Array.from({ length: 8 }).map((_, i) => {
+                const a = (i / 8) * 2 * Math.PI;
+                return <line key={i} x1={50 + 18 * Math.cos(a)} y1={50 + 18 * Math.sin(a)} x2={50 + 34 * Math.cos(a)} y2={50 + 34 * Math.sin(a)} stroke={sealColor} strokeWidth="0.7" style={{ filter: "brightness(0.7)" }} />;
+              })}
+            </svg>
+
+            {/* Monogram or initials */}
+            {monogramUrl ? (
+              <img src={monogramUrl} alt="" style={{
+                position: "absolute", inset: "22%", width: "56%", height: "56%",
+                objectFit: "contain", mixBlendMode: "multiply", opacity: 0.65,
+              }} />
+            ) : (
+              <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <span style={{
+                  fontFamily: "Georgia, 'Times New Roman', serif",
+                  fontSize: "clamp(18px, 6vw, 36px)",
+                  color: sealColor, filter: "brightness(0.5)",
+                  fontStyle: "italic", letterSpacing: "0.04em",
+                }}>{initials}</span>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Tap hint arrow */}
+        {phase === "idle" && (
+          <div className="arrow-bounce" style={{
+            position: "absolute", bottom: "8%", left: "50%",
+            transform: "translateX(-50%)",
+            display: "flex", flexDirection: "column", alignItems: "center", gap: 4,
+            zIndex: 11, pointerEvents: "none",
+          }}>
+            <span style={{
+              color: "rgba(255,255,255,0.55)",
               fontFamily: "system-ui, sans-serif",
-              fontSize: "min(3.5vw, 13px)",
+              fontSize: "clamp(10px, 2.5vw, 12px)",
               letterSpacing: "0.2em",
               textTransform: "uppercase",
-              pointerEvents: "none",
-            }}
-          >
-            Toque no lacre para abrir
+            }}>Toque no lacre</span>
+            <svg width="18" height="18" fill="none" stroke="white" strokeWidth={1.5} viewBox="0 0 24 24" style={{ opacity: 0.55 }}>
+              <path d="M6 9l6 6 6-6" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
           </div>
         )}
       </div>
