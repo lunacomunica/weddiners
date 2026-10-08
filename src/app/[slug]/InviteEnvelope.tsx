@@ -312,6 +312,16 @@ export function InviteEnvelope({
 
 /* ── Componente do SVG do lacre (reutilizado nas duas metades) ── */
 function SealSVG({ sealColor, monogramUrl, initials }: { sealColor: string; monogramUrl: string | null; initials: string }) {
+  if (monogramUrl) {
+    return (
+      <img src={monogramUrl} alt="lacre" style={{
+        position: "absolute", inset: 0, width: "100%", height: "100%",
+        objectFit: "contain",
+        filter: "drop-shadow(0 6px 14px rgba(0,0,0,0.45))",
+      }} />
+    );
+  }
+
   return (
     <>
       <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"
@@ -360,22 +370,17 @@ function SealSVG({ sealColor, monogramUrl, initials }: { sealColor: string; mono
         <ellipse cx="44" cy="38" rx="17" ry="11" fill="url(#specular)" transform="rotate(-25 44 38)"/>
         <ellipse cx="38" cy="34" rx="6"  ry="4"  fill="white" fillOpacity="0.35" transform="rotate(-20 38 34)"/>
       </svg>
-      {monogramUrl && (
-        <img src={monogramUrl} alt="lacre" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "contain" }} />
-      )}
-      {!monogramUrl && (
-        <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <span style={{
-            fontFamily: "Georgia, 'Times New Roman', serif",
-            fontSize: "clamp(20px, 6.5vw, 40px)",
-            color: sealColor,
-            filter: "brightness(0.42) contrast(1.2)",
-            fontStyle: "italic",
-            letterSpacing: "0.04em",
-            textShadow: "0 1px 2px rgba(0,0,0,0.15)",
-          }}>{initials}</span>
-        </div>
-      )}
+      <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <span style={{
+          fontFamily: "Georgia, 'Times New Roman', serif",
+          fontSize: "clamp(20px, 6.5vw, 40px)",
+          color: sealColor,
+          filter: "brightness(0.42) contrast(1.2)",
+          fontStyle: "italic",
+          letterSpacing: "0.04em",
+          textShadow: "0 1px 2px rgba(0,0,0,0.15)",
+        }}>{initials}</span>
+      </div>
     </>
   );
 }
