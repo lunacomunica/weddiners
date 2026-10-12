@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { QrCodePix } from "qrcode-pix";
+import QRCode from "qrcode";
 import { Modal } from "@/components/ui/Modal";
 import { fmtBRL } from "@/lib/format";
 import { Input } from "@/components/ui/Input";
@@ -46,23 +46,9 @@ export function GiftPixModal({ open, onClose, gift, coupleId, pixKey, pixKeyType
 
     setQrDataUrl("");
 
-    // Sanitiza chave: remove formatação de CPF/telefone
-    const cleanKey = pixKey.trim().replace(/[.\-\s]/g, "");
-    const nameClean = (pixHolderName || "Casal").normalize("NFD").replace(/[̀-ͯ]/g, "").slice(0, 25);
-    const cityClean = (pixCity || "Brasil").normalize("NFD").replace(/[̀-ͯ]/g, "").slice(0, 15);
-
-    try {
-      QrCodePix({
-        version: "01",
-        key: cleanKey,
-        name: nameClean,
-        city: cityClean,
-      }).base64()
-        .then(setQrDataUrl)
-        .catch(err => console.error("[Pix QR] base64 error:", err));
-    } catch (err) {
-      console.error("[Pix QR] init error:", err);
-    }
+    // QR Code simples com a chave Pix — banco abre na tela de pagamento
+    QRCode.toDataURL(pixKey.trim(), { width: 240, margin: 2, color: { dark: "#1C2018", light: "#FFFFFF" } })
+      .then(setQrDataUrl);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, pixKey, pixHolderName, pixCity]);
 
