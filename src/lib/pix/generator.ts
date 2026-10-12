@@ -3,7 +3,7 @@ function crc16(str: string): string {
   for (let i = 0; i < str.length; i++) {
     crc ^= str.charCodeAt(i) << 8;
     for (let j = 0; j < 8; j++) {
-      crc = crc & 0x8000 ? (crc << 1) ^ 0x1021 : crc << 1;
+      crc = crc & 0x8000 ? ((crc << 1) ^ 0x1021) & 0xffff : (crc << 1) & 0xffff;
     }
   }
   return ((crc & 0xffff).toString(16).toUpperCase().padStart(4, "0"));
@@ -49,7 +49,7 @@ function sanitizePixKey(key: string, type?: string): string {
 export function generatePixPayload(opts: PixPayloadOptions): string {
   const { pixKeyType, holderName, city, amount, description } = opts;
   const pixKey = sanitizePixKey(opts.pixKey, pixKeyType);
-  const txId = (opts.txId ?? "WEDDINERS").replace(/[^A-Z0-9]/gi, "").toUpperCase().slice(0, 25) || "WEDDINERS";
+  const txId = (opts.txId ?? `WD${Date.now().toString(36).toUpperCase()}`).replace(/[^A-Z0-9]/gi, "").toUpperCase().slice(0, 25) || "WEDDINERS";
 
   const merchantAccountInfo = field("00", "BR.GOV.BCB.PIX") + field("01", pixKey) + (description ? field("02", description.slice(0, 72)) : "");
   const amountStr = amount.toFixed(2);
