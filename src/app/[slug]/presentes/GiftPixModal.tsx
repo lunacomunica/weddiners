@@ -49,9 +49,12 @@ export function GiftPixModal({ open, onClose, gift, coupleId, pixKey, pixKeyType
     ? parsedCustom
     : baseAmount;
 
+  const needsAmount = effectiveAmount <= 0;
+
   // Regenerate QR whenever open state or effective amount changes
   useEffect(() => {
     if (!open) { setStep("pix"); setCopied(false); setCustomAmount(""); setAmountError(""); return; }
+    if (needsAmount) { setQrDataUrl(""); setPixCode(""); return; }
 
     const payload = generatePixPayload({
       pixKey,
@@ -65,7 +68,7 @@ export function GiftPixModal({ open, onClose, gift, coupleId, pixKey, pixKeyType
     QRCode.toDataURL(payload, { width: 240, margin: 2, color: { dark: "#1C2018", light: "#FFFFFF" } })
       .then(setQrDataUrl);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, effectiveAmount, gift.title, pixKey, pixKeyType, pixHolderName, pixCity]);
+  }, [open, effectiveAmount, needsAmount, gift.title, pixKey, pixKeyType, pixHolderName, pixCity]);
 
   function handleAmountChange(raw: string) {
     // Allow digits, comma and dot only
@@ -141,37 +144,47 @@ export function GiftPixModal({ open, onClose, gift, coupleId, pixKey, pixKeyType
             Escaneie o QR Code ou copie o código Pix abaixo.
           </p>
 
-          {qrDataUrl && (
+          {needsAmount ? (
+            <div className="w-full bg-amber-50 border border-amber-200 rounded-xl px-4 py-4 text-center">
+              <p className="text-sm font-body text-amber-700">
+                Digite um valor acima para gerar o QR Code.
+              </p>
+            </div>
+          ) : qrDataUrl ? (
             <div className="p-4 bg-ivory rounded-lg border border-champagne">
               <img src={qrDataUrl} alt="QR Code Pix" className="w-48 h-48" />
             </div>
+          ) : null}
+
+          {!needsAmount && pixCode && (
+            <div className="w-full">
+              <p className="text-xs text-smoke font-body mb-2 text-center">Pix Copia e Cola</p>
+              <div className="flex gap-2">
+                <input
+                  readOnly
+                  value={pixCode}
+                  className="flex-1 text-xs px-3 py-2 rounded-md border border-noir/15 bg-ivory text-noir/60 font-body truncate"
+                />
+                <Button variant="secondary" size="sm" onClick={handleCopy}>
+                  {copied ? "Copiado!" : "Copiar"}
+                </Button>
+              </div>
+            </div>
           )}
 
-          <div className="w-full">
-            <p className="text-xs text-smoke font-body mb-2 text-center">Pix Copia e Cola</p>
-            <div className="flex gap-2">
-              <input
-                readOnly
-                value={pixCode}
-                className="flex-1 text-xs px-3 py-2 rounded-md border border-noir/15 bg-ivory text-noir/60 font-body truncate"
-              />
-              <Button variant="secondary" size="sm" onClick={handleCopy}>
-                {copied ? "Copiado!" : "Copiar"}
+          {!needsAmount && (
+            <div className="w-full border-t border-champagne pt-4">
+              <p className="text-xs text-smoke font-body text-center mb-3">
+                Valor:{" "}
+                <span className="font-semibold text-moss">
+                  {fmtBRL(effectiveAmount)}
+                </span>
+              </p>
+              <Button className="w-full" onClick={() => setStep("confirm")}>
+                Já enviei o Pix ✓
               </Button>
             </div>
-          </div>
-
-          <div className="w-full border-t border-champagne pt-4">
-            <p className="text-xs text-smoke font-body text-center mb-3">
-              Valor:{" "}
-              <span className="font-semibold text-moss">
-                {fmtBRL(effectiveAmount)}
-              </span>
-            </p>
-            <Button className="w-full" onClick={() => setStep("confirm")}>
-              Já enviei o Pix ✓
-            </Button>
-          </div>
+          )}
         </div>
       )}
 

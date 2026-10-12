@@ -52,7 +52,7 @@ export function generatePixPayload(opts: PixPayloadOptions): string {
   const txId = (opts.txId ?? `WD${Date.now().toString(36).toUpperCase()}`).replace(/[^A-Z0-9]/gi, "").toUpperCase().slice(0, 25) || "WEDDINERS";
 
   const merchantAccountInfo = field("00", "BR.GOV.BCB.PIX") + field("01", pixKey) + (description ? field("02", description.slice(0, 72)) : "");
-  const amountStr = amount.toFixed(2);
+  const amountStr = amount > 0 ? amount.toFixed(2) : null;
   const nameClean = holderName.normalize("NFD").replace(/[\u0300-\u036f]/g, "").slice(0, 25);
   const cityClean = city.normalize("NFD").replace(/[\u0300-\u036f]/g, "").slice(0, 15);
 
@@ -63,7 +63,7 @@ export function generatePixPayload(opts: PixPayloadOptions): string {
     field("26", merchantAccountInfo) +
     field("52", "0000") +
     field("53", "986") +
-    field("54", amountStr) +
+    (amountStr ? field("54", amountStr) : "") +
     field("58", "BR") +
     field("59", nameClean) +
     field("60", cityClean) +
