@@ -1,13 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import QRCode from "qrcode";
+import { QrCodePix } from "qrcode-pix";
 import { Modal } from "@/components/ui/Modal";
 import { fmtBRL } from "@/lib/format";
 import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
 import { Button } from "@/components/ui/Button";
-import { generatePixPayload } from "@/lib/pix/generator";
 import { registerContribution } from "./actions";
 
 interface Gift {
@@ -31,7 +30,7 @@ interface GiftPixModalProps {
 
 type Step = "pix" | "confirm" | "done";
 
-export function GiftPixModal({ open, onClose, gift, coupleId, pixKey, pixKeyType, pixHolderName, pixCity, coupleName: _coupleName }: GiftPixModalProps) {
+export function GiftPixModal({ open, onClose, gift, coupleId, pixKey, pixKeyType: _pixKeyType, pixHolderName, pixCity, coupleName: _coupleName }: GiftPixModalProps) {
   const [step, setStep] = useState<Step>("pix");
   const [qrDataUrl, setQrDataUrl] = useState("");
   const [copied, setCopied] = useState(false);
@@ -45,19 +44,15 @@ export function GiftPixModal({ open, onClose, gift, coupleId, pixKey, pixKeyType
   useEffect(() => {
     if (!open) { setStep("pix"); setCopied(false); return; }
 
-    // QR Code sem valor — pessoa digita o valor no banco
-    const payload = generatePixPayload({
-      pixKey,
-      pixKeyType,
-      holderName: pixHolderName,
-      city: pixCity || "Brasil",
-      amount: 0,
-      description: gift.title.slice(0, 30),
-    });
-    QRCode.toDataURL(payload, { width: 240, margin: 2, color: { dark: "#1C2018", light: "#FFFFFF" } })
-      .then(setQrDataUrl);
+    // Usa qrcode-pix — lib testada, sem valor (pessoa digita no banco)
+    QrCodePix({
+      version: "01",
+      key: pixKey,
+      name: pixHolderName || "Casal",
+      city: (pixCity || "Brasil").normalize("NFD").replace(/[̀-ͯ]/g, "").slice(0, 15),
+    }).base64().then(setQrDataUrl);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, pixKey, pixKeyType, pixHolderName, pixCity, gift.title]);
+  }, [open, pixKey, pixHolderName, pixCity]);
 
   async function handleCopyKey() {
     await navigator.clipboard.writeText(pixKey);
