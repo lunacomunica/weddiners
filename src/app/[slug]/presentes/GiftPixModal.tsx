@@ -31,55 +31,36 @@ interface GiftPixModalProps {
 
 type Step = "pix" | "confirm" | "done";
 
-export function GiftPixModal({ open, onClose, gift, coupleId, pixKey, pixKeyType, pixHolderName, pixCity, coupleName }: GiftPixModalProps) {
+export function GiftPixModal({ open, onClose, gift, coupleId, pixKey, pixKeyType, pixHolderName, pixCity, coupleName: _coupleName }: GiftPixModalProps) {
   const [step, setStep] = useState<Step>("pix");
   const [qrDataUrl, setQrDataUrl] = useState("");
-  const [pixCode, setPixCode] = useState("");
   const [copied, setCopied] = useState(false);
   const [loading, setLoading] = useState(false);
   const [giverName, setGiverName] = useState("");
   const [giverEmail, setGiverEmail] = useState("");
   const [message, setMessage] = useState("");
-  const [customAmount, setCustomAmount] = useState<string>("");
-  const [amountError, setAmountError] = useState("");
 
-  const baseAmount = Number(gift.amount);
-  const parsedCustom = parseFloat(customAmount.replace(",", "."));
-  const effectiveAmount = customAmount.trim() !== "" && !isNaN(parsedCustom) && parsedCustom > 0
-    ? parsedCustom
-    : baseAmount;
+  const suggestedAmount = Number(gift.amount) > 0 ? Number(gift.amount) : null;
 
-  const needsAmount = effectiveAmount <= 0;
-
-  // Regenerate QR whenever open state or effective amount changes
   useEffect(() => {
-    if (!open) { setStep("pix"); setCopied(false); setCustomAmount(""); setAmountError(""); return; }
-    if (needsAmount) { setQrDataUrl(""); setPixCode(""); return; }
+    if (!open) { setStep("pix"); setCopied(false); return; }
 
+    // QR Code sem valor — pessoa digita o valor no banco
     const payload = generatePixPayload({
       pixKey,
       pixKeyType,
       holderName: pixHolderName,
       city: pixCity || "Brasil",
-      amount: effectiveAmount,
+      amount: 0,
       description: gift.title.slice(0, 30),
     });
-    setPixCode(payload);
     QRCode.toDataURL(payload, { width: 240, margin: 2, color: { dark: "#1C2018", light: "#FFFFFF" } })
       .then(setQrDataUrl);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, effectiveAmount, needsAmount, gift.title, pixKey, pixKeyType, pixHolderName, pixCity]);
+  }, [open, pixKey, pixKeyType, pixHolderName, pixCity, gift.title]);
 
-  function handleAmountChange(raw: string) {
-    // Allow digits, comma and dot only
-    const sanitized = raw.replace(/[^0-9.,]/g, "");
-    setCustomAmount(sanitized);
-    setCopied(false);
-    setAmountError("");
-  }
-
-  async function handleCopy() {
-    await navigator.clipboard.writeText(pixCode);
+  async function handleCopyKey() {
+    await navigator.clipboard.writeText(pixKey);
     setCopied(true);
     setTimeout(() => setCopied(false), 3000);
   }
@@ -92,7 +73,7 @@ export function GiftPixModal({ open, onClose, gift, coupleId, pixKey, pixKeyType
     formData.set("couple_id", coupleId);
     formData.set("giver_name", giverName);
     formData.set("giver_email", giverEmail);
-    formData.set("amount", String(effectiveAmount));
+    formData.set("amount", String(suggestedAmount ?? 0));
     formData.set("message", message);
     formData.set("pix_key", pixKey);
     formData.set("pix_holder_name", pixHolderName);
@@ -106,85 +87,47 @@ export function GiftPixModal({ open, onClose, gift, coupleId, pixKey, pixKeyType
 
       {step === "pix" && (
         <div className="flex flex-col items-center gap-5">
-          {/* Aviso de confirmação */}
-          <div className="w-full bg-sage/10 border border-sage/20 rounded-xl px-4 py-3 text-center">
-            <p className="text-sm font-body text-moss">
-              Você está presenteando <strong>{coupleName}</strong> com{" "}
-              <strong>{fmtBRL(effectiveAmount)}</strong> via Pix 💚
-            </p>
-          </div>
 
-          {/* Campo de valor customizável */}
-          <div className="w-full">
-            <p className="text-xs text-smoke font-body mb-1.5 text-center">
-              Valor sugerido: <span className="font-semibold">{fmtBRL(baseAmount)}</span>
-              {" · "}Clique abaixo para contribuir com outro valor
-            </p>
-            <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-body text-smoke">R$</span>
-              <input
-                type="text"
-                inputMode="decimal"
-                value={customAmount}
-                onChange={e => handleAmountChange(e.target.value)}
-                placeholder={baseAmount.toFixed(2).replace(".", ",")}
-                className="w-full pl-9 pr-4 py-2.5 rounded-lg border font-body text-sm text-center outline-none focus:border-moss transition-colors"
-                style={{ borderColor: "rgba(28,32,24,0.15)" }}
-              />
-            </div>
-            {amountError && <p className="text-rose text-xs font-body mt-1 text-center">{amountError}</p>}
-            {customAmount.trim() !== "" && !isNaN(parsedCustom) && parsedCustom > 0 && parsedCustom !== baseAmount && (
-              <p className="text-moss text-xs font-body mt-1 text-center">
-                ✓ QR Code atualizado para {fmtBRL(parsedCustom)}
+          {suggestedAmount && (
+            <div className="w-full bg-sage/10 border border-sage/20 rounded-xl px-4 py-3 text-center">
+              <p className="text-sm font-body text-moss">
+                Valor sugerido: <strong>{fmtBRL(suggestedAmount)}</strong> — você digita no seu banco 💚
               </p>
-            )}
-          </div>
+            </div>
+          )}
 
-          <p className="text-smoke text-sm font-body text-center -mt-1">
-            Escaneie o QR Code ou copie o código Pix abaixo.
+          <p className="text-smoke text-sm font-body text-center">
+            Escaneie o QR Code ou copie a chave Pix abaixo.
           </p>
 
-          {needsAmount ? (
-            <div className="w-full bg-amber-50 border border-amber-200 rounded-xl px-4 py-4 text-center">
-              <p className="text-sm font-body text-amber-700">
-                Digite um valor acima para gerar o QR Code.
-              </p>
-            </div>
-          ) : qrDataUrl ? (
+          {qrDataUrl && (
             <div className="p-4 bg-ivory rounded-lg border border-champagne">
               <img src={qrDataUrl} alt="QR Code Pix" className="w-48 h-48" />
             </div>
-          ) : null}
-
-          {!needsAmount && pixCode && (
-            <div className="w-full">
-              <p className="text-xs text-smoke font-body mb-2 text-center">Pix Copia e Cola</p>
-              <div className="flex gap-2">
-                <input
-                  readOnly
-                  value={pixCode}
-                  className="flex-1 text-xs px-3 py-2 rounded-md border border-noir/15 bg-ivory text-noir/60 font-body truncate"
-                />
-                <Button variant="secondary" size="sm" onClick={handleCopy}>
-                  {copied ? "Copiado!" : "Copiar"}
-                </Button>
-              </div>
-            </div>
           )}
 
-          {!needsAmount && (
-            <div className="w-full border-t border-champagne pt-4">
-              <p className="text-xs text-smoke font-body text-center mb-3">
-                Valor:{" "}
-                <span className="font-semibold text-moss">
-                  {fmtBRL(effectiveAmount)}
-                </span>
-              </p>
-              <Button className="w-full" onClick={() => setStep("confirm")}>
-                Já enviei o Pix ✓
+          <div className="w-full">
+            <p className="text-xs text-smoke font-body mb-2 text-center">Chave Pix</p>
+            <div className="flex gap-2">
+              <input
+                readOnly
+                value={pixKey}
+                className="flex-1 text-xs px-3 py-2 rounded-md border border-noir/15 bg-ivory text-noir/60 font-body truncate"
+              />
+              <Button variant="secondary" size="sm" onClick={handleCopyKey}>
+                {copied ? "Copiado!" : "Copiar"}
               </Button>
             </div>
-          )}
+            <p className="text-xs text-smoke/60 font-body mt-1.5 text-center">
+              Titular: <span className="font-medium">{pixHolderName}</span>
+            </p>
+          </div>
+
+          <div className="w-full border-t border-champagne pt-4">
+            <Button className="w-full" onClick={() => setStep("confirm")}>
+              Já enviei o Pix ✓
+            </Button>
+          </div>
         </div>
       )}
 
