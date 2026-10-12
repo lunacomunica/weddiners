@@ -42,15 +42,27 @@ export function GiftPixModal({ open, onClose, gift, coupleId, pixKey, pixKeyType
   const suggestedAmount = Number(gift.amount) > 0 ? Number(gift.amount) : null;
 
   useEffect(() => {
-    if (!open) { setStep("pix"); setCopied(false); return; }
+    if (!open) { setStep("pix"); setCopied(false); setQrDataUrl(""); return; }
 
-    // Usa qrcode-pix — lib testada, sem valor (pessoa digita no banco)
-    QrCodePix({
-      version: "01",
-      key: pixKey,
-      name: pixHolderName || "Casal",
-      city: (pixCity || "Brasil").normalize("NFD").replace(/[̀-ͯ]/g, "").slice(0, 15),
-    }).base64().then(setQrDataUrl);
+    setQrDataUrl("");
+
+    // Sanitiza chave: remove formatação de CPF/telefone
+    const cleanKey = pixKey.trim().replace(/[.\-\s]/g, "");
+    const nameClean = (pixHolderName || "Casal").normalize("NFD").replace(/[̀-ͯ]/g, "").slice(0, 25);
+    const cityClean = (pixCity || "Brasil").normalize("NFD").replace(/[̀-ͯ]/g, "").slice(0, 15);
+
+    try {
+      QrCodePix({
+        version: "01",
+        key: cleanKey,
+        name: nameClean,
+        city: cityClean,
+      }).base64()
+        .then(setQrDataUrl)
+        .catch(err => console.error("[Pix QR] base64 error:", err));
+    } catch (err) {
+      console.error("[Pix QR] init error:", err);
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, pixKey, pixHolderName, pixCity]);
 
