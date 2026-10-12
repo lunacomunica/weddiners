@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import QRCode from "qrcode";
+import { QrCodePix } from "qrcode-pix";
 import { Modal } from "@/components/ui/Modal";
 import { fmtBRL } from "@/lib/format";
 import { Input } from "@/components/ui/Input";
@@ -33,6 +33,7 @@ type Step = "pix" | "confirm" | "done";
 export function GiftPixModal({ open, onClose, gift, coupleId, pixKey, pixKeyType: _pixKeyType, pixHolderName, pixCity, coupleName: _coupleName }: GiftPixModalProps) {
   const [step, setStep] = useState<Step>("pix");
   const [qrDataUrl, setQrDataUrl] = useState("");
+  const [pixPayload, setPixPayload] = useState("");
   const [copied, setCopied] = useState(false);
   const [loading, setLoading] = useState(false);
   const [giverName, setGiverName] = useState("");
@@ -45,15 +46,20 @@ export function GiftPixModal({ open, onClose, gift, coupleId, pixKey, pixKeyType
     if (!open) { setStep("pix"); setCopied(false); setQrDataUrl(""); return; }
 
     setQrDataUrl("");
+    setPixPayload("");
 
-    // QR Code simples com a chave Pix — banco abre na tela de pagamento
-    QRCode.toDataURL(pixKey.trim(), { width: 240, margin: 2, color: { dark: "#1C2018", light: "#FFFFFF" } })
-      .then(setQrDataUrl);
+    const cleanKey = pixKey.trim().replace(/[.\-\s]/g, "");
+    const nameClean = (pixHolderName || "Casal").normalize("NFD").replace(/[̀-ͯ]/g, "").slice(0, 25);
+    const cityClean = (pixCity || "Brasil").normalize("NFD").replace(/[̀-ͯ]/g, "").slice(0, 15);
+
+    const qr = QrCodePix({ version: "01", key: cleanKey, name: nameClean, city: cityClean });
+    setPixPayload(qr.payload());
+    qr.base64().then(setQrDataUrl);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, pixKey, pixHolderName, pixCity]);
 
   async function handleCopyKey() {
-    await navigator.clipboard.writeText(pixKey);
+    await navigator.clipboard.writeText(pixPayload || pixKey);
     setCopied(true);
     setTimeout(() => setCopied(false), 3000);
   }
@@ -100,11 +106,11 @@ export function GiftPixModal({ open, onClose, gift, coupleId, pixKey, pixKeyType
           )}
 
           <div className="w-full">
-            <p className="text-xs text-smoke font-body mb-2 text-center">Chave Pix</p>
+            <p className="text-xs text-smoke font-body mb-2 text-center">Pix Copia e Cola</p>
             <div className="flex gap-2">
               <input
                 readOnly
-                value={pixKey}
+                value={pixPayload}
                 className="flex-1 text-xs px-3 py-2 rounded-md border border-noir/15 bg-ivory text-noir/60 font-body truncate"
               />
               <Button variant="secondary" size="sm" onClick={handleCopyKey}>
